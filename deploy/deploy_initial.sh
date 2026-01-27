@@ -3,7 +3,7 @@
 # Exit on error
 set -e
 
-APP_DIR=$(pwd)
+APP_DIR="/root/projects/hms"
 CLIENT_BUILD_DEST="/var/www/hms-client"
 
 echo "🚀 Starting Initial Deployment from $APP_DIR"
@@ -18,31 +18,36 @@ fi
 # 1. API Setup
 echo "🔹 Setting up API..."
 cd "$APP_DIR/api"
-npm install
-npm run build
+pnpm install
+pnpm run build
 npx prisma migrate deploy
 
 # Start PM2
 echo "🚀 Starting API with PM2..."
-pm2 start dist/main.js --name "hms-api"
+# Check if pm2 process already exists to avoid errors, or just use atomic start/restart
+pm2 describe hms-api > /dev/null 2>&1 && pm2 reload hms-api || pm2 start dist/main.js --name "hms-api"
 pm2 save
 
 # 2. Client Setup
 echo "🔹 Setting up Client..."
 cd "$APP_DIR/client"
-npm install
-npm run build
+pnpm install
+pnpm run build
 
 # Deploy Client Files
 echo "📂 Deploying Client to $CLIENT_BUILD_DEST..."
+sudo mkdir -p $CLIENT_BUILD_DEST
 # Remove old files if any (be careful)
-rm -rf $CLIENT_BUILD_DEST/*
-cp -r dist/* $CLIENT_BUILD_DEST/
+sudo rm -rf $CLIENT_BUILD_DEST/*
+sudo cp -r dist/* $CLIENT_BUILD_DEST/
 
 # 3. Nginx Configuration
 echo "🌐 Configuring Nginx..."
-sudo cp "$APP_DIR/deploy/nginx/hms.centrify.uz.conf" /etc/nginx/sites-available/
-sudo cp "$APP_DIR/deploy/nginx/api-hms.centrify.uz.conf" /etc/nginx/sites-available/
+# Ensure deploy directory path is correct relative to script or hardcoded
+DEPLOY_CONFIG_DIR="$APP_DIR/deploy/nginx"
+
+sudo cp "$DEPLOY_CONFIG_DIR/hms.centrify.uz.conf" /etc/nginx/sites-available/
+sudo cp "$DEPLOY_CONFIG_DIR/api-hms.centrify.uz.conf" /etc/nginx/sites-available/
 
 # Link sites
 sudo ln -sf /etc/nginx/sites-available/hms.centrify.uz.conf /etc/nginx/sites-enabled/

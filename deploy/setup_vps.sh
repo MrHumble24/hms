@@ -22,9 +22,9 @@ sudo apt-get install -y nodejs
 node -v
 npm -v
 
-# 4. Install PM2 globally
-echo "🚀 Installing PM2..."
-sudo npm install -g pm2
+# 4. Install PM2 and pnpm globally
+echo "🚀 Installing PM2 and pnpm..."
+sudo npm install -g pm2 pnpm
 
 # 5. Install Nginx
 echo "🌐 Installing Nginx..."
