@@ -149,7 +149,7 @@ export class InventoryService {
           tenantId,
           staffId,
           change: updateStockDto.change,
-          reason: updateStockDto.reason as StockUpdateReason,
+          reason: updateStockDto.reason,
           note: updateStockDto.note,
         },
       });

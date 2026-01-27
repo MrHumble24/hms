@@ -102,11 +102,8 @@ export class TenantMiddleware implements NestMiddleware {
       }
     }
 
-    tenantContextStorage.run(
-      { tenantId: tenantId as string, branchId: branchId as string },
-      () => {
-        next();
-      },
-    );
+    tenantContextStorage.run({ tenantId: tenantId, branchId: branchId }, () => {
+      next();
+    });
   }
 }

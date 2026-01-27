@@ -28,10 +28,12 @@ export const MobileTaskList = () => {
   const [completeModal, setCompleteModal] = useState<string | null>(null);
   const [completionNote, setCompletionNote] = useState("");
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: taskData, isLoading } = useQuery({
     queryKey: ["housekeeping", "my-tasks"],
-    queryFn: housekeepingApi.findAll, // Ideally filtered by assignee=me
+    queryFn: () => housekeepingApi.findAll(), // Ideally filtered by assignee=me
   });
+
+  const tasks = taskData?.data || [];
 
   const completeMutation = useMutation({
     mutationFn: (taskId: string) =>

@@ -11,6 +11,7 @@ import {
   List,
   Tooltip,
   Avatar,
+  Pagination,
 } from "antd";
 import {
   SearchOutlined,
@@ -30,6 +31,10 @@ import {
   type AuditAction,
 } from "@/entities/audit/api/audit-api";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { usePaginationSearchParams } from "@/shared/hooks/use-pagination-search-params";
+
+dayjs.extend(relativeTime);
 
 const { Title, Text } = Typography;
 
@@ -56,31 +61,30 @@ const actionColors: Record<AuditAction, string> = {
 export const AuditPage = () => {
   const [actionFilter, setActionFilter] = useState<AuditAction | "ALL">("ALL");
   const [entityFilter, setEntityFilter] = useState<string>("");
-  const [searchText, setSearchText] = useState("");
+
+  const {
+    params,
+    handleSearch,
+    handlePaginationChange,
+    pagination,
+    apiParams,
+  } = usePaginationSearchParams(20);
+
   const screens = Grid.useBreakpoint();
   const isMobile = screens.md === false;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["audit-logs", actionFilter, entityFilter],
+  const { data: logsData, isLoading } = useQuery({
+    queryKey: ["audit-logs", apiParams, actionFilter, entityFilter],
     queryFn: () =>
       auditApi.getAll({
+        ...apiParams,
         action: actionFilter !== "ALL" ? actionFilter : undefined,
         entityType: entityFilter || undefined,
-        take: 100,
       }),
   });
 
-  const logs = data?.logs || [];
-
-  const filteredLogs = logs.filter((log) => {
-    if (!searchText) return true;
-    const search = searchText.toLowerCase();
-    return (
-      log.user?.fullName?.toLowerCase().includes(search) ||
-      log.entityType.toLowerCase().includes(search) ||
-      log.entityId.toLowerCase().includes(search)
-    );
-  });
+  const logs = logsData?.data || [];
+  const total = logsData?.total || 0;
 
   const columns = [
     {
@@ -139,6 +143,7 @@ export const AuditPage = () => {
     },
   ];
 
+  // Note: getting unique entity types from current page only is partial, but okay for filter suggestions
   const entityTypes = [...new Set(logs.map((l) => l.entityType))];
 
   return (
@@ -165,8 +170,8 @@ export const AuditPage = () => {
             placeholder="Search by user or entity..."
             prefix={<SearchOutlined />}
             style={{ width: isMobile ? "100%" : 250 }}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            value={params.search}
+            onChange={(e) => handleSearch(e.target.value)}
             allowClear
           />
           <Select
@@ -198,53 +203,69 @@ export const AuditPage = () => {
         </div>
 
         {!isMobile ? (
-          <Table
-            dataSource={filteredLogs}
-            columns={columns}
-            rowKey="id"
-            loading={isLoading}
-            pagination={{ pageSize: 20, showTotal: (t) => `${t} logs` }}
-            size="small"
-          />
+          <>
+            <Table
+              dataSource={logs}
+              columns={columns}
+              rowKey="id"
+              loading={isLoading}
+              pagination={false}
+              size="small"
+              onChange={(p) =>
+                handlePaginationChange(p.current || 1, p.pageSize || 20)
+              }
+            />
+            <div style={{ marginTop: 16, textAlign: "right" }}>
+              <Pagination
+                {...pagination}
+                total={total}
+                showTotal={(t) => `${t} logs`}
+              />
+            </div>
+          </>
         ) : (
-          <List
-            dataSource={filteredLogs}
-            loading={isLoading}
-            pagination={{ pageSize: 15, align: "center" }}
-            renderItem={(log: AuditLog) => (
-              <List.Item>
-                <Card style={{ width: "100%" }} bodyStyle={{ padding: 12 }}>
-                  <div style={{ display: "flex", gap: 12 }}>
-                    <Avatar icon={<UserOutlined />} />
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text strong>{log.user?.fullName || "System"}</Text>
-                        <Tag
-                          color={actionColors[log.action]}
-                          style={{ margin: 0 }}
+          <>
+            <List
+              dataSource={logs}
+              loading={isLoading}
+              renderItem={(log: AuditLog) => (
+                <List.Item>
+                  <Card style={{ width: "100%" }} bodyStyle={{ padding: 12 }}>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <Avatar icon={<UserOutlined />} />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
                         >
-                          {log.action}
-                        </Tag>
-                      </div>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {log.entityType} • {log.entityId.substring(0, 8)}...
-                      </Text>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          {dayjs(log.createdAt).format("MMM DD, HH:mm")}
+                          <Text strong>{log.user?.fullName || "System"}</Text>
+                          <Tag
+                            color={actionColors[log.action]}
+                            style={{ margin: 0 }}
+                          >
+                            {log.action}
+                          </Tag>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {log.entityType} • {log.entityId.substring(0, 8)}...
                         </Text>
+                        <div>
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {dayjs(log.createdAt).format("MMM DD, HH:mm")}
+                          </Text>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </List.Item>
-            )}
-          />
+                  </Card>
+                </List.Item>
+              )}
+            />
+            <div style={{ marginTop: 16, textAlign: "center" }}>
+              <Pagination {...pagination} total={total} simple />
+            </div>
+          </>
         )}
       </Card>
     </div>

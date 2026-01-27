@@ -15,6 +15,14 @@ export interface Staff {
   maintenanceTickets?: any[];
 }
 
+export interface CreateStaffDto {
+  fullName: string;
+  email: string;
+  role: string;
+  password?: string;
+  phoneNumber?: string;
+}
+
 export interface UpdateStaffDto {
   fullName?: string;
   email?: string;
@@ -40,6 +48,9 @@ export const staffApi = {
 
   createStaff: (data: any) =>
     baseApi.post<Staff>("/staff", data).then((res) => res as unknown as Staff),
+
+  // Alias for compatibility
+  create: (data: CreateStaffDto) => staffApi.createStaff(data),
 
   updateStaff: (id: string, data: any) =>
     baseApi

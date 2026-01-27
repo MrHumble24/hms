@@ -1,13 +1,15 @@
 import { Tabs, Typography, Card } from "antd";
-import { useTranslation } from "react-i18next";
 import { BranchManagement } from "@/widgets/branch-management/ui/branch-management";
-import { SettingOutlined, BranchesOutlined } from "@ant-design/icons";
+import { BackupPage } from "@/pages/settings/ui/backup-page";
+import {
+  SettingOutlined,
+  BranchesOutlined,
+  DatabaseOutlined,
+} from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
 export const SettingsPage = () => {
-  const { t } = useTranslation(["common"]);
-
   const items = [
     {
       key: "general",
@@ -34,6 +36,15 @@ export const SettingsPage = () => {
           <BranchManagement />
         </Card>
       ),
+    },
+    {
+      key: "backups",
+      label: (
+        <span>
+          <DatabaseOutlined /> Backups
+        </span>
+      ),
+      children: <BackupPage />,
     },
   ];
 

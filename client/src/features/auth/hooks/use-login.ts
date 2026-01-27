@@ -13,7 +13,8 @@ export const useLogin = () => {
     mutationFn: async (values: any) => {
       const response = await baseApi.post("/auth/login", values);
       console.log("Login response:", response);
-      return response;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return response as any;
     },
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);

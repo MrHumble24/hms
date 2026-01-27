@@ -322,8 +322,8 @@ export const FolioMainPage = () => {
                 <div>
                   <Text type="secondary">{t("common:guest")}: </Text>
                   <Text strong>
-                    {folio.booking?.guest?.lastName || ""}{" "}
-                    {folio.booking?.guest?.firstName || ""}
+                    {folio.booking?.primaryGuest?.lastName || ""}{" "}
+                    {folio.booking?.primaryGuest?.firstName || ""}
                   </Text>
                 </div>
                 <div>

@@ -6,10 +6,7 @@ import {
   IsOptional,
   Min,
 } from 'class-validator';
-import {
-  InventoryCategory,
-  StockUpdateReason,
-} from '@prisma/client';
+import { InventoryCategory, StockUpdateReason } from '@prisma/client';
 
 export class CreateInventoryItemDto {
   @IsString()

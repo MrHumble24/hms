@@ -31,7 +31,7 @@ export class AiService {
       const prompt = `Estimate the total calories for a dish named "${name}" with the following ingredients: "${ingredients}". Return ONLY the numeric value (approximate total calories). If you cannot estimate, return "0".`;
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
+      const response = result.response;
       const text = response.text().trim();
 
       // Extract number from response (Gemini might return text with the number)

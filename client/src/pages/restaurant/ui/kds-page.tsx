@@ -36,11 +36,13 @@ export const KDSPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: orders = [] } = useQuery({
+  const { data: ordersData } = useQuery({
     queryKey: ["restaurant-orders"],
-    queryFn: restaurantApi.getOrders,
+    queryFn: () => restaurantApi.getOrders(),
     refetchInterval: 5000, // Poll every 5 seconds for the kitchen
   });
+
+  const orders = ordersData?.data || [];
 
   const updateStatusMutation = useMutation({
     mutationFn: ({

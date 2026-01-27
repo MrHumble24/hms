@@ -111,6 +111,9 @@ export interface Folio {
       lastName: string;
       email?: string;
     };
+    room?: {
+      number: string;
+    };
     roomStays?: {
       room: {
         number: string;

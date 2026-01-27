@@ -41,12 +41,14 @@ export const OrderHistoryPage = () => {
   );
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
+  const search = searchParams.get("search");
+
   useEffect(() => {
-    const search = searchParams.get("search");
-    if (search) {
-      setSearchText(search);
+    if (search !== null && search !== searchText) {
+      const timer = setTimeout(() => setSearchText(search), 0);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [search]);
 
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ["restaurant-orders", searchText, statusFilter],

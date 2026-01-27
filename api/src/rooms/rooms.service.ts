@@ -4,7 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import QRCode from 'qrcode';
+import { toString as toQrString } from 'qrcode';
 import archiver from 'archiver';
 import { PassThrough } from 'stream';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -475,7 +475,7 @@ export class RoomsService {
   }
 
   private async generateQrSvg(url: string, roomNumber: string) {
-    const qrSvg = await QRCode.toString(url, {
+    const qrSvg = await toQrString(url, {
       type: 'svg',
       margin: 2,
       width: 400,

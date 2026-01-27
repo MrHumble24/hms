@@ -234,7 +234,7 @@ export class FinanceService {
     // If no room charges posted yet, estimate based on primary room stay
     let ratePerNight = 0;
     let totalRoomCharges = totalRoomChargesPost;
-    let isEstimated = roomChargeItems.length === 0;
+    const isEstimated = roomChargeItems.length === 0;
 
     if (booking.roomStays && booking.roomStays.length > 0) {
       ratePerNight = Number(booking.roomStays[0].dailyRate);

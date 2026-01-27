@@ -19,6 +19,7 @@ import { TenantMiddleware } from './common/tenant-middleware.js';
 import { BranchModule } from './branch/branch.module.js';
 import { CommunicationsModule } from './communications/communications.module.js';
 import { AuditModule } from './audit/audit.module.js';
+import { BackupModule } from './backup/backup.module.js';
 
 @Module({
   imports: [
@@ -38,7 +39,9 @@ import { AuditModule } from './audit/audit.module.js';
     EmehmonModule,
     BranchModule,
     CommunicationsModule,
+    CommunicationsModule,
     AuditModule,
+    BackupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

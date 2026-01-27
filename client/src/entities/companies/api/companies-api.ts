@@ -50,22 +50,22 @@ export interface CreateDiscountContractDto {
 export const companiesApi = {
   findAll: async () => {
     const response = await api.get<Company[]>("/companies");
-    return response;
+    return response as unknown as Company[];
   },
 
   findOne: async (id: string) => {
     const response = await api.get<Company>(`/companies/${id}`);
-    return response;
+    return response as unknown as Company;
   },
 
   create: async (data: CreateCompanyDto) => {
     const response = await api.post<Company>("/companies", data);
-    return response;
+    return response as unknown as Company;
   },
 
   update: async (id: string, data: Partial<CreateCompanyDto>) => {
     const response = await api.patch<Company>(`/companies/${id}`, data);
-    return response;
+    return response as unknown as Company;
   },
 
   remove: async (id: string) => {
@@ -81,7 +81,7 @@ export const companiesApi = {
       `/companies/${companyId}/contracts`,
       data,
     );
-    return response;
+    return response as unknown as DiscountContract;
   },
 
   updateContract: async (contractId: string, data: any) => {
@@ -89,7 +89,7 @@ export const companiesApi = {
       `/companies/contracts/${contractId}`,
       data,
     );
-    return response;
+    return response as unknown as DiscountContract;
   },
 
   removeContract: async (contractId: string) => {

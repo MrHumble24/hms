@@ -23,7 +23,6 @@ import {
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { branchApi, type Branch } from "@/entities/branch/api/branch-api";
-import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
@@ -32,7 +31,6 @@ interface BranchManagementProps {
 }
 
 export const BranchManagement = ({ tenantId }: BranchManagementProps) => {
-  const { t } = useTranslation(["common"]); // Assuming common for now, or create branch namespace
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [form] = Form.useForm();

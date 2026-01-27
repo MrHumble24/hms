@@ -1,0 +1,317 @@
+
+> client@0.0.0 lint /Users/abdulboriymalikov/projects/Personal Project/hms/client
+> eslint .
+
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/app/providers/router/auth-guard.tsx
+   6:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/admin/api/admin-api.ts
+   98:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/audit/api/audit-api.ts
+   9:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/booking/api/booking-api.ts
+   37:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   59:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/companies/api/companies-api.ts
+  24:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  87:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/emehmon/api/emehmon-api.ts
+  8:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/housekeeping/api/housekeeping-api.ts
+  32:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/inventory/api/inventory-api.ts
+  75:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/restaurant/model/types.ts
+  48:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/entities/staff/api/staff-api.ts
+  14:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/features/auth/hooks/use-login.ts
+  13:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/admin/tenants/ui/tenant-details-page.tsx
+   80:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  345:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  369:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/admin/tenants/ui/tenants-page.tsx
+  126:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  381:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  387:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/audit/ui/audit-page.tsx
+   93:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/bookings/ui/bookings-page.tsx
+   98:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  503:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  508:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  514:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/branches/ui/branches-page.tsx
+  111:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/communications/ui/communications-page.tsx
+  87:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/companies/ui/companies-page.tsx
+   76:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/emehmon/ui/emehmon-page.tsx
+   61:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/finance/ui/manager-overview.tsx
+  86:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/housekeeping/ui/housekeeping-page.tsx
+  38:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/inventory/ui/inventory-page.tsx
+   78:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/login/ui/page.tsx
+  14:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/maintenance/ui/maintenance-page.tsx
+  133:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/guest-menu-page.tsx
+  106:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  485:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/kds-page.tsx
+  58:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/menu-management-page.tsx
+  76:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/order-history-page.tsx
+   48:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/order-history-page.tsx:48:7
+  46 |   useEffect(() => {
+  47 |     if (search !== null && search !== searchText) {
+> 48 |       setSearchText(search);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |     }
+  50 |   }, [search]);
+  51 |  react-hooks/set-state-in-effect
+   50:6   warning  React Hook useEffect has a missing dependency: 'searchText'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+  226:58  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/restaurant/ui/pos-page.tsx
+  86:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/rooms-management/ui/rooms-management-page.tsx
+   84:14  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  101:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/rooms/ui/page.tsx
+  141:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/pages/staff/ui/staff-page.tsx
+  165:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  218:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  223:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  303:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/shared/hooks/use-pagination-search-params.ts
+   8:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/bookings/ui/checkout-modal.tsx
+   39:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  229:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  260:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  325:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  398:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  399:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/bookings/ui/create-booking-drawer.tsx
+   66:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/branch-management/ui/branch-management.tsx
+   54:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/companies/ui/company-details.tsx
+   65:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/companies/ui/company-form.tsx
+  44:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/finance/ui/add-charge-form.tsx
+  45:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/finance/ui/record-payment-form.tsx
+  52:24  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  64:29  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  66:13  warning  'settleFull' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  70:32  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/guest-form/ui/guest-form.tsx
+  46:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/housekeeping/ui/assign-task-modal.tsx
+  67:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/housekeeping/ui/mobile-task-list.tsx
+  59:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/housekeeping/ui/room-status-drawer.tsx
+  24:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/inventory/ui/inventory-form.tsx
+  51:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/inventory/ui/stock-update-drawer.tsx
+  45:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/maintenance/ui/create-ticket-modal.tsx
+  59:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/restaurant/ui/category-form.tsx
+  24:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/restaurant/ui/menu-item-form.tsx
+  37:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/restaurant/ui/receipt-modal.tsx
+  97:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/room-form/ui/room-form.tsx
+  36:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/room-type-form/ui/room-type-form.tsx
+  32:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/sidebar/ui/sidebar.tsx
+  258:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  258:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  277:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  280:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  291:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  291:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/staff/ui/create-staff-drawer.tsx
+  53:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/staff/ui/staff-drawer.tsx
+  57:22  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  73:22  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  81:29  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  87:15  warning  'role' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/abdulboriymalikov/projects/Personal Project/hms/client/src/widgets/tab-bar/ui/tab-bar.tsx
+  17:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 182 problems (1 error, 181 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
