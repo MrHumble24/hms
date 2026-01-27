@@ -28,3 +28,5 @@ pnpm-debug.log*
 
 # Gemini
 .gemini
+/backups
+api/backups

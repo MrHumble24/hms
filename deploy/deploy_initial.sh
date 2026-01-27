@@ -18,12 +18,31 @@ fi
 # 1. API Setup
 echo "🔹 Setting up API..."
 cd "$APP_DIR/api"
-# Ensure pnpm runs build scripts (critical for bcrypt, nest, prisma)
-pnpm config set ignore-scripts false
+
+# Configure pnpm to allow scripts (globally for this user to ensure persistence)
+pnpm config set ignore-scripts false --global
+
+# Install dependencies (ignoring scripts first to ensure fetch)
 pnpm install
-# Generate Prisma Client (Required for build)
+
+# Force rebuild of dependencies to run lifecycle scripts (bcrypt, nest, prisma, etc.)
+echo "🔧 Rebuilding dependencies to execute lifecycle scripts..."
+pnpm rebuild
+
+# Generate Prisma Client
+echo "🔧 Generating Prisma Client..."
 npx prisma generate
-pnpm run build
+
+# Build the project
+echo "🏗 Building API Project..."
+npx nest build
+
+# Verify build success
+if [ ! -f "dist/main.js" ]; then
+    echo "❌ Error: API Build failed! dist/main.js not found."
+    exit 1
+fi
+
 npx prisma migrate deploy
 
 # Start PM2

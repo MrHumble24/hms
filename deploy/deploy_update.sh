@@ -16,10 +16,20 @@ git pull origin main
 # 1. Update API
 echo "🔹 Updating API..."
 cd "$APP_DIR/api"
-pnpm config set ignore-scripts false
+
+pnpm config set ignore-scripts false --global
 pnpm install
+pnpm rebuild
 npx prisma generate
-pnpm run build
+
+echo "🏗 Building API Project..."
+npx nest build
+
+if [ ! -f "dist/main.js" ]; then
+    echo "❌ Error: API Build failed! dist/main.js not found."
+    exit 1
+fi
+
 npx prisma migrate deploy
 
 # Reload PM2
