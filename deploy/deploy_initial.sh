@@ -18,7 +18,11 @@ fi
 # 1. API Setup
 echo "🔹 Setting up API..."
 cd "$APP_DIR/api"
+# Ensure pnpm runs build scripts (critical for bcrypt, nest, prisma)
+pnpm config set ignore-scripts false
 pnpm install
+# Generate Prisma Client (Required for build)
+npx prisma generate
 pnpm run build
 npx prisma migrate deploy
 

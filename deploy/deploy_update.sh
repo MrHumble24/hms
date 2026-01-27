@@ -16,7 +16,9 @@ git pull origin main
 # 1. Update API
 echo "🔹 Updating API..."
 cd "$APP_DIR/api"
+pnpm config set ignore-scripts false
 pnpm install
+npx prisma generate
 pnpm run build
 npx prisma migrate deploy
 
