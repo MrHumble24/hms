@@ -18,12 +18,13 @@ echo "🔹 Updating API..."
 cd "$APP_DIR/api"
 
 pnpm config set ignore-scripts false --global
-pnpm install
+# Install ALL dependencies (including devDependencies)
+pnpm install --prod=false
 pnpm rebuild
 npx prisma generate
 
 echo "🏗 Building API Project..."
-npx nest build
+npx nest build || { echo "❌ 'nest build' failed"; exit 1; }
 
 if [ ! -f "dist/main.js" ]; then
     echo "❌ Error: API Build failed! dist/main.js not found."

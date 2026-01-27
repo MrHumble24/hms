@@ -22,11 +22,12 @@ cd "$APP_DIR/api"
 # Configure pnpm to allow scripts (globally for this user to ensure persistence)
 pnpm config set ignore-scripts false --global
 
-# Install dependencies (ignoring scripts first to ensure fetch)
-pnpm install
+# Install ALL dependencies (including devDependencies for building)
+echo "📦 Installing all dependencies..."
+pnpm install --prod=false
 
-# Force rebuild of dependencies to run lifecycle scripts (bcrypt, nest, prisma, etc.)
-echo "🔧 Rebuilding dependencies to execute lifecycle scripts..."
+# Force rebuild of dependencies
+echo "🔧 Rebuilding dependencies..."
 pnpm rebuild
 
 # Generate Prisma Client
@@ -35,7 +36,7 @@ npx prisma generate
 
 # Build the project
 echo "🏗 Building API Project..."
-npx nest build
+npx nest build || { echo "❌ 'nest build' failed"; exit 1; }
 
 # Verify build success
 if [ ! -f "dist/main.js" ]; then
