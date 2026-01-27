@@ -62,6 +62,9 @@ npx prisma migrate deploy
 ```bash
 cd ~/projects/hms/client
 
+# Create Production Config
+echo "VITE_API_URL=https://api-hms.centrify.uz" > .env.production
+
 # Install & Build
 pnpm install --prod=false
 pnpm run build
