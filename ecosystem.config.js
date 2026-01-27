@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "hms-api",
       cwd: "./api",
-      script: "dist/main.js",
+      script: "dist/src/main.js",
       instances: "max", // Use all available CPU cores
       exec_mode: "cluster", // Enable cluster mode for load balancing
       env: {
