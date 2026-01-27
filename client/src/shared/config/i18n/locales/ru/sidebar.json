@@ -1,0 +1,25 @@
+{
+  "menu": {
+    "dashboard": "Дашборд",
+    "reservation": "БРОНИРОВАНИЕ",
+    "bookings": "Бронирования",
+    "guests": "Гости",
+    "corporate": "B2B / Компании",
+    "housekeeping": "Служба уборки",
+    "inventory": "Инвентарь",
+    "rooms": "Инвентарь номеров",
+    "roomTypes": "Типы номеров",
+    "visualGrid": "Карта номеров",
+    "supplies": "Складские запасы",
+    "finance": "Финансы",
+    "payments": "Платежи",
+    "system": "СИСТЕМА",
+    "staff": "Управление персоналом",
+    "restaurant": "РЕСТОРАН",
+    "pos": "POS / Заказы",
+    "kds": "Экран кухни (KDS)",
+    "orderHistory": "История заказов",
+    "menuManagement": "Управление меню",
+    "settings": "Настройки"
+  }
+}

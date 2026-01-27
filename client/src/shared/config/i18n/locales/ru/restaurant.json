@@ -1,0 +1,105 @@
+{
+  "pos": {
+    "title": "POS Ресторана",
+    "searchPlaceholder": "Поиск в меню...",
+    "allCategories": "Все",
+    "noItems": "Ничего не найдено",
+    "currentOrder": "Текущий заказ",
+    "cartEmpty": "Корзина пуста",
+    "tableNumber": "Номер стола",
+    "tablePlaceholder": "Стол, напр. 15, B2...",
+    "linkToRoom": "Привязать к номеру (опционально)",
+    "selectBooking": "Выберите активную бронь",
+    "roomNumber": "Номер {{number}}",
+    "total": "Итого",
+    "placeOrder": "Оформить заказ",
+    "orderSuccess": "Заказ успешно оформлен",
+    "cartEmptyWarning": "Корзина пуста"
+  },
+  "kds": {
+    "title": "Экран кухни (KDS)",
+    "subtitle": "Управление заказами для персонала кухни в реальном времени.",
+    "activeOrders": "Активные заказы",
+    "noActiveOrders": "Нет активных заказов",
+    "placed": "Размещен",
+    "ago": "{{count}} мин. назад",
+    "table": "Стол",
+    "note": "Заметка",
+    "startCooking": "Начать готовить",
+    "markAsReady": "Готово",
+    "statusUpdateError": "Не удалось обновить статус"
+  },
+  "menu": {
+    "title": "Управление меню",
+    "subtitle": "Управление категориями, позициями и ценами для ресторана отеля.",
+    "itemsTab": "Позиции меню",
+    "categoriesTab": "Категории",
+    "searchItems": "Поиск позиций...",
+    "addItem": "Добавить позицию",
+    "addCategory": "Добавить категорию",
+    "table": {
+      "image": "Изображение",
+      "name": "Название",
+      "category": "Категория",
+      "price": "Цена",
+      "calories": "Калории",
+      "actions": "Действия",
+      "itemsCount": "Кол-во позиций",
+      "confirmDelete": "Вы уверены?"
+    },
+    "form": {
+      "editItem": "Изменить позицию",
+      "newItem": "Новая позиция",
+      "editCategory": "Изменить категорию",
+      "newCategory": "Новая категория",
+      "category": "Категория",
+      "selectCategory": "Выберите категорию",
+      "itemName": "Название позиции",
+      "description": "Описание",
+      "price": "Цена (UZS)",
+      "imageUrl": "URL изображения",
+      "ingredients": "Ингредиенты (для ИИ)",
+      "calories": "Калории",
+      "aiEstimationInfo": "Калории будут рассчитаны ИИ при сохранении, если оставить поле пустым.",
+      "aiWarning": "Пожалуйста, введите английское название и ингредиенты для расчета ИИ"
+    }
+  },
+  "history": {
+    "title": "История заказов",
+    "subtitle": "Мониторинг всех транзакций и прошлых заказов ресторана.",
+    "searchPlaceholder": "Поиск по ID, столу или гостю...",
+    "filterStatus": "Фильтр по статусу",
+    "totalOrders": "Всего {{count}} заказов",
+    "columns": {
+      "orderId": "ID заказа",
+      "dateTime": "Дата и время",
+      "location": "Стол / Номер",
+      "guest": "Гость",
+      "amount": "Сумма",
+      "status": "Статус",
+      "actions": "Действия"
+    },
+    "status": {
+      "pending": "Ожидает",
+      "preparing": "Готовится",
+      "served": "Подано",
+      "paid": "Оплачено",
+      "cancelled": "Отменено"
+    },
+    "walkIn": "Без проживания",
+    "viewReceipt": "Просмотр чека"
+  },
+  "receipt": {
+    "title": "Чек заказа",
+    "businessName": "HMS PRO РЕСТОРАН",
+    "orderNo": "Заказ #{{id}}",
+    "table": "Стол: {{number}}",
+    "item": "Позиция",
+    "qty": "Кол-во",
+    "price": "Цена",
+    "total": "ИТОГО",
+    "thankYou": "Спасибо за визит!",
+    "comeAgain": "Ждем вас снова.",
+    "print": "Печать"
+  }
+}

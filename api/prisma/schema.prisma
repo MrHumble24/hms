@@ -1,0 +1,1133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL")
+}
+
+// =========================================================
+// 0. MULTI-TENANCY & BRANCHES
+// =========================================================
+
+model Tenant {
+  id       String  @id @default(uuid())
+  name     String
+  slug     String  @unique // For domain/subdomain isolation
+  isActive Boolean @default(true)
+
+  // Subscription Management
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+  subscriptionStart  DateTime?
+  subscriptionEnd    DateTime?
+
+  // Plan & Limits
+  planType    PlanType @default(BASIC)
+  maxBranches Int      @default(1)
+  maxUsers    Int      @default(5)
+
+  // Billing
+  lastPaymentDate DateTime?
+  nextBillingDate DateTime?
+  notes           String? // Admin notes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  branches             Branch[]
+  users                User[]
+  guests               Guest[]
+  companies            Company[]
+  rooms                Room[]
+  roomTypes            RoomType[]
+  ratePlans            RatePlan[]
+  bookings             Booking[]
+  folios               Folio[]
+  housekeepingTasks    HousekeepingTask[]
+  inventoryItems       InventoryItem[]
+  restaurantOrders     RestaurantOrder[]
+  auditLogs            AuditLog[]
+  folioItems           FolioItem[]
+  payments             Payment[]
+  roomStatusHistories  RoomStatusHistory[]
+  maintenanceTickets   MaintenanceTicket[]
+  restaurantCategories RestaurantCategory[]
+  restaurantMenuItems  RestaurantMenuItem[]
+  emehmonLogs          EmehmonLog[]
+  guestCommunications  GuestCommunication[]
+  priceModifiers       PriceModifier[]
+  ratePlanRoomTypes    RatePlanRoomType[]
+  roomStays            RoomStay[]
+  stockLogs            StockLog[]
+}
+
+model Branch {
+  id       String  @id @default(uuid())
+  name     String
+  address  String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Multi-tenant relation
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  // Relations
+  userBranches         UserBranch[]
+  rooms                Room[]
+  roomTypes            RoomType[]
+  bookings             Booking[]
+  inventoryItems       InventoryItem[]
+  restaurantCategories RestaurantCategory[]
+  restaurantMenuItems  RestaurantMenuItem[]
+  restaurantOrders     RestaurantOrder[]
+  folios               Folio[]
+  ratePlans            RatePlan[]
+}
+
+// Many-to-many: Staff member access to branches
+model UserBranch {
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  isDefault Boolean @default(false) // Which branch loads on login
+  role      Role? // Optional: different role per branch
+
+  @@id([userId, branchId])
+}
+
+// =========================================================
+// 1. AUTH & STAFF MANAGEMENT (RBAC)
+// =========================================================
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  fullName String
+
+  role     Role    @default(RECEPTIONIST)
+  isActive Boolean @default(true)
+
+  // Multi-tenant relation
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  // Relations
+  branches            UserBranch[]
+  tasksAssigned       HousekeepingTask[]  @relation("TaskAssignee")
+  tasksCompleted      HousekeepingTask[]  @relation("TaskCompleter")
+  tasksCreated        HousekeepingTask[]  @relation("TaskCreator")
+  roomStatusHistories RoomStatusHistory[]
+  folioItems          FolioItem[]         @relation("StaffFolioItems")
+  payments            Payment[]           @relation("StaffPayments")
+  maintenanceTickets  MaintenanceTicket[]
+  inventoryItems      InventoryItem[]
+  inventoryAudit      InventoryItem[]     @relation("InventoryAudit")
+  stockLogs           StockLog[]
+  auditLogs           AuditLog[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  RECEPTIONIST
+  HOUSEKEEPER
+  MAINTENANCE
+  KITCHEN
+  WAITER
+  ACCOUNTANT
+}
+
+// =========================================================
+// 2. GUESTS & E-MEHMON (Uzbek Compliance)
+// =========================================================
+
+model Guest {
+  id String @id @default(uuid())
+
+  // Multi-tenant relation
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  firstName  String
+  lastName   String
+  patronymic String?
+  phone      String
+  email      String?
+
+  citizenship        String
+  passportSeries     String
+  passportNumber     String
+  dateOfBirth        DateTime
+  gender             Gender
+  passportIssueDate  DateTime?
+  passportExpiryDate DateTime?
+
+  visaNumber  String?
+  dateOfEntry DateTime?
+
+  passportScanUrl String?
+
+  region   String?
+  district String?
+  address  String?
+
+  visaType VisaType? @default(TOURIST)
+
+  primaryBookings Booking[]       @relation("PrimaryGuest")
+  roomStays       RoomStayGuest[]
+  registrations   EmehmonLog[]
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  guestCommunications GuestCommunication[]
+
+  @@unique([tenantId, passportSeries, passportNumber])
+  @@index([deletedAt])
+}
+
+model EmehmonLog {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  guestId String
+  guest   Guest  @relation(fields: [guestId], references: [id])
+
+  // API tracking
+  status       EmehmonStatus
+  requestJson  Json
+  responseJson Json?
+  errorMessage String?
+
+  // Official registration data
+  regSlipNumber String? // Government registration ID
+  regSlipUrl    String? // PDF download URL
+  qrCodeData    String? // QR code content
+  qrCodeUrl     String? // QR code image URL
+
+  // Timing
+  registeredAt DateTime? // When E-Mehmon confirmed
+  expiresAt    DateTime? // Registration validity
+
+  retryCount Int @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum EmehmonStatus {
+  PENDING
+  SUBMITTED // Sent to E-Mehmon
+  SUCCESS // Confirmed
+  FAILED // Rejected
+  RETRY // Will retry
+}
+
+enum VisaType {
+  TOURIST
+  BUSINESS
+  DIPLOMATIC
+  WORK
+  STUDY
+}
+
+// =========================================================
+// 3. ROOMS & INVENTORY
+// =========================================================
+
+model Room {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  number String
+
+  floor    Int
+  capacity Int        @default(2)
+  status   RoomStatus @default(CLEAN)
+
+  // Operational state (cached/computed)
+  isOccupied      Boolean   @default(false) // Currently has guest
+  isDueOut        Boolean   @default(false) // Checkout today
+  isDueIn         Boolean   @default(false) // Arrival today
+  lastCleanedAt   DateTime?
+  lastInspectedAt DateTime?
+
+  typeId String
+  type   RoomType @relation(fields: [typeId], references: [id])
+
+  roomStays           RoomStay[]
+  tasks               HousekeepingTask[]
+  maintenance         MaintenanceTicket[]
+  roomStatusHistories RoomStatusHistory[]
+
+  deletedAt DateTime?
+
+  @@unique([tenantId, branchId, number])
+  @@index([branchId, status])
+  @@index([typeId])
+  @@index([deletedAt])
+}
+
+model RoomType {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name        String
+  basePrice   Decimal @db.Decimal(10, 2)
+  description String?
+  amenities   Json?
+
+  rooms          Room[]
+  ratePlans      RatePlanRoomType[]
+  priceModifiers PriceModifier[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RatePlan {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name        String // "Bed & Breakfast", "Non-Refundable"
+  code        String // "BAR", "BB", "NR" for channel managers
+  description String?
+
+  // Which room types this plan applies to
+  roomTypes RatePlanRoomType[]
+
+  // Inclusions
+  includesBreakfast Boolean @default(false)
+  includesParking   Boolean @default(false)
+  includesWifi      Boolean @default(true)
+
+  // Cancellation
+  cancellationPolicy CancellationPolicy @default(FLEXIBLE)
+  cancellationHours  Int                @default(24) // Hours before check-in
+
+  // Validity
+  isActive  Boolean   @default(true)
+  validFrom DateTime?
+  validTo   DateTime?
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+}
+
+model RatePlanRoomType {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  ratePlanId String
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id])
+
+  roomTypeId String
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+
+  price Decimal @db.Decimal(10, 2) // Specific price for this combo
+
+  @@unique([ratePlanId, roomTypeId])
+}
+
+enum CancellationPolicy {
+  FLEXIBLE // Free cancellation
+  MODERATE // 50% refund
+  STRICT // No refund
+  NON_REFUNDABLE // No refund, lower price
+}
+
+model PriceModifier {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  roomTypeId String
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+
+  name       String
+  percentage Float?
+  fixedValue Decimal? @db.Decimal(10, 2)
+
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+}
+
+enum RoomStatus {
+  CLEAN
+  DIRTY
+  INSPECTED
+  MAINTENANCE
+}
+
+// =========================================================
+// 4. BOOKINGS
+// =========================================================
+
+model Booking {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  // Primary guest (who made the reservation)
+  primaryGuestId String
+  primaryGuest   Guest  @relation("PrimaryGuest", fields: [primaryGuestId], references: [id])
+
+  checkIn  DateTime
+  checkOut DateTime
+
+  status BookingStatus @default(CONFIRMED)
+  source BookingSource @default(WALK_IN)
+
+  // Corporate link
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  // Rate plan for the entire booking
+  ratePlanId String?
+  ratePlan   RatePlan? @relation(fields: [ratePlanId], references: [id])
+
+  // Relations
+  roomStays        RoomStay[] // Multiple rooms per booking
+  folios           Folio[]
+  emehmonLogs      EmehmonLog[]
+  restaurantOrders RestaurantOrder[]
+  communications   GuestCommunication[]
+
+  deletedAt DateTime? // Soft delete
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([branchId, checkIn, checkOut])
+  @@index([tenantId, status])
+  @@index([primaryGuestId])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model RoomStay {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  roomId String? // Nullable until room assigned
+  room   Room?   @relation(fields: [roomId], references: [id])
+
+  // Stay-specific dates (allows room changes)
+  startDate DateTime
+  endDate   DateTime
+
+  // Price snapshot at time of booking
+  dailyRate Decimal  @db.Decimal(10, 2)
+  currency  Currency @default(UZS)
+
+  adultsCount   Int @default(1)
+  childrenCount Int @default(0)
+
+  status RoomStayStatus @default(RESERVED)
+
+  // Guests assigned to THIS specific room
+  guests RoomStayGuest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([roomId, startDate, endDate])
+}
+
+// Many-to-many: Which guests stay in which room
+model RoomStayGuest {
+  id String @id @default(uuid())
+
+  roomStayId String
+  roomStay   RoomStay @relation(fields: [roomStayId], references: [id])
+
+  guestId String
+  guest   Guest  @relation(fields: [guestId], references: [id])
+
+  isPrimary Boolean @default(false) // Main occupant for this room
+
+  @@unique([roomStayId, guestId])
+}
+
+enum RoomStayStatus {
+  RESERVED // Room blocked, not yet checked in
+  CHECKED_IN // Guest is in the room
+  CHECKED_OUT // Guest left this room (maybe moved)
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  NO_SHOW
+}
+
+enum BookingSource {
+  WALK_IN
+  PHONE
+  BOOKING_COM
+  EXPEDIA
+  WEBSITE
+}
+
+// =========================================================
+// 5. CORPORATE / B2B
+// =========================================================
+
+model Company {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  name  String
+  taxId String
+
+  contactPerson String?
+  email         String?
+  phone         String?
+  isActive      Boolean @default(true)
+
+  contracts DiscountContract[]
+  bookings  Booking[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([tenantId, taxId])
+  @@index([deletedAt])
+}
+
+model DiscountContract {
+  id        String  @id @default(uuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  discountPercent Int       @default(0)
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  description     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =========================================================
+// 6. BILLING & FINANCE
+// =========================================================
+
+model Folio {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  status    FolioStatus @default(OPEN)
+  isPrimary Boolean     @default(false)
+
+  items    FolioItem[]
+  payments Payment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([bookingId, status])
+  @@index([branchId, createdAt])
+  @@index([tenantId])
+  @@index([deletedAt])
+}
+
+model FolioItem {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  folioId String
+  folio   Folio  @relation(fields: [folioId], references: [id])
+
+  description String
+  quantity    Int    @default(1)
+
+  // Pricing breakdown
+  unitPrice   Decimal @db.Decimal(10, 2)
+  taxRate     Decimal @default(0) @db.Decimal(5, 4) // e.g., 0.12 for 12%
+  taxAmount   Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount Decimal @db.Decimal(10, 2) // (unitPrice * qty) + taxAmount
+
+  currency Currency @default(UZS)
+
+  // Tax handling
+  taxType     TaxType?
+  isTaxExempt Boolean  @default(false)
+
+  type   ChargeType
+  source FolioItemSource @default(MANUAL)
+
+  staffId String?
+  staff   User?   @relation("StaffFolioItems", fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  // No updatedAt — financial records are immutable
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  folioId String
+  folio   Folio  @relation(fields: [folioId], references: [id])
+
+  amount   Decimal  @db.Decimal(10, 2)
+  currency Currency @default(UZS)
+
+  // For foreign currency payments
+  exchangeRate  Decimal? @db.Decimal(12, 6) // Rate used
+  amountInLocal Decimal? @db.Decimal(10, 2) // Converted to UZS
+
+  method PaymentMethod
+  status PaymentStatus @default(COMPLETED)
+
+  transactionRef String?
+  receiptNumber  String? // Fiscal receipt number
+
+  staffId String
+  staff   User   @relation("StaffPayments", fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  // No updatedAt — payments are immutable; refunds create new records
+}
+
+enum Currency {
+  UZS
+  USD
+  EUR
+  RUB
+}
+
+enum TaxType {
+  VAT
+  TOURISM_TAX
+  SERVICE_CHARGE
+  CITY_TAX
+}
+
+enum FolioItemSource {
+  MANUAL
+  SYSTEM
+  AUTO_POST
+}
+
+enum PaymentStatus {
+  COMPLETED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
+enum FolioStatus {
+  OPEN
+  CLOSED
+  VOID
+}
+
+enum ChargeType {
+  ROOM_CHARGE
+  TOURIST_TAX
+  MINIBAR
+  LAUNDRY
+  DAMAGE_FEE
+  RESTAURANT
+}
+
+enum PaymentMethod {
+  CASH
+  UZCARD
+  HUMO
+  VISA_MASTERCARD
+  CLICK
+  PAYME
+  BANK_TRANSFER
+}
+
+// =========================================================
+// 7. OPERATIONS
+// =========================================================
+
+model HousekeepingTask {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  // Assignment
+  assigneeId String?
+  assignee   User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  // Completion
+  completedAt   DateTime?
+  completedById String?
+  completedBy   User?     @relation("TaskCompleter", fields: [completedById], references: [id])
+
+  // Created by (who scheduled this task)
+  createdById String
+  createdBy   User   @relation("TaskCreator", fields: [createdById], references: [id])
+
+  status   TaskStatus           @default(PENDING)
+  priority Priority             @default(MEDIUM)
+  taskType HousekeepingTaskType @default(DAILY_CLEAN)
+  notes    String?
+
+  scheduledFor DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomId, scheduledFor])
+  @@index([assigneeId, status])
+}
+
+enum HousekeepingTaskType {
+  DAILY_CLEAN
+  CHECKOUT_CLEAN
+  DEEP_CLEAN
+  TURNDOWN
+  INSPECTION
+}
+
+model RoomStatusHistory {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  oldStatus RoomStatus
+  newStatus RoomStatus
+  notes     String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model MaintenanceTicket {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  description String
+  reportedBy  String // Staff ID
+
+  status TicketStatus @default(OPEN)
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  WONT_FIX
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// =========================================================
+// 8. LOGISTICS & INVENTORY
+// =========================================================
+
+model InventoryItem {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name String
+  sku  String
+  unit String
+
+  quantity     Int @default(0)
+  minThreshold Int @default(5)
+
+  category InventoryCategory
+
+  lastRestocked DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lastUpdatedById String?
+  lastUpdatedBy   User?   @relation("InventoryAudit", fields: [lastUpdatedById], references: [id])
+
+  stockLogs StockLog[]
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id])
+
+  menuItemIngredients MenuItemIngredient[]
+  restaurantMenuItems RestaurantMenuItem[]
+
+  @@unique([tenantId, branchId, sku])
+  @@index([branchId, category])
+  @@index([quantity, minThreshold])
+}
+
+model StockLog {
+  id String @id @default(uuid())
+
+  itemId String
+  item   InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  staffId String
+  staff   User   @relation(fields: [staffId], references: [id])
+
+  change Int
+  reason StockUpdateReason
+  note   String?
+
+  createdAt DateTime @default(now())
+}
+
+enum InventoryCategory {
+  MINIBAR
+  HOUSEKEEPING
+  MAINTENANCE
+  KITCHEN
+  OTHER
+}
+
+enum StockUpdateReason {
+  USED_IN_ROOM
+  MINIBAR_REFILL
+  DAMAGED_OR_LOST
+  RESTOCKED
+  CORRECTION
+  RESTAURANT_ORDER
+  OTHER
+}
+
+// =========================================================
+// 9. RESTAURANT & MENU
+// ===================================
+
+model RestaurantCategory {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name  Json
+  items RestaurantMenuItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RestaurantMenuItem {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name        Json
+  description Json?
+  price       Decimal @db.Decimal(10, 2)
+  imageUrl    String?
+  calories    Float?
+  ingredients String?
+
+  // For simple items (1 Coke = 1 inventory item)
+  isSimpleItem      Boolean        @default(false)
+  linkedInventoryId String?
+  linkedInventory   InventoryItem? @relation(fields: [linkedInventoryId], references: [id])
+
+  // For complex items (Burger = bun + patty + sauce)
+  recipe MenuItemIngredient[]
+
+  categoryId String
+  category   RestaurantCategory @relation(fields: [categoryId], references: [id])
+
+  orderItems RestaurantOrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RestaurantOrder {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  tableNumber String?
+  status      RestaurantOrderStatus @default(PENDING)
+
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  items       RestaurantOrderItem[]
+  totalAmount Decimal               @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, status, createdAt])
+  @@index([bookingId])
+  @@index([tenantId])
+}
+
+model RestaurantOrderItem {
+  id String @id @default(uuid())
+
+  orderId String
+  order   RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  menuItemId String
+  menuItem   RestaurantMenuItem @relation(fields: [menuItemId], references: [id])
+
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+  notes    String?
+
+  createdAt DateTime @default(now())
+}
+
+enum RestaurantOrderStatus {
+  PENDING
+  PREPARING
+  SERVED
+  PAID
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  CANCELLED
+}
+
+enum PlanType {
+  BASIC
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
+model MenuItemIngredient {
+  id String @id @default(uuid())
+
+  menuItemId String
+  menuItem   RestaurantMenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([menuItemId, inventoryItemId])
+}
+
+// =========================================================
+// 10. COMMUNICATIONS & AUDIT
+// =========================================================
+
+model GuestCommunication {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  guestId String
+  guest   Guest  @relation(fields: [guestId], references: [id])
+
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  type    CommunicationType
+  channel CommunicationChannel
+
+  subject String?
+  content String
+  status  CommunicationStatus @default(SENT)
+
+  sentAt      DateTime  @default(now())
+  deliveredAt DateTime?
+  openedAt    DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+enum CommunicationType {
+  BOOKING_CONFIRMATION
+  PRE_ARRIVAL
+  WELCOME
+  CHECKOUT_REMINDER
+  POST_STAY_SURVEY
+  MARKETING
+}
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  TELEGRAM
+}
+
+enum CommunicationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  FAILED
+  BOUNCED
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  action     AuditAction
+  entityType String // "Booking", "Guest", "Payment"
+  entityId   String
+
+  oldData Json?
+  newData Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  VIEW
+}

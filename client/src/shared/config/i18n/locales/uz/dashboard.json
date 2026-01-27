@@ -1,0 +1,45 @@
+{
+  "title": "Boshqaruv Paneli",
+  "subtitle": "Mehmonxona operatsiyalarini boshqarish uchun modulni tanlang.",
+  "quickStats": "Tezkor Statistika",
+  "modules": {
+    "bookings": {
+      "title": "Bandlovlar",
+      "description": "Xonalarni band qilish, kirish va chiqishni boshqarish."
+    },
+    "guests": {
+      "title": "Mehmonlar",
+      "description": "Mehmonlar profillarini va sodiqlik ma'lumotlarini saqlang."
+    },
+    "rooms": {
+      "title": "Xonalar",
+      "description": "Xonalar holatini, tozalash va texnik xizmatni nazorat qiling."
+    },
+    "roomTypes": {
+      "title": "Xona Turlari",
+      "description": "Kategoriyalar va narxlarni boshqarish."
+    },
+    "payments": {
+      "title": "To'lovlar",
+      "description": "Invoyslar va tranzaksiyalarni qayta ishlash."
+    },
+    "staff": {
+      "title": "Xodimlar",
+      "description": "Xodimlarni, rollarni va ruxsatlarni boshqarish."
+    },
+    "analytics": {
+      "title": "Analitika",
+      "description": "Xonalar bandligi va moliyaviy hisobotlarni ko'ring."
+    },
+    "settings": {
+      "title": "Sozlamalar",
+      "description": "Mehmonxona ma'lumotlari va tizim qoidalarini sozlang."
+    }
+  },
+  "stats": {
+    "totalRooms": "Jami Xonalar",
+    "occupancyRate": "Bandlik Darajasi",
+    "expectedArrivals": "Kutilayotganlar",
+    "revenueToday": "Bugungi tushum"
+  }
+}

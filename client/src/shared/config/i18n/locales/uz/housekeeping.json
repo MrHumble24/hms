@@ -1,0 +1,29 @@
+{
+  "title": "Xona tozalash xizmati",
+  "subtitle": "Xonalar holati va xodimlar vazifalari",
+  "searchPlaceholder": "Xona yoki xodimni qidirish...",
+  "status": {
+    "clean": "Toza",
+    "dirty": "Kir",
+    "inspected": "Tekshirilgan",
+    "maintenance": "Ta'mirda"
+  },
+  "actions": {
+    "assignTask": "Vazifa biriktirish",
+    "updateStatus": "Holatni yangilash",
+    "markClean": "Tozalandi",
+    "completeTask": "Vazifani yakunlash",
+    "completed": "Vazifa bajarildi"
+  },
+  "fields": {
+    "notes": "Izohlar",
+    "assignee": "Xodim",
+    "priority": "Muhimlik"
+  },
+  "placeholders": {
+    "notes": "Masalan, Minibar to'ldirish kerak...",
+    "completionNote": "Muammo bormi? (Ixtiyoriy)"
+  },
+  "history": "So'nggi harakatlar",
+  "confirmClean": "Bu xonani TOZA deb belgilashga ishonchingiz komilmi?"
+}

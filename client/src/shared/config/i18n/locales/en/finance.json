@@ -1,0 +1,83 @@
+{
+  "title": "Finance & Billing",
+  "folioTitle": "Folio Details",
+  "balancePanel": {
+    "title": "Financial Summary",
+    "totalCharges": "Total Charges",
+    "totalPayments": "Total Payments",
+    "outstanding": "Outstanding Balance",
+    "settle": "Settle Balance",
+    "settled": "Folio Settled"
+  },
+  "sections": {
+    "charges": "Charges & Services",
+    "payments": "Payments Timeline",
+    "folioSelect": "Folios for this stay",
+    "summary": "Room Charges for Stay Duration",
+    "quickSettings": "Quick Settings",
+    "noCharges": "No charges added yet",
+    "noPayments": "No payments recorded yet"
+  },
+  "columns": {
+    "date": "Date",
+    "description": "Description",
+    "amount": "Amount",
+    "qty": "Qty",
+    "total": "Total",
+    "type": "Type",
+    "source": "Source",
+    "staff": "Staff",
+    "status": "Status",
+    "method": "Method",
+    "nights": "Nights",
+    "rate": "Rate per Night",
+    "totalRoomCharges": "Total Room Charges"
+  },
+  "actions": {
+    "addCharge": "Add Charge",
+    "recordPayment": "Record Payment",
+    "adjust": "Adjust",
+    "adjustConfirm": "Are you sure you want to reverse this charge? This will add a correction line item.",
+    "void": "Void Folio",
+    "close": "Close Folio",
+    "print": "Print Folio",
+    "setPrimary": "Set as Primary Folio",
+    "voidFolio": "Void Entire Folio"
+  },
+  "forms": {
+    "charge": {
+      "title": "Add Folio Charge",
+      "pricePreview": "Price Preview",
+      "nonReversible": "Notice: Some charges may require manager approval for reversal."
+    },
+    "payment": {
+      "title": "Record Payment",
+      "outstandingLabel": "Remaining Balance",
+      "overpaymentWarning": "Warning: Payment amount exceeds outstanding balance. Continue?",
+      "partialFull": "Settle full balance"
+    }
+  },
+  "types": {
+    "ROOM_CHARGE": "Room Rent",
+    "TOURIST_TAX": "Tourist Tax",
+    "MINIBAR": "Mini-bar",
+    "LAUNDRY": "Laundry",
+    "DAMAGE_FEE": "Damage Fee",
+    "RESTAURANT": "Restaurant"
+  },
+  "status": {
+    "OPEN": "Open",
+    "CLOSED": "Closed",
+    "VOID": "Voided",
+    "PRIMARY": "PRIMARY FOLIO",
+    "MAIN_FOLIO": "Main Folio",
+    "EXTRA_FOLIO": "Extra Folio",
+    "ESTIMATED": "Estimated",
+    "ESTIMATED_NOTICE": "Room charges will be posted when guest checks in or during checkout"
+  },
+  "warnings": {
+    "creditBalance": "Credit Balance: Refund may be required",
+    "folioClosedTitle": "Folio is Closed",
+    "folioClosedDescription": "Payments cannot be recorded for closed folios. Please reopen the folio if you need to add more payments."
+  }
+}

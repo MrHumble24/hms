@@ -1,0 +1,54 @@
+{
+  "title": "Управление инвентарем",
+  "subtitle": "Отельные принадлежности и товары мини-бара",
+  "searchPlaceholder": "Поиск по названию или SKU...",
+  "filters": {
+    "allCategories": "Все категории",
+    "allStock": "Все уровни запасов",
+    "lowStock": "Низкий запас",
+    "outOfStock": "Нет в наличии"
+  },
+  "columns": {
+    "itemName": "Название товара",
+    "category": "Категория",
+    "currentStock": "Текущий запас",
+    "unit": "Ед. изм.",
+    "threshold": "Порог",
+    "status": "Статус",
+    "lastUpdated": "Последнее обновление",
+    "actions": "Действия"
+  },
+  "categories": {
+    "MINIBAR": "Мини-бар",
+    "HOUSEKEEPING": "Хоз. служба",
+    "MAINTENANCE": "Тех. служба",
+    "KITCHEN": "Кухня",
+    "OTHER": "Прочее"
+  },
+  "status": {
+    "normal": "Норма",
+    "low": "Низкий",
+    "critical": "Критический"
+  },
+  "actions": {
+    "updateStock": "Обновить запас",
+    "addNewItem": "Добавить товар",
+    "editItem": "Редактировать",
+    "confirmUpdate": "Подтвердить обновление"
+  },
+  "drawer": {
+    "currentBalance": "Текущий остаток",
+    "projectedBalance": "Ожидаемый остаток",
+    "changeLabel": "Изменение количества",
+    "reason": "Причина обновления",
+    "note": "Примечание (опционально)",
+    "reasons": {
+      "USED_IN_ROOM": "Использовано в номере",
+      "MINIBAR_REFILL": "Пополнение мини-бара",
+      "DAMAGED_OR_LOST": "Повреждено / Утеряно",
+      "RESTOCKED": "Пополнение склада",
+      "CORRECTION": "Корректировка",
+      "OTHER": "Прочее"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "reservation": "RESERVATION",
+    "bookings": "Bookings",
+    "guests": "Guest Profiles",
+    "corporate": "Corporate & B2B",
+    "housekeeping": "Housekeeping",
+    "inventory": "INVENTORY",
+    "rooms": "Room Inventory",
+    "roomTypes": "Room Categories",
+    "visualGrid": "Status Grid",
+    "supplies": "Inventory Supplies",
+    "finance": "FINANCE",
+    "payments": "Finance & Billing",
+    "system": "SYSTEM",
+    "staff": "Staff Management",
+    "restaurant": "RESTAURANT",
+    "pos": "POS / Ordering",
+    "kds": "Kitchen Display (KDS)",
+    "orderHistory": "Order History",
+    "menuManagement": "Menu Management",
+    "settings": "Settings"
+  }
+}

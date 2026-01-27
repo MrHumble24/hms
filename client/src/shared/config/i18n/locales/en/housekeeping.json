@@ -1,0 +1,29 @@
+{
+  "title": "Housekeeping Management",
+  "subtitle": "Manage room cleaning status and staff tasks",
+  "searchPlaceholder": "Search room or housekeeper...",
+  "status": {
+    "clean": "Clean",
+    "dirty": "Dirty",
+    "inspected": "Inspected",
+    "maintenance": "Maintenance"
+  },
+  "actions": {
+    "assignTask": "Assign Task",
+    "updateStatus": "Update Room Status",
+    "markClean": "Mark as Cleaned",
+    "completeTask": "Complete Task",
+    "completed": "Task marked as completed"
+  },
+  "fields": {
+    "notes": "Notes / Issues",
+    "assignee": "Housekeeper",
+    "priority": "Priority"
+  },
+  "placeholders": {
+    "notes": "e.g., Minibar needs restocking...",
+    "completionNote": "Any issues found? (Optional)"
+  },
+  "history": "Recent Activity",
+  "confirmClean": "Are you sure you want to mark this room as CLEAN?"
+}

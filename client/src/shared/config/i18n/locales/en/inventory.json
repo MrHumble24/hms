@@ -1,0 +1,54 @@
+{
+  "title": "Inventory Management",
+  "subtitle": "Hotel supplies & minibar items",
+  "searchPlaceholder": "Search item name or SKU...",
+  "filters": {
+    "allCategories": "All Categories",
+    "allStock": "All Stock Levels",
+    "lowStock": "Low Stock Focus",
+    "outOfStock": "Out of Stock"
+  },
+  "columns": {
+    "itemName": "Item Name",
+    "category": "Category",
+    "currentStock": "Current Stock",
+    "unit": "Unit",
+    "threshold": "Threshold",
+    "status": "Status",
+    "lastUpdated": "Last Updated",
+    "actions": "Actions"
+  },
+  "categories": {
+    "MINIBAR": "Minibar",
+    "HOUSEKEEPING": "Housekeeping",
+    "MAINTENANCE": "Maintenance",
+    "KITCHEN": "Kitchen",
+    "OTHER": "Other"
+  },
+  "status": {
+    "normal": "Normal",
+    "low": "Low",
+    "critical": "Critical"
+  },
+  "actions": {
+    "updateStock": "Update Stock",
+    "addNewItem": "Add New Item",
+    "editItem": "Edit Item",
+    "confirmUpdate": "Confirm Update"
+  },
+  "drawer": {
+    "currentBalance": "Current Balance",
+    "projectedBalance": "Projected Balance",
+    "changeLabel": "Quantity Change",
+    "reason": "Reason for Update",
+    "note": "Note (Optional)",
+    "reasons": {
+      "USED_IN_ROOM": "Used in Room",
+      "MINIBAR_REFILL": "Minibar Refill",
+      "DAMAGED_OR_LOST": "Damaged / Lost",
+      "RESTOCKED": "Restocked",
+      "CORRECTION": "Correction",
+      "OTHER": "Other"
+    }
+  }
+}

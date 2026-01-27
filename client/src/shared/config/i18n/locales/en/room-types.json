@@ -1,0 +1,27 @@
+{
+  "roomTypesTitle": "Room Categories",
+  "roomTypesSubtitle": "Define pricing and amenities for each room type",
+  "typeName": "Category Name",
+  "basePrice": "Base Price",
+  "amenities": "Amenities",
+  "addRoomType": "Add Category",
+  "editRoomType": "Edit Category",
+  "typeReq": "Category name is required",
+  "priceReq": "Base price is required",
+  "selectAmenities": "Select amenities",
+  "description": "Description",
+  "amenityOptions": {
+    "WIFI": "High-Speed WiFi",
+    "TV": "Smart TV",
+    "AC": "Air Conditioning",
+    "MINIBAR": "Mini-bar",
+    "TEA_COFFEE": "Tea & Coffee",
+    "SAFE": "In-room Safe",
+    "DESK": "Work Desk",
+    "BALCONY": "Balcony",
+    "CITY_VIEW": "City View",
+    "SEA_VIEW": "Sea View",
+    "BATHTUB": "Bathtub",
+    "SHOWER": "Rain Shower"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Management Dashboard",
+  "subtitle": "Select a module to manage your hotel operations.",
+  "quickStats": "Quick Stats",
+  "modules": {
+    "bookings": {
+      "title": "Bookings",
+      "description": "Manage room reservations, check-ins, and check-outs."
+    },
+    "guests": {
+      "title": "Guests",
+      "description": "Maintain guest profiles and loyalty information."
+    },
+    "rooms": {
+      "title": "Rooms",
+      "description": "Monitor room status, cleaning, and maintenance."
+    },
+    "roomTypes": {
+      "title": "Room Types",
+      "description": "Manage categories and pricing strategies."
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "Process folios, invoices, and transactions."
+    },
+    "staff": {
+      "title": "Staff",
+      "description": "Manage employees, roles, and permissions."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "View occupancy reports and financial statements."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure hotel information and system policies."
+    },
+    "corporate": {
+      "title": "Corporate",
+      "description": "Manage corporate clients and contracts."
+    },
+    "housekeeping": {
+      "title": "Housekeeping",
+      "description": "Track cleaning tasks and room status."
+    },
+    "inventory": {
+      "title": "Inventory",
+      "description": "Track amenities and stock levels."
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "description": "Manage work orders and repairs."
+    },
+    "restaurant": {
+      "title": "Restaurant",
+      "description": "Point of sale and order management."
+    }
+  },
+  "stats": {
+    "totalRooms": "Total Rooms",
+    "occupancyRate": "Occupancy Rate",
+    "expectedArrivals": "Expected Arrivals",
+    "revenueToday": "Revenue Today"
+  }
+}

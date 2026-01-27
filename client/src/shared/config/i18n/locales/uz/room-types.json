@@ -1,0 +1,27 @@
+{
+  "roomTypesTitle": "Xona toifalari",
+  "roomTypesSubtitle": "Har bir xona turi uchun narx va qulayliklarni belgilang",
+  "typeName": "Toifa nomi",
+  "basePrice": "Boshlang'ich narx",
+  "amenities": "Qulayliklar",
+  "addRoomType": "Yangi toifa",
+  "editRoomType": "Toifani tahrirlash",
+  "typeReq": "Toifa nomi kiritilishi shart",
+  "priceReq": "Boshlang'ich narx kiritilishi shart",
+  "selectAmenities": "Qulayliklarni tanlang",
+  "description": "Tavsif",
+  "amenityOptions": {
+    "WIFI": "Yuqori tezlikdagi WiFi",
+    "TV": "Smart TV",
+    "AC": "Konditsioner",
+    "MINIBAR": "Mini-bar",
+    "TEA_COFFEE": "Choy va kofe",
+    "SAFE": "Seyf",
+    "DESK": "Ish stoli",
+    "BALCONY": "Balkon",
+    "CITY_VIEW": "Shahar manzarasi",
+    "SEA_VIEW": "Dengiz manzarasi",
+    "BATHTUB": "Vanna",
+    "SHOWER": "Dush"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "title": "Korporativ va B2B mijozlar",
+  "subtitle": "Kompaniyalar bilan munosabatlar, shartnomalar va hisob-kitoblar",
+  "searchPlaceholder": "Kompaniya nomi, INN yoki xodim bo'yicha...",
+  "columns": {
+    "companyName": "Kompaniya nomi",
+    "contact": "Mas'ul xodim",
+    "activeDiscount": "Amaldagi chegirma",
+    "bookings": "Bandlovlar",
+    "status": "Hisob holati",
+    "actions": "Harakatlar"
+  },
+  "fields": {
+    "companyName": "Kompaniya nomi",
+    "taxId": "STIR (INN)",
+    "contactPerson": "Mas'ul xodim",
+    "email": "Elektron pochta",
+    "phone": "Telefon raqami",
+    "status": "Profil holati",
+    "discount": "Boshlang'ich chegirma"
+  },
+  "actions": {
+    "addCompany": "Yangi kompaniya qo'shish",
+    "editCompany": "Ma'lumotlarni tahrirlash",
+    "newContract": "Yangi shartnoma"
+  },
+  "tabs": {
+    "bookings": "Mehmonlar tarixi",
+    "contracts": "Chegirma shartnomalari",
+    "details": "Profil ma'lumotlari"
+  },
+  "status": {
+    "active": "Faol mijoz",
+    "inactive": "Arxivlangan"
+  }
+}

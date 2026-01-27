@@ -1,0 +1,105 @@
+{
+  "pos": {
+    "title": "Restoran POS",
+    "searchPlaceholder": "Menyudan qidirish...",
+    "allCategories": "Hammasi",
+    "noItems": "Hech narsa topilmadi",
+    "currentOrder": "Joriy buyurtma",
+    "cartEmpty": "Savat bo'sh",
+    "tableNumber": "Stol raqami",
+    "tablePlaceholder": "Stol masalan: 15, B2...",
+    "linkToRoom": "Xonaga bog'lash (Ixtiyoriy)",
+    "selectBooking": "Faol bandlovni tanlang",
+    "roomNumber": "{{number}}-xona",
+    "total": "Jami",
+    "placeOrder": "Buyurtma berish",
+    "orderSuccess": "Buyurtma muvaffaqiyatli qabul qilindi",
+    "cartEmptyWarning": "Savat bo'sh"
+  },
+  "kds": {
+    "title": "Oshxona ekrani",
+    "subtitle": "Oshxona xodimlari uchun real vaqt rejimida buyurtmalarni boshqarish.",
+    "activeOrders": "Faol buyurtmalar",
+    "noActiveOrders": "Faol buyurtmalar yo'q",
+    "placed": "Berildi",
+    "ago": "{{count}} daqiqa oldin",
+    "table": "Stol",
+    "note": "Izoh",
+    "startCooking": "Tayyorlashni boshlash",
+    "markAsReady": "Tayyor deb belgilash",
+    "statusUpdateError": "Holatni yangilab bo'lmadi"
+  },
+  "menu": {
+    "title": "Menyu boshqaruvi",
+    "subtitle": "Mehmonxona restorani uchun toifalar, mahsulotlar va narxlarni boshqarish.",
+    "itemsTab": "Menyu elementlari",
+    "categoriesTab": "Toifalar",
+    "searchItems": "Elementlarni qidirish...",
+    "addItem": "Element qo'shish",
+    "addCategory": "Toifa qo'shish",
+    "table": {
+      "image": "Rasm",
+      "name": "Nomi",
+      "category": "Toifa",
+      "price": "Narxi",
+      "calories": "Kaloriya",
+      "actions": "Harakatlar",
+      "itemsCount": "Elementlar soni",
+      "confirmDelete": "Ishonchingiz komilmi?"
+    },
+    "form": {
+      "editItem": "Elementni tahrirlash",
+      "newItem": "Yangi element",
+      "editCategory": "Toifani tahrirlash",
+      "newCategory": "Yangi toifa",
+      "category": "Toifa",
+      "selectCategory": "Toifani tanlang",
+      "itemName": "Element nomi",
+      "description": "Tavsif",
+      "price": "Narxi (UZS)",
+      "imageUrl": "Rasm URL manzili",
+      "ingredients": "Masalliqlar (AI uchun)",
+      "calories": "Kalloriya",
+      "aiEstimationInfo": "Bo'sh qolsa, saqlash vaqtida kaloriya AI tomonidan hisoblanadi.",
+      "aiWarning": "AI hisoblashi uchun inglizcha nom va masalliqlarni kiriting"
+    }
+  },
+  "history": {
+    "title": "Buyurtmalar tarixi",
+    "subtitle": "Barcha restoran operatsiyalari va o'tmishdagi buyurtmalarni kuzatish.",
+    "searchPlaceholder": "ID, stol yoki mehmon bo'yicha qidirish...",
+    "filterStatus": "Holat bo'yicha saralash",
+    "totalOrders": "Jami {{count}} buyurtma",
+    "columns": {
+      "orderId": "Buyurtma ID",
+      "dateTime": "Sana va vaqt",
+      "location": "Stol / Xona",
+      "guest": "Mehmon",
+      "amount": "Summa",
+      "status": "Holat",
+      "actions": "Harakatlar"
+    },
+    "status": {
+      "pending": "Kutilmoqda",
+      "preparing": "Tayyorlanmoqda",
+      "served": "Xizmat ko'rsatildi",
+      "paid": "To'landi",
+      "cancelled": "Bekor qilindi"
+    },
+    "walkIn": "Tashqaridan kelgan",
+    "viewReceipt": "Chekni ko'rish"
+  },
+  "receipt": {
+    "title": "Buyurtma cheki",
+    "businessName": "HMS PRO RESTORANI",
+    "orderNo": "Buyurtma #{{id}}",
+    "table": "Stol: {{number}}",
+    "item": "Element",
+    "qty": "Soni",
+    "price": "Narxi",
+    "total": "JAMI",
+    "thankYou": "Tashrifingiz uchun rahmat!",
+    "comeAgain": "Yana kutib qolamiz.",
+    "print": "Chop etish"
+  }
+}

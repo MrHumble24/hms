@@ -1,0 +1,105 @@
+{
+  "pos": {
+    "title": "Restaurant POS",
+    "searchPlaceholder": "Search menu...",
+    "allCategories": "All",
+    "noItems": "No items found",
+    "currentOrder": "Current Order",
+    "cartEmpty": "Cart is empty",
+    "tableNumber": "Table Number",
+    "tablePlaceholder": "Table e.g. 15, B2...",
+    "linkToRoom": "Link to Room (Optional)",
+    "selectBooking": "Select active booking",
+    "roomNumber": "Room {{number}}",
+    "total": "Total",
+    "placeOrder": "Place Order",
+    "orderSuccess": "Order placed successfully",
+    "cartEmptyWarning": "Cart is empty"
+  },
+  "kds": {
+    "title": "Kitchen Display System",
+    "subtitle": "Real-time order management for the kitchen staff.",
+    "activeOrders": "Active Orders",
+    "noActiveOrders": "No active orders",
+    "placed": "Placing",
+    "ago": "{{count}}m ago",
+    "table": "Table",
+    "note": "Note",
+    "startCooking": "Start Cooking",
+    "markAsReady": "Mark as Ready",
+    "statusUpdateError": "Failed to update status"
+  },
+  "menu": {
+    "title": "Menu Management",
+    "subtitle": "Manage categories, items, and pricing for the hotel restaurant.",
+    "itemsTab": "Menu Items",
+    "categoriesTab": "Categories",
+    "searchItems": "Search items...",
+    "addItem": "Add Item",
+    "addCategory": "Add Category",
+    "table": {
+      "image": "Image",
+      "name": "Name",
+      "category": "Category",
+      "price": "Price",
+      "calories": "Calories",
+      "actions": "Actions",
+      "itemsCount": "Items Count",
+      "confirmDelete": "Are you sure?"
+    },
+    "form": {
+      "editItem": "Edit Menu Item",
+      "newItem": "New Menu Item",
+      "editCategory": "Edit Category",
+      "newCategory": "New Category",
+      "category": "Category",
+      "selectCategory": "Select category",
+      "itemName": "Item Name",
+      "description": "Description",
+      "price": "Price (UZS)",
+      "imageUrl": "Image URL",
+      "ingredients": "Ingredients (for AI)",
+      "calories": "Calories",
+      "aiEstimationInfo": "Calories will be estimated upon saving if left empty.",
+      "aiWarning": "Please provide English name and ingredients for AI estimation"
+    }
+  },
+  "history": {
+    "title": "Order History",
+    "subtitle": "Monitor all restaurant transactions and past orders.",
+    "searchPlaceholder": "Search by ID, Table, or Guest...",
+    "filterStatus": "Filter by Status",
+    "totalOrders": "Total {{count}} orders",
+    "columns": {
+      "orderId": "Order ID",
+      "dateTime": "Date & Time",
+      "location": "Table / Room",
+      "guest": "Guest",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "preparing": "Preparing",
+      "served": "Served",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "walkIn": "Walk-in",
+    "viewReceipt": "View Receipt"
+  },
+  "receipt": {
+    "title": "Order Receipt",
+    "businessName": "HMS PRO RESTAURANT",
+    "orderNo": "Order #{{id}}",
+    "table": "Table: {{number}}",
+    "item": "Item",
+    "qty": "Qty",
+    "price": "Price",
+    "total": "TOTAL",
+    "thankYou": "Thank you for your visit!",
+    "comeAgain": "Please come again.",
+    "print": "Print"
+  }
+}

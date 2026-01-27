@@ -1,0 +1,25 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "reservation": "RESERVATSIYA",
+    "bookings": "Bandlovlar",
+    "guests": "Mehmonlar",
+    "corporate": "B2B Mijozlar",
+    "housekeeping": "Tozalash",
+    "inventory": "Inventar",
+    "rooms": "Xona inventari",
+    "roomTypes": "Xona turlari",
+    "visualGrid": "Xonalar holati",
+    "supplies": "Ombor zahiralari",
+    "finance": "Moliya",
+    "payments": "To'lovlar",
+    "system": "TIZIM",
+    "staff": "Xodimlar boshqaruvi",
+    "restaurant": "RESTORAN",
+    "pos": "POS / Buyurtma",
+    "kds": "Oshxona ekrani (KDS)",
+    "orderHistory": "Buyurtmalar tarixi",
+    "menuManagement": "Menyu boshqaruvi",
+    "settings": "Sozlamalar"
+  }
+}

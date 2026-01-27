@@ -1,0 +1,36 @@
+{
+  "title": "Corporate & B2B Accounts",
+  "subtitle": "Manage company relationships, contracts, and billing",
+  "searchPlaceholder": "Search by Company, INN, or Contact...",
+  "columns": {
+    "companyName": "Company Name",
+    "contact": "Contact Person",
+    "activeDiscount": "Current Discount",
+    "bookings": "Bookings",
+    "status": "Account Status",
+    "actions": "Actions"
+  },
+  "fields": {
+    "companyName": "Company Name",
+    "taxId": "Tax ID (INN)",
+    "contactPerson": "Primary Contact",
+    "email": "Official Email",
+    "phone": "Phone Number",
+    "status": "Account Status",
+    "discount": "Default Discount"
+  },
+  "actions": {
+    "addCompany": "Register New Company",
+    "editCompany": "Edit Company Info",
+    "newContract": "New Discount Contract"
+  },
+  "tabs": {
+    "bookings": "Guest History",
+    "contracts": "Active Contracts",
+    "details": "Profile Details"
+  },
+  "status": {
+    "active": "Active Client",
+    "inactive": "Archived"
+  }
+}

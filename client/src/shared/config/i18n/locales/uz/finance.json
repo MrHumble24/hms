@@ -1,0 +1,83 @@
+{
+  "title": "Moliya va billing",
+  "folioTitle": "Folio tafsilotlari",
+  "balancePanel": {
+    "title": "Moliyaviy xulosa",
+    "totalCharges": "Umumiy xarajatlar",
+    "totalPayments": "Umumiy to'lovlar",
+    "outstanding": "Qolgan qarz",
+    "settle": "Qarzni yopish",
+    "settled": "Folio yopilgan"
+  },
+  "sections": {
+    "charges": "Xarajatlar va xizmatlar",
+    "payments": "To'lovlar tarixi",
+    "folioSelect": "Ushbu tashrif uchun foliolar",
+    "summary": "Tashrif davomidagi xona xarajatlari",
+    "quickSettings": "Tezkor sozlamalar",
+    "noCharges": "Hozircha xarajatlar yo'q",
+    "noPayments": "Hozircha to'lovlar yo'q"
+  },
+  "columns": {
+    "date": "Sana",
+    "description": "Tavsif",
+    "amount": "Summa",
+    "qty": "Soni",
+    "total": "Jami",
+    "type": "Turi",
+    "source": "Manba",
+    "staff": "Xodim",
+    "status": "Holat",
+    "method": "Usul",
+    "nights": "Tunlar",
+    "rate": "Bir tun uchun narx",
+    "totalRoomCharges": "Xona uchun jami xarajatlar"
+  },
+  "actions": {
+    "addCharge": "Xarajat qo'shish",
+    "recordPayment": "To'lovni kiritish",
+    "adjust": "Tuzatish",
+    "adjustConfirm": "Ushbu xarajatni bekor qilmoqchimisiz? Bu tuzatuvchi xarajat qo'shadi.",
+    "void": "Folioni bekor qilish",
+    "close": "Folioni yopish",
+    "print": "Folioni chop etish",
+    "setPrimary": "Asosiy folio sifatida o'rnatish",
+    "voidFolio": "Butun folioni bekor qilish"
+  },
+  "forms": {
+    "charge": {
+      "title": "Folio xarajatini qo'shish",
+      "pricePreview": "Narxni ko'rib chiqish",
+      "nonReversible": "Eslatma: Ba'zi xarajatlarni bekor qilish uchun menejer ruxsati kerak bo'lishi mumkin."
+    },
+    "payment": {
+      "title": "To'lovni kiritish",
+      "outstandingLabel": "Qolgan qoldiq",
+      "overpaymentWarning": "Diqqat: To'lov summasi qoldiqdan oshib ketdi. Davom etilsinmi?",
+      "partialFull": "To'liq qarzni yopish"
+    }
+  },
+  "types": {
+    "ROOM_CHARGE": "Xona ijarasi",
+    "TOURIST_TAX": "Turistik yig'im",
+    "MINIBAR": "Mini-bar",
+    "LAUNDRY": "Kir yuvish",
+    "DAMAGE_FEE": "Ziyon to'lovi",
+    "RESTAURANT": "Restoran"
+  },
+  "status": {
+    "OPEN": "Ochiq",
+    "CLOSED": "Yopilgan",
+    "VOID": "Bekor qilingan",
+    "PRIMARY": "ASOSIY FOLIO",
+    "MAIN_FOLIO": "Asosiy folio",
+    "EXTRA_FOLIO": "Qo'shimcha folio",
+    "ESTIMATED": "Taxminiy",
+    "ESTIMATED_NOTICE": "Xona xarajatlari mehmon kelganida yoki ketishida kiritiladi"
+  },
+  "warnings": {
+    "creditBalance": "Ortiqcha to'lov: Qaytarish talab qilinishi mumkin",
+    "folioClosedTitle": "Folio yopilgan",
+    "folioClosedDescription": "Yopilgan foliolar uchun to'lovlarni qayd etib bo'lmaydi. To'lov qo'shish uchun folioni qayta oching."
+  }
+}

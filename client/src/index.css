@@ -1,0 +1,50 @@
+@import 'antd/dist/reset.css';
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar for Enterprise Look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* Smooth Transitions */
+.ant-layout-sider {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.ant-menu-item {
+  transition: all 0.2s ease !important;
+}
+
+/* Ant Design Overrides */
+.ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: #fff !important;
+  border-bottom-color: #fff !important;
+}

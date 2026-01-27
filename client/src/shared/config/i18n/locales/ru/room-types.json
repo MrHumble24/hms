@@ -1,0 +1,27 @@
+{
+  "roomTypesTitle": "Категории номеров",
+  "roomTypesSubtitle": "Укажите цены и удобства для каждого типа номера",
+  "typeName": "Название категории",
+  "basePrice": "Базовая цена",
+  "amenities": "Удобства",
+  "addRoomType": "Добавить категорию",
+  "editRoomType": "Редактировать категорию",
+  "typeReq": "Название категории обязательно",
+  "priceReq": "Базовая цена обязательна",
+  "selectAmenities": "Выберите удобства",
+  "description": "Описание",
+  "amenityOptions": {
+    "WIFI": "Высокоскоростной WiFi",
+    "TV": "Smart TV",
+    "AC": "Кондиционер",
+    "MINIBAR": "Мини-бар",
+    "TEA_COFFEE": "Чай и кофе",
+    "SAFE": "Сейф",
+    "DESK": "Рабочий стол",
+    "BALCONY": "Балкон",
+    "CITY_VIEW": "Вид на город",
+    "SEA_VIEW": "Вид на море",
+    "BATHTUB": "Ванна",
+    "SHOWER": "Душ"
+  }
+}

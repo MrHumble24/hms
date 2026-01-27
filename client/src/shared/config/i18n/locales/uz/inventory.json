@@ -1,0 +1,54 @@
+{
+  "title": "Omborni boshqarish",
+  "subtitle": "Mehmonxona jihozlari va minibar mahsulotlari",
+  "searchPlaceholder": "Mahsulot nomi yoki SKU bo'yicha qidirish...",
+  "filters": {
+    "allCategories": "Barcha kategoriyalar",
+    "allStock": "Barcha zaxira darajalari",
+    "lowStock": "Kam qolgan mahsulotlar",
+    "outOfStock": "Tugagan mahsulotlar"
+  },
+  "columns": {
+    "itemName": "Mahsulot nomi",
+    "category": "Kategoriya",
+    "currentStock": "Hozirgi zaxira",
+    "unit": "Birlik",
+    "threshold": "Chegara",
+    "status": "Holat",
+    "lastUpdated": "Oxirgi yangilanish",
+    "actions": "Harakatlar"
+  },
+  "categories": {
+    "MINIBAR": "Minibar",
+    "HOUSEKEEPING": "Xo'jalik",
+    "MAINTENANCE": "Texnik xizmat",
+    "KITCHEN": "Oshxona",
+    "OTHER": "Boshqa"
+  },
+  "status": {
+    "normal": "Normal",
+    "low": "Kam",
+    "critical": "Kritik"
+  },
+  "actions": {
+    "updateStock": "Zaxirani yangilash",
+    "addNewItem": "Yangi mahsulot qo'shish",
+    "editItem": "Tahrirlash",
+    "confirmUpdate": "Yangilashni tasdiqlash"
+  },
+  "drawer": {
+    "currentBalance": "Hozirgi qoldiq",
+    "projectedBalance": "Kutilayotgan qoldiq",
+    "changeLabel": "Miqdor o'zgarishi",
+    "reason": "Yangilash sababi",
+    "note": "Eslatma (ixtiyoriy)",
+    "reasons": {
+      "USED_IN_ROOM": "Xonada ishlatilgan",
+      "MINIBAR_REFILL": "Minibar to'ldirilgan",
+      "DAMAGED_OR_LOST": "Shikastlangan / Yo'qolgan",
+      "RESTOCKED": "Zaxira to'ldirilgan",
+      "CORRECTION": "Tuzatish",
+      "OTHER": "Boshqa"
+    }
+  }
+}
