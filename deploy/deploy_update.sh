@@ -3,7 +3,9 @@
 # Exit on error
 set -e
 
-APP_DIR="/root/projects/hms"
+# Resolve paths dynamically based on script location
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$(dirname "$SCRIPT_DIR")"
 CLIENT_BUILD_DEST="/var/www/hms-client"
 
 echo "🔄 Starting Update Deployment..."
