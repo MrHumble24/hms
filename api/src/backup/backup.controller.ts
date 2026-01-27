@@ -4,26 +4,23 @@ import {
   UploadedFile,
   UseInterceptors,
   Body,
-  UseGuards,
   Get,
   Param,
   Res,
+  Header,
   StreamableFile,
+  NotFoundException,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BackupService } from './backup.service.js';
-// import { RolesGuard } from '../auth/guards/roles.guard';
-// import { Roles } from '../auth/decorators/roles.decorator';
-// import { UserRole } from '@prisma/client';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 @Controller('backups')
 export class BackupController {
   constructor(private readonly backupService: BackupService) {}
 
   @Post()
-  // @UseGuards(RolesGuard)
-  // @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async createBackup() {
     const filePath = await this.backupService.createBackup('manual');
     await this.backupService.sendToTelegram(filePath);
@@ -45,11 +42,16 @@ export class BackupController {
   }
 
   @Get(':filename')
-  async downloadBackup(
+  @Header('Content-Type', 'application/octet-stream')
+  downloadBackup(
     @Param('filename') filename: string,
-    @Res() res: Response,
-  ) {
+    @Res({ passthrough: true }) res: any,
+  ): StreamableFile {
     const filePath = this.backupService.getBackupFile(filename);
-    res.download(filePath);
+    const file = createReadStream(filePath);
+    res.set({
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+    return new StreamableFile(file);
   }
 }
