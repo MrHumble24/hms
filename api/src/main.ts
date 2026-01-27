@@ -6,11 +6,7 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [
-      'https://hms.centrify.uz',
-      'http://localhost:5173',
-      'http://localhost:3003',
-    ],
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
