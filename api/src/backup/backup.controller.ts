@@ -8,8 +8,9 @@ import {
   Get,
   Param,
   Res,
+  StreamableFile,
 } from '@nestjs/common';
-import * as express from 'express';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BackupService } from './backup.service.js';
 // import { RolesGuard } from '../auth/guards/roles.guard';
@@ -46,7 +47,7 @@ export class BackupController {
   @Get(':filename')
   async downloadBackup(
     @Param('filename') filename: string,
-    @Res() res: express.Response,
+    @Res() res: Response,
   ) {
     const filePath = this.backupService.getBackupFile(filename);
     res.download(filePath);
