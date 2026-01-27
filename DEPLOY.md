@@ -127,6 +127,18 @@ server {
     server_name api-hms.centrify.uz;
 
     location / {
+        # Handle preflight OPTIONS requests
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' 'https://hms.centrify.uz' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Content-Type, Accept, Authorization, x-tenant-id, x-branch-id, X-Requested-With, Origin' always;
+            add_header 'Access-Control-Allow-Credentials' 'true' always;
+            add_header 'Access-Control-Max-Age' 86400;
+            add_header 'Content-Type' 'text/plain charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
         proxy_pass http://localhost:3002; # Defined in ecosystem.config.js
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -138,6 +150,10 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # CORS headers for all responses
+        add_header 'Access-Control-Allow-Origin' 'https://hms.centrify.uz' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
     }
 
     client_max_body_size 10M;

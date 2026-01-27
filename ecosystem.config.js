@@ -9,6 +9,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3002, // Changed from 3000 to avoid conflict
+        CORS_ORIGIN: "https://hms.centrify.uz,https://www.hms.centrify.uz",
       },
       // Safe restart settings
       autorestart: true,
