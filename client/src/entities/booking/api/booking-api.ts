@@ -124,6 +124,9 @@ export const bookingApi = {
     take?: number;
     search?: string;
     status?: string;
+    source?: string;
+    dateFrom?: string;
+    dateTo?: string;
   }) => {
     const response = await api.get<{ data: Booking[]; total: number }>(
       "/bookings",

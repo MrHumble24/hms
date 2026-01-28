@@ -36,12 +36,18 @@ export class BookingsController {
     @Query('take') take?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('source') source?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
     return this.bookingsService.findAll({
       skip: skip ? parseInt(skip) : undefined,
       take: take ? parseInt(take) : undefined,
       search,
       status,
+      source,
+      dateFrom,
+      dateTo,
     });
   }
 

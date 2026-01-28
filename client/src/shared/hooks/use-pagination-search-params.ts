@@ -46,6 +46,25 @@ export const usePaginationSearchParams = (defaultPageSize = 10) => {
     [setSearchParams],
   );
 
+  const setParams = useCallback(
+    (params: Record<string, string | undefined | null>, resetPage = true) => {
+      setSearchParams((prev) => {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === null || value === undefined || value === "") {
+            prev.delete(key);
+          } else {
+            prev.set(key, value);
+          }
+        });
+        if (resetPage) {
+          prev.set("page", "1");
+        }
+        return prev;
+      });
+    },
+    [setSearchParams],
+  );
+
   const handlePaginationChange = useCallback(
     (page: number, pageSize: number) => {
       setSearchParams((prev) => {
@@ -92,6 +111,7 @@ export const usePaginationSearchParams = (defaultPageSize = 10) => {
   return {
     params,
     setParam,
+    setParams,
     handlePaginationChange,
     handleTableChange,
     handleSearch,

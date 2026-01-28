@@ -140,12 +140,39 @@ export class BookingsService {
     take?: number;
     search?: string;
     status?: string;
+    source?: string;
+    dateFrom?: string;
+    dateTo?: string;
   }) {
     const { branchId, tenantId } = this.getContext();
     const where: any = { branchId, tenantId };
 
+    console.log('📋 Booking filter params:', {
+      status: params.status,
+      source: params.source,
+      dateFrom: params.dateFrom,
+      dateTo: params.dateTo,
+    });
+
     if (params.status && params.status !== 'ALL') {
       where.status = params.status;
+    }
+
+    if (params.source && params.source !== 'ALL') {
+      where.source = params.source;
+    }
+
+    console.log('🔍 Booking where clause:', JSON.stringify(where, null, 2));
+
+    // Date range filter (check-in date range)
+    if (params.dateFrom || params.dateTo) {
+      where.checkIn = {};
+      if (params.dateFrom) {
+        where.checkIn.gte = new Date(params.dateFrom);
+      }
+      if (params.dateTo) {
+        where.checkIn.lte = new Date(params.dateTo);
+      }
     }
 
     if (params.search) {

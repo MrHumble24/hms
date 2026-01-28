@@ -12,6 +12,10 @@ import {
   Modal,
   Grid,
   List,
+  Select,
+  DatePicker,
+  Badge,
+  Divider,
 } from "antd";
 import {
   PlusOutlined,
@@ -21,11 +25,13 @@ import {
   StopOutlined,
   CheckCircleOutlined,
   KeyOutlined,
+  ClearOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   bookingApi,
   BookingStatus,
+  BookingSource,
   type Booking,
 } from "@/entities/booking/api/booking-api";
 import { CreateBookingDrawer } from "@/widgets/bookings/ui/create-booking-drawer";
@@ -35,6 +41,31 @@ import dayjs from "dayjs";
 import { usePaginationSearchParams } from "@/shared/hooks/use-pagination-search-params";
 
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
+
+// Helper functions for labels
+const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    PENDING: "Pending",
+    CONFIRMED: "Confirmed",
+    CHECKED_IN: "Checked In",
+    CHECKED_OUT: "Checked Out",
+    CANCELLED: "Cancelled",
+    NO_SHOW: "No Show",
+  };
+  return labels[status] || status;
+};
+
+const getSourceLabel = (source: string) => {
+  const labels: Record<string, string> = {
+    WALK_IN: "Walk-in",
+    PHONE: "Phone",
+    BOOKING_COM: "Booking.com",
+    EXPEDIA: "Expedia",
+    WEBSITE: "Website",
+  };
+  return labels[source] || source;
+};
 
 export const BookingsPage = () => {
   const { t } = useTranslation(["bookings", "common"]);
@@ -44,8 +75,28 @@ export const BookingsPage = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [checkoutBooking, setCheckoutBooking] = useState<Booking | null>(null);
 
-  const { params, handleSearch, setParam, pagination, apiParams } =
+  // Local filter states for the filter modal
+  const [tempFilters, setTempFilters] = useState<{
+    status: string | null;
+    source: string | null;
+    dateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+  }>({
+    status: null,
+    source: null,
+    dateRange: null,
+  });
+
+  const { params, handleSearch, setParam, setParams, pagination, apiParams } =
     usePaginationSearchParams();
+
+  // Calculate active filter count
+  const activeFilterCount = [
+    params.status && params.status !== "ALL" ? 1 : 0,
+    params.source && params.source !== "ALL" ? 1 : 0,
+    params.dateFrom ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  console.log("📤 Frontend apiParams:", apiParams);
 
   const { data, isLoading } = useQuery({
     queryKey: ["bookings", apiParams],
@@ -55,7 +106,6 @@ export const BookingsPage = () => {
   const bookings = data?.data || [];
   const total = data?.total || 0;
 
-  // Client-side filtering removed in favor of server-side
   const filteredBookings = bookings;
 
   const updateStatusMutation = useMutation({
@@ -69,9 +119,43 @@ export const BookingsPage = () => {
   const handleStatusChange = (id: string, status: BookingStatus) => {
     Modal.confirm({
       title: t("common:confirm", "Are you sure?"),
-      content: `Change status to ${status}?`,
+      content: `Change status to ${getStatusLabel(status)}?`,
       onOk: () => updateStatusMutation.mutate({ id, status }),
     });
+  };
+
+  const handleApplyFilters = () => {
+    setParams({
+      status: tempFilters.status || undefined,
+      source: tempFilters.source || undefined,
+      dateFrom: tempFilters.dateRange?.[0]?.format("YYYY-MM-DD") || undefined,
+      dateTo: tempFilters.dateRange?.[1]?.format("YYYY-MM-DD") || undefined,
+    });
+    setIsFilterDrawerOpen(false);
+  };
+
+  const handleClearFilters = () => {
+    setTempFilters({ status: null, source: null, dateRange: null });
+    setParams({
+      status: undefined,
+      source: undefined,
+      dateFrom: undefined,
+      dateTo: undefined,
+    });
+    setIsFilterDrawerOpen(false);
+  };
+
+  const openFilterModal = () => {
+    // Sync temp filters with current params
+    setTempFilters({
+      status: params.status || null,
+      source: params.source || null,
+      dateRange:
+        params.dateFrom && params.dateTo
+          ? [dayjs(params.dateFrom), dayjs(params.dateTo)]
+          : null,
+    });
+    setIsFilterDrawerOpen(true);
   };
 
   const getStatusColor = (status: BookingStatus) => {
@@ -86,6 +170,23 @@ export const BookingsPage = () => {
         return "red";
       case BookingStatus.NO_SHOW:
         return "orange";
+      default:
+        return "default";
+    }
+  };
+
+  const getSourceColor = (source: string) => {
+    switch (source) {
+      case BookingSource.BOOKING_COM:
+        return "blue";
+      case BookingSource.EXPEDIA:
+        return "gold";
+      case BookingSource.WEBSITE:
+        return "cyan";
+      case BookingSource.PHONE:
+        return "purple";
+      case BookingSource.WALK_IN:
+        return "green";
       default:
         return "default";
     }
@@ -139,7 +240,7 @@ export const BookingsPage = () => {
       dataIndex: "status",
       key: "status",
       render: (status: BookingStatus) => (
-        <Tag color={getStatusColor(status)}>{status.replace("_", " ")}</Tag>
+        <Tag color={getStatusColor(status)}>{getStatusLabel(status)}</Tag>
       ),
     },
     {
@@ -147,7 +248,7 @@ export const BookingsPage = () => {
       dataIndex: "source",
       key: "source",
       render: (source: string) => (
-        <Text style={{ fontSize: 13 }}>{source}</Text>
+        <Tag color={getSourceColor(source)}>{getSourceLabel(source)}</Tag>
       ),
     },
     {
@@ -194,6 +295,78 @@ export const BookingsPage = () => {
     return items;
   };
 
+  // Filter tags display
+  const renderActiveFilters = () => {
+    const filters = [];
+
+    if (params.status && params.status !== "ALL") {
+      filters.push(
+        <Tag
+          key="status"
+          closable
+          onClose={() => setParam("status", null)}
+          color="blue"
+        >
+          Status: {getStatusLabel(params.status)}
+        </Tag>,
+      );
+    }
+
+    if (params.source && params.source !== "ALL") {
+      filters.push(
+        <Tag
+          key="source"
+          closable
+          onClose={() => setParam("source", null)}
+          color="purple"
+        >
+          Source: {getSourceLabel(params.source)}
+        </Tag>,
+      );
+    }
+
+    if (params.dateFrom && params.dateTo) {
+      filters.push(
+        <Tag
+          key="dates"
+          closable
+          onClose={() => {
+            setParams({ dateFrom: undefined, dateTo: undefined });
+          }}
+          color="green"
+        >
+          {dayjs(params.dateFrom).format("MMM DD")} -{" "}
+          {dayjs(params.dateTo).format("MMM DD, YYYY")}
+        </Tag>,
+      );
+    }
+
+    return filters.length > 0 ? (
+      <div
+        style={{
+          marginBottom: 12,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          alignItems: "center",
+        }}
+      >
+        <Text type="secondary" style={{ fontSize: 13 }}>
+          Active filters:
+        </Text>
+        {filters}
+        <Button
+          type="link"
+          size="small"
+          onClick={handleClearFilters}
+          icon={<ClearOutlined />}
+        >
+          Clear all
+        </Button>
+      </div>
+    ) : null;
+  };
+
   return (
     <div style={{ padding: 24 }}>
       <div
@@ -228,54 +401,165 @@ export const BookingsPage = () => {
           style={{
             marginBottom: 16,
             display: "flex",
-            gap: 16,
+            gap: 12,
             flexDirection: screens.md ? "row" : "column",
           }}
         >
           <Input
-            placeholder={t("common:search", "Search bookings...")}
+            placeholder={t("common:search", "Search by guest name or room...")}
             prefix={<SearchOutlined />}
-            style={{ maxWidth: screens.md ? 300 : "100%" }}
+            style={{ maxWidth: screens.md ? 300 : "100%", flex: 1 }}
             value={params.search}
             onChange={(e) => handleSearch(e.target.value)}
+            allowClear
           />
-          <Button
-            icon={<FilterOutlined />}
-            style={{ width: screens.md ? "auto" : "100%" }}
-            onClick={() => setIsFilterDrawerOpen(true)}
-          >
-            {params.status === "ALL" || !params.status
-              ? "Filter"
-              : `Status: ${params.status}`}
-          </Button>
+
+          {/* Desktop: Inline filters */}
+          {screens.md && (
+            <>
+              <Select
+                placeholder="All Statuses"
+                style={{ minWidth: 150 }}
+                value={params.status || undefined}
+                onChange={(value) => setParam("status", value || null)}
+                allowClear
+                options={[
+                  { value: "ALL", label: "All Statuses" },
+                  ...Object.values(BookingStatus).map((status) => ({
+                    value: status,
+                    label: getStatusLabel(status),
+                  })),
+                ]}
+              />
+
+              <Select
+                placeholder="All Sources"
+                style={{ minWidth: 140 }}
+                value={params.source || undefined}
+                onChange={(value) => setParam("source", value || null)}
+                allowClear
+                options={[
+                  { value: "ALL", label: "All Sources" },
+                  ...Object.values(BookingSource).map((source) => ({
+                    value: source,
+                    label: getSourceLabel(source),
+                  })),
+                ]}
+              />
+
+              <RangePicker
+                value={
+                  params.dateFrom && params.dateTo
+                    ? [dayjs(params.dateFrom), dayjs(params.dateTo)]
+                    : null
+                }
+                onChange={(dates) => {
+                  if (dates && dates[0] && dates[1]) {
+                    setParams({
+                      dateFrom: dates[0].format("YYYY-MM-DD"),
+                      dateTo: dates[1].format("YYYY-MM-DD"),
+                    });
+                  } else {
+                    setParams({ dateFrom: undefined, dateTo: undefined });
+                  }
+                }}
+                style={{ minWidth: 240 }}
+                placeholder={["Check-in from", "Check-in to"]}
+              />
+            </>
+          )}
+
+          {/* Mobile: Filter button */}
+          {!screens.md && (
+            <Badge count={activeFilterCount} size="small">
+              <Button
+                icon={<FilterOutlined />}
+                style={{ width: "100%" }}
+                onClick={openFilterModal}
+              >
+                Filters
+                {activeFilterCount > 0 && ` (${activeFilterCount})`}
+              </Button>
+            </Badge>
+          )}
         </div>
 
+        {/* Active filters display */}
+        {screens.md && renderActiveFilters()}
+
+        {/* Mobile Filter Modal */}
         <Modal
-          title="Filters"
+          title="Filter Bookings"
           open={isFilterDrawerOpen && !screens.md}
           onCancel={() => setIsFilterDrawerOpen(false)}
-          footer={null}
+          footer={[
+            <Button key="clear" onClick={handleClearFilters}>
+              Clear All
+            </Button>,
+            <Button key="apply" type="primary" onClick={handleApplyFilters}>
+              Apply Filters
+            </Button>,
+          ]}
           style={{ top: 20 }}
         >
-          <div style={{ padding: "16px 0" }}>
-            <Text strong style={{ display: "block", marginBottom: 12 }}>
-              Booking Status
-            </Text>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {["ALL", ...Object.values(BookingStatus)].map((status) => (
-                <Button
-                  key={status}
-                  type={
-                    (params.status || "ALL") === status ? "primary" : "default"
-                  }
-                  onClick={() => {
-                    setParam("status", status === "ALL" ? null : status);
-                    setIsFilterDrawerOpen(false);
-                  }}
-                >
-                  {status.replace("_", " ")}
-                </Button>
-              ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                Booking Status
+              </Text>
+              <Select
+                placeholder="Select status"
+                style={{ width: "100%" }}
+                value={tempFilters.status}
+                onChange={(value) =>
+                  setTempFilters((prev) => ({ ...prev, status: value }))
+                }
+                allowClear
+                options={Object.values(BookingStatus).map((status) => ({
+                  value: status,
+                  label: getStatusLabel(status),
+                }))}
+              />
+            </div>
+
+            <Divider style={{ margin: 0 }} />
+
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                Booking Source
+              </Text>
+              <Select
+                placeholder="Select source"
+                style={{ width: "100%" }}
+                value={tempFilters.source}
+                onChange={(value) =>
+                  setTempFilters((prev) => ({ ...prev, source: value }))
+                }
+                allowClear
+                options={Object.values(BookingSource).map((source) => ({
+                  value: source,
+                  label: getSourceLabel(source),
+                }))}
+              />
+            </div>
+
+            <Divider style={{ margin: 0 }} />
+
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                Check-in Date Range
+              </Text>
+              <RangePicker
+                style={{ width: "100%" }}
+                value={tempFilters.dateRange}
+                onChange={(dates) =>
+                  setTempFilters((prev) => ({
+                    ...prev,
+                    dateRange: dates as [dayjs.Dayjs, dayjs.Dayjs] | null,
+                  }))
+                }
+                placeholder={["From", "To"]}
+              />
             </div>
           </div>
         </Modal>
@@ -326,17 +610,29 @@ export const BookingsPage = () => {
                         {item.primaryGuest?.phone}
                       </Text>
                     </div>
-                    <Tag
-                      color={getStatusColor(item.status)}
-                      style={{
-                        margin: 0,
-                        borderRadius: 6,
-                        padding: "2px 8px",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {item.status.replace("_", " ").toLowerCase()}
-                    </Tag>
+                    <Space direction="vertical" size={4} align="end">
+                      <Tag
+                        color={getStatusColor(item.status)}
+                        style={{
+                          margin: 0,
+                          borderRadius: 6,
+                          padding: "2px 8px",
+                        }}
+                      >
+                        {getStatusLabel(item.status)}
+                      </Tag>
+                      <Tag
+                        color={getSourceColor(item.source)}
+                        style={{
+                          margin: 0,
+                          borderRadius: 6,
+                          padding: "2px 8px",
+                          fontSize: 11,
+                        }}
+                      >
+                        {getSourceLabel(item.source)}
+                      </Tag>
+                    </Space>
                   </div>
 
                   <div
