@@ -50,6 +50,7 @@ export class RoomsService {
 
   async findAllRoomTypes() {
     const { branchId, tenantId } = this.getContext();
+    console.log({ branchId, tenantId });
     return this.prisma.roomType.findMany({
       where: { branchId, tenantId },
       include: { rooms: true, branch: true, tenant: true },
