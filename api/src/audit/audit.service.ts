@@ -20,11 +20,12 @@ export class AuditService {
    * Create an audit log entry
    */
   async log(dto: CreateAuditLogDto, userId?: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     return this.prisma.auditLog.create({
       data: {
         tenantId,
+        branchId: branchId || null,
         userId,
         action: dto.action,
         entityType: dto.entityType,
@@ -109,11 +110,12 @@ export class AuditService {
    * Log a LOGIN action
    */
   async logLogin(userId: string, ipAddress?: string, userAgent?: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     return this.prisma.auditLog.create({
       data: {
         tenantId,
+        branchId: branchId || null,
         userId,
         action: AuditAction.LOGIN,
         entityType: 'User',
@@ -128,11 +130,12 @@ export class AuditService {
    * Log a LOGOUT action
    */
   async logLogout(userId: string, ipAddress?: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     return this.prisma.auditLog.create({
       data: {
         tenantId,
+        branchId: branchId || null,
         userId,
         action: AuditAction.LOGOUT,
         entityType: 'User',
@@ -146,9 +149,14 @@ export class AuditService {
    * Query audit logs with filters
    */
   async findAll(query?: QueryAuditLogsDto) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     const where: any = { tenantId };
+
+    // Filter by current branch if not explicitly looking for all branches
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (query?.userId) where.userId = query.userId;
     if (query?.action) where.action = query.action;
@@ -183,14 +191,20 @@ export class AuditService {
    * Get audit logs for a specific entity
    */
   async findByEntity(entityType: string, entityId: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
+
+    const where: any = {
+      tenantId,
+      entityType,
+      entityId,
+    };
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     return this.prisma.auditLog.findMany({
-      where: {
-        tenantId,
-        entityType,
-        entityId,
-      },
+      where,
       include: {
         user: {
           select: { id: true, fullName: true, email: true },
@@ -204,13 +218,19 @@ export class AuditService {
    * Get audit logs for a specific user
    */
   async findByUser(userId: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
+
+    const where: any = {
+      tenantId,
+      userId,
+    };
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     return this.prisma.auditLog.findMany({
-      where: {
-        tenantId,
-        userId,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
@@ -220,10 +240,16 @@ export class AuditService {
    * Get recent activity summary
    */
   async getRecentActivity(limit: number = 20) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
+
+    const where: any = { tenantId };
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     return this.prisma.auditLog.findMany({
-      where: { tenantId },
+      where,
       include: {
         user: {
           select: { fullName: true, role: true },

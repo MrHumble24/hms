@@ -159,7 +159,7 @@ export class BookingsService {
     }
 
     if (params.source && params.source !== 'ALL') {
-      where.source = params.source;
+      where.source = params.source as BookingSource;
     }
 
     console.log('🔍 Booking where clause:', JSON.stringify(where, null, 2));

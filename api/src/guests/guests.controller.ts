@@ -28,11 +28,13 @@ export class GuestsController {
     @Query('skip') skip?: string,
     @Query('take') take?: string,
     @Query('search') search?: string,
+    @Query('branchId') branchId?: string,
   ) {
     return this.guestsService.findAll({
       skip: skip ? parseInt(skip) : undefined,
       take: take ? parseInt(take) : undefined,
       search,
+      branchId,
     });
   }
 

@@ -18,8 +18,8 @@ export class CommunicationsService {
 
   private getContext() {
     const context = getTenantContext();
-    if (!context?.tenantId) {
-      throw new BadRequestException('Tenant context is required');
+    if (!context?.tenantId || !context?.branchId) {
+      throw new BadRequestException('Tenant and Branch context are required');
     }
     return context;
   }
@@ -60,9 +60,15 @@ export class CommunicationsService {
   }
 
   async findAll(query?: QueryCommunicationsDto) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     const where: any = { tenantId };
+
+    // Filter by booking's branch if booking exists
+    where.OR = [
+      { booking: { branchId: branchId } },
+      { booking: null }, // Include communications without bookings (guest-level)
+    ];
 
     if (query?.guestId) where.guestId = query.guestId;
     if (query?.bookingId) where.bookingId = query.bookingId;
@@ -77,7 +83,7 @@ export class CommunicationsService {
           select: { firstName: true, lastName: true, email: true, phone: true },
         },
         booking: {
-          select: { id: true, checkIn: true, checkOut: true },
+          select: { id: true, checkIn: true, checkOut: true, branchId: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -118,11 +124,11 @@ export class CommunicationsService {
   }
 
   async findByBooking(bookingId: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
-    // Verify booking exists
+    // Verify booking exists and belongs to this branch
     const booking = await this.prisma.booking.findFirst({
-      where: { id: bookingId, tenantId },
+      where: { id: bookingId, tenantId, branchId },
     });
     if (!booking) throw new NotFoundException('Booking not found');
 
@@ -160,10 +166,10 @@ export class CommunicationsService {
 
   // Helper method to send common communication types
   async sendBookingConfirmation(bookingId: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     const booking = await this.prisma.booking.findFirst({
-      where: { id: bookingId, tenantId },
+      where: { id: bookingId, tenantId, branchId },
       include: {
         primaryGuest: true,
         roomStays: { include: { room: { include: { type: true } } } },

@@ -19,8 +19,8 @@ export class CompaniesService {
 
   private getContext() {
     const context = getTenantContext();
-    if (!context?.tenantId) {
-      throw new BadRequestException('Tenant context is required');
+    if (!context?.tenantId || !context?.branchId) {
+      throw new BadRequestException('Tenant and Branch context are required');
     }
     return context;
   }
@@ -50,12 +50,15 @@ export class CompaniesService {
   }
 
   async findAll() {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
     return this.prisma.company.findMany({
       where: { tenantId },
       include: {
         _count: {
-          select: { bookings: true, contracts: true },
+          select: {
+            bookings: { where: { branchId } }, // Count bookings for current branch only
+            contracts: true,
+          },
         },
         contracts: {
           where: { isActive: true },
@@ -68,7 +71,7 @@ export class CompaniesService {
   }
 
   async findOne(id: string) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
     const company = await this.prisma.company.findUnique({
       where: { id, tenantId },
       include: {
@@ -76,6 +79,7 @@ export class CompaniesService {
           orderBy: { startDate: 'desc' },
         },
         bookings: {
+          where: { branchId }, // Filter bookings by current branch
           include: {
             primaryGuest: true,
             roomStays: { include: { room: { include: { type: true } } } },

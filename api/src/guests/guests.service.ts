@@ -57,9 +57,23 @@ export class GuestsService {
     });
   }
 
-  async findAll(params: { skip?: number; take?: number; search?: string }) {
+  async findAll(params: {
+    skip?: number;
+    take?: number;
+    search?: string;
+    branchId?: string;
+  }) {
     const { tenantId } = this.getContext();
     const where: any = { tenantId };
+
+    // Optionally filter by guests who have bookings in a specific branch
+    if (params.branchId) {
+      where.primaryBookings = {
+        some: {
+          branchId: params.branchId,
+        },
+      };
+    }
 
     if (params.search) {
       where.OR = [

@@ -20,8 +20,8 @@ export class StaffService {
 
   private getContext() {
     const context = getTenantContext();
-    if (!context?.tenantId) {
-      throw new BadRequestException('Tenant context is required');
+    if (!context?.tenantId || !context?.branchId) {
+      throw new BadRequestException('Tenant and Branch context are required');
     }
     return context;
   }
@@ -33,8 +33,17 @@ export class StaffService {
     role?: Role;
     status?: string;
   }) {
-    const { tenantId } = this.getContext();
-    const where: any = { tenantId };
+    const { tenantId, branchId } = this.getContext();
+
+    // Find users who have access to the current branch
+    const where: any = {
+      tenantId,
+      branches: {
+        some: {
+          branchId: branchId,
+        },
+      },
+    };
 
     if (params.role) {
       where.role = params.role;
@@ -63,6 +72,9 @@ export class StaffService {
           role: true,
           isActive: true,
           createdAt: true,
+          branches: {
+            include: { branch: true },
+          },
         },
         orderBy: { fullName: 'asc' },
       }),
@@ -73,7 +85,7 @@ export class StaffService {
   }
 
   async create(createStaffDto: CreateStaffDto) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
 
     const existing = await this.prisma.user.findUnique({
       where: { email: createStaffDto.email },
@@ -85,7 +97,8 @@ export class StaffService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createStaffDto.password, salt);
 
-    return this.prisma.user.create({
+    // Create user and assign to current branch
+    const user = await this.prisma.user.create({
       data: {
         email: createStaffDto.email,
         password: hashedPassword,
@@ -93,6 +106,12 @@ export class StaffService {
         role: createStaffDto.role,
         tenantId,
         isActive: true,
+        branches: {
+          create: {
+            branchId: branchId,
+            isDefault: true,
+          },
+        },
       },
       select: {
         id: true,
@@ -101,8 +120,13 @@ export class StaffService {
         role: true,
         isActive: true,
         createdAt: true,
+        branches: {
+          include: { branch: true },
+        },
       },
     });
+
+    return user;
   }
 
   async findOne(id: string) {
