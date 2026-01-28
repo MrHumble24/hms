@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import type { StorageProvider } from './storage.provider.js';
+import { StorageProvider } from './storage.provider.js';
 
 @Injectable()
 export class UploadService {

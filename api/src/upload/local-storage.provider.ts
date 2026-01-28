@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LocalStorageProvider implements StorageProvider {
-  private readonly uploadPath = path.join(process.cwd(), 'uploads');
+  private readonly uploadPath = path.resolve(process.cwd(), 'uploads');
 
   constructor() {
     this.ensureDirectoryExists();
@@ -27,8 +27,7 @@ export class LocalStorageProvider implements StorageProvider {
 
     await fs.writeFile(filePath, file.buffer);
 
-    const baseUrl = process.env.API_URL || 'http://localhost:3000';
-    return `${baseUrl}/uploads/${fileName}`;
+    return `/uploads/${fileName}`;
   }
 
   async deleteFile(fileUrl: string): Promise<void> {

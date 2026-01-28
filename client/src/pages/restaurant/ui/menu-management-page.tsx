@@ -28,6 +28,7 @@ import type {
 import { MenuItemForm } from "@/widgets/restaurant/ui/menu-item-form";
 import { CategoryForm } from "@/widgets/restaurant/ui/category-form";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 const { Title, Text } = Typography;
 
@@ -88,7 +89,11 @@ export const MenuManagementPage = () => {
       width: 80,
       render: (url: string) =>
         url ? (
-          <Image src={url} width={50} style={{ borderRadius: 4 }} />
+          <Image
+            src={resolveImageUrl(url)}
+            width={50}
+            style={{ borderRadius: 4 }}
+          />
         ) : (
           <Avatar
             icon={<UtensilsCrossed size={20} />}

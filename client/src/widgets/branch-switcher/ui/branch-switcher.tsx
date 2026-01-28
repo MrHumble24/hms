@@ -1,9 +1,10 @@
-import { Select, Space, Typography, Skeleton } from "antd";
+import { Select, Space, Typography, Skeleton, Avatar } from "antd";
 import { BranchesOutlined } from "@ant-design/icons";
 import { useTenantStore } from "@/entities/tenant/model/tenant-store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { branchApi } from "@/entities/branch/api/branch-api";
 import { useEffect } from "react";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 const { Text } = Typography;
 
@@ -77,7 +78,16 @@ export const BranchSwitcher = () => {
         onChange={handleBranchChange}
         style={{ width: "100%" }}
         options={branches.map((branch) => ({
-          label: branch.isActive ? branch.name : `${branch.name} (Deactivated)`,
+          label: (
+            <Space>
+              <Avatar
+                src={resolveImageUrl(branch.logoUrl)}
+                size="small"
+                icon={<BranchesOutlined />}
+              />
+              {branch.isActive ? branch.name : `${branch.name} (Deactivated)`}
+            </Space>
+          ),
           value: branch.id,
           disabled: !branch.isActive,
         }))}

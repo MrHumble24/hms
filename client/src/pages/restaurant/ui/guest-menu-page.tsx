@@ -34,6 +34,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { restaurantApi } from "@/entities/restaurant";
 import type { RestaurantMenuItem } from "@/entities/restaurant";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 const { Title, Text } = Typography;
 
@@ -322,7 +323,7 @@ export const GuestMenuPage = () => {
                       {item.imageUrl ? (
                         <img
                           alt={getLocalized(item.name)}
-                          src={item.imageUrl}
+                          src={resolveImageUrl(item.imageUrl)}
                           style={{
                             width: "100%",
                             height: "100%",

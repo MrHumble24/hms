@@ -27,6 +27,7 @@ import type {
 import { bookingApi, BookingStatus } from "@/entities/booking/api/booking-api";
 import { ReceiptModal } from "@/widgets/restaurant/ui/receipt-modal";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -207,7 +208,7 @@ export const POSPage = () => {
                         <div style={{ height: 120, overflow: "hidden" }}>
                           <img
                             alt={getLocalized(item.name)}
-                            src={item.imageUrl}
+                            src={resolveImageUrl(item.imageUrl)}
                             style={{
                               width: "100%",
                               height: "100%",

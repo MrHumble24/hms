@@ -43,7 +43,6 @@ import * as path from 'path';
     EmehmonModule,
     BranchModule,
     CommunicationsModule,
-    CommunicationsModule,
     AuditModule,
     BackupModule,
     AiModule,
@@ -51,6 +50,10 @@ import * as path from 'path';
     ServeStaticModule.forRoot({
       rootPath: path.join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+      },
     }),
   ],
   controllers: [AppController],
@@ -60,7 +63,13 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      .exclude('auth/login', 'auth/register', 'admin/(.*)')
+      .exclude(
+        'auth/login',
+        'auth/register',
+        'admin/(.*)',
+        'uploads/(.*)',
+        'uploads',
+      )
       .forRoutes('*');
   }
 }

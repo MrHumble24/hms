@@ -2,11 +2,12 @@ import { Upload, message, Button } from "antd";
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { uploadApi } from "@/shared/api/upload-api";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 interface FileUploadProps {
   value?: string;
   onChange?: (url: string) => void;
-  folder?: string; // Optional: can be used to categorize uploads backend-side later
+  folder?: string;
   accept?: string;
 }
 
@@ -50,7 +51,7 @@ export const FileUpload = ({
       {value ? (
         <div style={{ position: "relative", marginBottom: 8, maxWidth: 200 }}>
           <img
-            src={value}
+            src={resolveImageUrl(value)}
             alt="Uploaded"
             style={{
               width: "100%",
