@@ -26,6 +26,7 @@ import {
   MailOutlined,
   AuditOutlined,
   GlobalOutlined,
+  TruckOutlined,
 } from "@ant-design/icons";
 import { ChefHat, History } from "lucide-react";
 import { useTabStore } from "@/entities/navigation/model/tab-store";
@@ -108,6 +109,13 @@ export const Sidebar = () => {
           label: t("menu.housekeeping") || "Housekeeping",
           path: "/housekeeping",
           permission: "housekeeping",
+        },
+        {
+          key: "concierge",
+          icon: <TruckOutlined />,
+          label: t("menu.concierge") || "Concierge",
+          path: "/concierge",
+          permission: "concierge",
         },
       ],
     },

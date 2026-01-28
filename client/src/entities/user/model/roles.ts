@@ -37,6 +37,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     "communications",
     "emehmon",
     "audit",
+    "concierge",
   ],
   [UserRole.MANAGER]: [
     "dashboard",
@@ -54,6 +55,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     "communications",
     "emehmon",
     "audit",
+    "concierge",
     // No finance/settings sensitive data if needed, but usually managers have wide access
   ],
   [UserRole.RECEPTIONIST]: [
@@ -64,6 +66,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     "companies",
     "maintenance", // Report issues
     "finance", // Payments (limited view usually, but page access allowed)
+    "concierge",
   ],
   [UserRole.HOUSEKEEPER]: [
     "housekeeping",

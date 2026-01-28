@@ -64,6 +64,8 @@ model Tenant {
   ratePlanRoomTypes    RatePlanRoomType[]
   roomStays            RoomStay[]
   stockLogs            StockLog[]
+  hotelServices        HotelService[]
+  hotelServiceRequests HotelServiceRequest[]
 }
 
 model Branch {
@@ -93,6 +95,13 @@ model Branch {
   // Onboarding status
   isSetupCompleted Boolean @default(false)
 
+  // Public Profile & Platform
+  slug       String? @unique
+  isFeatured Boolean @default(false)
+  starRating Int?
+  tags       Json? // Arrary of search keywords ["pool", "spa", "near-center"]
+  gallery    Json?   @default("[]") // General hotel gallery
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -107,10 +116,33 @@ model Branch {
   bookings             Booking[]
   inventoryItems       InventoryItem[]
   restaurantCategories RestaurantCategory[]
-  restaurantMenuItems  RestaurantMenuItem[]
   restaurantOrders     RestaurantOrder[]
   folios               Folio[]
   ratePlans            RatePlan[]
+  reviews              Review[]
+  restaurantMenuItems  RestaurantMenuItem[]
+  hotelServices        HotelService[]
+  hotelServiceRequests HotelServiceRequest[]
+}
+
+model Review {
+  id       String @id @default(uuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  guestId String
+  guest   Guest  @relation(fields: [guestId], references: [id])
+
+  rating  Int // 1-5
+  comment String?
+
+  isVerified Boolean @default(true) // Verified stays
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId])
 }
 
 // Many-to-many: Staff member access to branches
@@ -157,9 +189,10 @@ model User {
   stockLogs           StockLog[]
   auditLogs           AuditLog[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  hotelServiceRequests HotelServiceRequest[]
 
   @@index([deletedAt])
 }
@@ -220,6 +253,7 @@ model Guest {
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?
   guestCommunications GuestCommunication[]
+  reviews             Review[]
 
   @@unique([tenantId, passportSeries, passportNumber])
   @@index([deletedAt])
@@ -471,9 +505,10 @@ model Booking {
   restaurantOrders RestaurantOrder[]
   communications   GuestCommunication[]
 
-  deletedAt DateTime? // Soft delete
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedAt            DateTime? // Soft delete
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  hotelServiceRequests HotelServiceRequest[]
 
   @@index([branchId, checkIn, checkOut])
   @@index([tenantId, status])
@@ -713,6 +748,7 @@ enum FolioItemSource {
   MANUAL
   SYSTEM
   AUTO_POST
+  SERVICE_MODULE // Charges coming from the new services module
 }
 
 enum PaymentStatus {
@@ -735,6 +771,10 @@ enum ChargeType {
   LAUNDRY
   DAMAGE_FEE
   RESTAURANT
+  CONCIERGE
+  SPA
+  TRANSPORT
+  OTHER_SERVICE
 }
 
 enum PaymentMethod {
@@ -1160,4 +1200,80 @@ enum AuditAction {
   LOGOUT
   EXPORT
   VIEW
+}
+
+model HotelService {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  name        String
+  description String?
+  category    ServiceCategory
+  basePrice   Decimal         @db.Decimal(10, 2)
+  currency    Currency        @default(UZS)
+
+  isActive Boolean @default(true)
+
+  requests HotelServiceRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, category])
+}
+
+model HotelServiceRequest {
+  id String @id @default(uuid())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  serviceId String
+  service   HotelService @relation(fields: [serviceId], references: [id])
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  // Operational fields
+  status       ServiceRequestStatus @default(REQUESTED)
+  quantity     Int                  @default(1)
+  totalAmount  Decimal              @db.Decimal(10, 2)
+  notes        String?
+  scheduledFor DateTime?
+
+  // Tracking
+  staffId String?
+  staff   User?   @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
+}
+
+enum ServiceCategory {
+  CONCIERGE
+  LAUNDRY
+  SPA
+  TRANSPORT
+  FOOD_BEVERAGE
+  CLEANING
+  OTHER
+}
+
+enum ServiceRequestStatus {
+  REQUESTED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }

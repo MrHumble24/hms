@@ -20,6 +20,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   ShopOutlined,
+  StarFilled,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { branchApi, type Branch } from "@/entities/branch/api/branch-api";
@@ -144,10 +145,17 @@ export const BranchManagement = ({ tenantId }: BranchManagementProps) => {
       title: "Status",
       dataIndex: "isActive",
       key: "isActive",
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? "success" : "error"}>
-          {isActive ? "ACTIVE" : "INACTIVE"}
-        </Tag>
+      render: (isActive: boolean, record: Branch) => (
+        <Space>
+          <Tag color={isActive ? "success" : "error"}>
+            {isActive ? "ACTIVE" : "INACTIVE"}
+          </Tag>
+          {record.isFeatured && (
+            <Tag color="gold" icon={<StarFilled />}>
+              FEATURED
+            </Tag>
+          )}
+        </Space>
       ),
     },
     {
@@ -263,6 +271,17 @@ export const BranchManagement = ({ tenantId }: BranchManagementProps) => {
           <Form.Item name="isActive" label="Status" valuePropName="checked">
             <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
           </Form.Item>
+
+          {tenantId && (
+            <Form.Item
+              name="isFeatured"
+              label="Featured Property"
+              valuePropName="checked"
+              extra="Promote this branch to the top of search results."
+            >
+              <Switch checkedChildren="Featured" unCheckedChildren="Normal" />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>

@@ -4,6 +4,9 @@ import {
   IsBoolean,
   IsOptional,
   IsNumber,
+  IsArray,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateBranchDto {
@@ -18,6 +21,10 @@ export class CreateBranchDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  slug?: string;
 }
 
 export class UpdateBranchDto {
@@ -83,4 +90,26 @@ export class UpdateBranchDto {
   @IsBoolean()
   @IsOptional()
   isSetupCompleted?: boolean;
+
+  @IsString()
+  @IsOptional()
+  slug?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isFeatured?: boolean;
+
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  @IsOptional()
+  starRating?: number;
+
+  @IsArray()
+  @IsOptional()
+  tags?: string[];
+
+  @IsArray()
+  @IsOptional()
+  gallery?: string[];
 }

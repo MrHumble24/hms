@@ -11,6 +11,7 @@ import {
   message,
   Typography,
   InputNumber,
+  Rate,
 } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { branchApi } from "@/entities/branch/api/branch-api";
@@ -125,6 +126,50 @@ export const BranchSettings = () => {
           </Card>
 
           <LocalizedInput label="Branch Description" name="description" />
+
+          <Card
+            title="Platform & Discovery (Public Profile)"
+            style={{ marginTop: 24 }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="slug"
+                  label="Public URL Slug"
+                  extra="how it appears in the address bar (e.g., grand-palace)"
+                >
+                  <Input prefix="hotels/" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="starRating" label="Official Star Rating">
+                  <Rate />
+                </Form.Item>
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  name="tags"
+                  label="Features & Keywords"
+                  extra="Used for searching filtering (e.g., 'Spa', 'Pool', 'Business')"
+                >
+                  <Select
+                    mode="tags"
+                    placeholder="Add features..."
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  name="gallery"
+                  label="Public Hotel Gallery"
+                  extra="High-quality photos for the public directory."
+                >
+                  <FileUpload multiple maxCount={10} />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
         </Col>
 
         <Col xs={24} lg={8}>

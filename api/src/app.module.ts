@@ -22,6 +22,7 @@ import { AuditModule } from './audit/audit.module.js';
 import { BackupModule } from './backup/backup.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { UploadModule } from './upload/upload.module.js';
+import { HotelServicesModule } from './hotel-services/hotel-services.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 
@@ -47,6 +48,7 @@ import * as path from 'path';
     BackupModule,
     AiModule,
     UploadModule,
+    HotelServicesModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

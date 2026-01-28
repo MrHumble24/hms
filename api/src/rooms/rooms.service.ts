@@ -44,8 +44,8 @@ export class RoomsService {
         branchId,
         tenantId,
         amenities: createRoomTypeDto.amenities || [],
-        images: createRoomTypeDto.images || [],
-      },
+        images: (createRoomTypeDto.images as any) || [],
+      } as any,
     });
   }
 
@@ -112,9 +112,9 @@ export class RoomsService {
         branchId,
         tenantId,
         status: RoomStatus.CLEAN,
-        images: createRoomDto.images || [],
+        images: (createRoomDto.images as any) || [],
         isGalleryInherited: createRoomDto.isGalleryInherited ?? true,
-      },
+      } as any,
     });
   }
 

@@ -30,6 +30,8 @@ export class TenantMiddleware implements NestMiddleware {
       try {
         const decoded = jwt.decode(token) as any;
         const isSuperAdmin = decoded?.role === 'SUPER_ADMIN';
+        const userRole = decoded?.role;
+        const userId = decoded?.sub;
 
         // Get tenantId from JWT if not in header
         if (decoded?.tenantId && !tenantId) {
@@ -49,6 +51,9 @@ export class TenantMiddleware implements NestMiddleware {
         if (!branchId && decoded?.branchIds?.length > 0) {
           branchId = decoded.branchIds[0];
         }
+
+        (req as any)._userRole = userRole;
+        (req as any)._userId = userId;
       } catch (e) {
         // Ignore decode errors
       }
@@ -108,8 +113,16 @@ export class TenantMiddleware implements NestMiddleware {
       branchId,
     );
 
-    tenantContextStorage.run({ tenantId: tenantId, branchId: branchId }, () => {
-      next();
-    });
+    tenantContextStorage.run(
+      {
+        tenantId: tenantId,
+        branchId: branchId,
+        userId: (req as any)._userId,
+        userRole: (req as any)._userRole,
+      },
+      () => {
+        next();
+      },
+    );
   }
 }

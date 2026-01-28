@@ -83,6 +83,12 @@ export class BranchService {
   async update(id: string, dto: UpdateBranchDto) {
     const branch = await this.findOne(id); // Ensures ownership check via findOne
 
+    const { userRole } = this.getContext() || {};
+
+    if (dto.isFeatured !== undefined && userRole !== 'SUPER_ADMIN') {
+      delete dto.isFeatured; // Silently ignore or throw error? Let's ignore it to keep it simple for now, as it's removed from UI.
+    }
+
     return this.prisma.branch.update({
       where: { id: branch.id },
       data: dto,

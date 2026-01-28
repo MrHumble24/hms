@@ -30,6 +30,7 @@ import { BranchPage } from "@/pages/branches";
 import { CommunicationsPage } from "@/pages/communications";
 import { AuditPage } from "@/pages/audit";
 import { EmehmonPage } from "@/pages/emehmon";
+import { ConciergePage } from "@/pages/concierge/ui/concierge-page";
 
 import { SuspendedPage } from "@/pages/suspended";
 
@@ -252,6 +253,14 @@ export const router = createBrowserRouter([
             element: (
               <RoleGuard permission="emehmon">
                 <EmehmonPage />
+              </RoleGuard>
+            ),
+          },
+          {
+            path: "/concierge",
+            element: (
+              <RoleGuard permission="concierge">
+                <ConciergePage />
               </RoleGuard>
             ),
           },

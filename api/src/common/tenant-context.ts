@@ -4,6 +4,7 @@ export interface TenantContext {
   tenantId: string;
   branchId: string;
   userId?: string;
+  userRole?: string;
 }
 
 export const tenantContextStorage = new AsyncLocalStorage<TenantContext>();

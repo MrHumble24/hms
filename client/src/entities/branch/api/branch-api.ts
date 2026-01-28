@@ -19,6 +19,11 @@ export interface Branch {
   currency?: string;
   description?: any;
   isSetupCompleted: boolean;
+  slug?: string;
+  isFeatured?: boolean;
+  starRating?: number;
+  tags?: string[];
+  gallery?: string[];
   createdAt: string;
 }
 
@@ -45,6 +50,11 @@ export interface UpdateBranchDto {
   currency?: string;
   description?: any;
   isSetupCompleted?: boolean;
+  slug?: string;
+  isFeatured?: boolean;
+  starRating?: number;
+  tags?: string[];
+  gallery?: string[];
 }
 
 export const branchApi = {
