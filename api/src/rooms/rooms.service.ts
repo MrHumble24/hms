@@ -77,7 +77,11 @@ export class RoomsService {
   async removeRoomType(id: string) {
     const { tenantId } = this.getContext();
     return this.prisma.roomType.delete({
-      where: { id, tenantId }, // ID is unique, and findOneRoomType already validated scope
+      where: { id, tenantId },
+      include: {
+        branch: true,
+        tenant: true,
+      }, // ID is unique, and findOneRoomType already validated scope
     });
   }
 
