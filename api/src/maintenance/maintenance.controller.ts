@@ -24,7 +24,7 @@ export class MaintenanceController {
   constructor(private readonly maintenanceService: MaintenanceService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'MANAGER', 'RECEPTIONIST', 'MAINTENANCE')
+  @Roles('SUPER_ADMIN', 'MANAGER', 'RECEPTIONIST', 'MAINTENANCE', 'ADMIN')
   create(@Body() dto: CreateMaintenanceTicketDto, @Request() req: any) {
     return this.maintenanceService.create(dto, req.user.id);
   }
@@ -52,7 +52,7 @@ export class MaintenanceController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'MANAGER', 'MAINTENANCE')
+  @Roles('SUPER_ADMIN', 'MANAGER', 'MAINTENANCE', 'ADMIN')
   update(@Param('id') id: string, @Body() dto: UpdateMaintenanceTicketDto) {
     return this.maintenanceService.update(id, dto);
   }
