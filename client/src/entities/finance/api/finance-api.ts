@@ -24,6 +24,10 @@ export const ChargeType = {
   MINIBAR: "MINIBAR",
   LAUNDRY: "LAUNDRY",
   DAMAGE_FEE: "DAMAGE_FEE",
+  CONCIERGE: "CONCIERGE",
+  SPA: "SPA",
+  TRANSPORT: "TRANSPORT",
+  OTHER_SERVICE: "OTHER_SERVICE",
 } as const;
 
 export type ChargeType = (typeof ChargeType)[keyof typeof ChargeType];
@@ -53,6 +57,7 @@ export const FolioItemSource = {
   MANUAL: "MANUAL",
   SYSTEM: "SYSTEM",
   AUTO_POST: "AUTO_POST",
+  SERVICE_MODULE: "SERVICE_MODULE",
 } as const;
 
 export type FolioItemSource =

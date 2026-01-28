@@ -63,7 +63,11 @@
     "MINIBAR": "Mini-bar",
     "LAUNDRY": "Laundry",
     "DAMAGE_FEE": "Damage Fee",
-    "RESTAURANT": "Restaurant"
+    "RESTAURANT": "Restaurant",
+    "CONCIERGE": "Concierge",
+    "SPA": "Spa & Wellness",
+    "TRANSPORT": "Transport",
+    "OTHER_SERVICE": "Extra Service"
   },
   "status": {
     "OPEN": "Open",

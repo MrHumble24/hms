@@ -29,6 +29,10 @@ import {
   WarningOutlined,
   PrinterOutlined,
   LockOutlined,
+  CarOutlined,
+  HeartOutlined,
+  CustomerServiceOutlined,
+  ShoppingOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -164,11 +168,42 @@ export const FolioMainPage = () => {
       title: t("finance:columns.type"),
       dataIndex: "type",
       key: "type",
-      render: (type: string) => (
-        <Tag style={{ fontSize: 11, borderRadius: 4 }}>
-          {t(`finance:types.${type}`)}
-        </Tag>
-      ),
+      render: (type: string, record: FolioItem) => {
+        const getIcon = () => {
+          switch (type) {
+            case "TRANSPORT":
+              return <CarOutlined style={{ color: "#1890ff" }} />;
+            case "SPA":
+              return <HeartOutlined style={{ color: "#eb2f96" }} />;
+            case "CONCIERGE":
+              return <CustomerServiceOutlined style={{ color: "#722ed1" }} />;
+            case "RESTAURANT":
+              return <ShoppingOutlined style={{ color: "#fa8c16" }} />;
+            default:
+              return null;
+          }
+        };
+
+        return (
+          <Space>
+            {getIcon()}
+            <Tag
+              color={record.source === "SERVICE_MODULE" ? "gold" : undefined}
+              style={{ fontSize: 11, borderRadius: 4 }}
+            >
+              {record.source === "SERVICE_MODULE" && (
+                <Text
+                  strong
+                  style={{ fontSize: 9, marginRight: 4, color: "#d48806" }}
+                >
+                  SERVICE
+                </Text>
+              )}
+              {t(`finance:types.${type}`)}
+            </Tag>
+          </Space>
+        );
+      },
     },
     {
       title: t("finance:columns.amount"),
