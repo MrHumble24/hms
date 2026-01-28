@@ -460,6 +460,7 @@ export const InventoryPage = () => {
                         borderRadius: "8px",
                       }}
                     >
+                      {/* Cost Price */}
                       <div>
                         <Text
                           type="secondary"
