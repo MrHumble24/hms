@@ -175,9 +175,24 @@ export class AdminService {
   async updateSubscription(id: string, data: UpdateSubscriptionDto) {
     const tenant = await this.getTenant(id);
 
+    // Ensure numeric fields are properly typed
+    const updateData: any = { ...data };
+    if (data.maxBranches !== undefined) {
+      updateData.maxBranches =
+        typeof data.maxBranches === 'string'
+          ? parseInt(data.maxBranches, 10)
+          : data.maxBranches;
+    }
+    if (data.maxUsers !== undefined) {
+      updateData.maxUsers =
+        typeof data.maxUsers === 'string'
+          ? parseInt(data.maxUsers, 10)
+          : data.maxUsers;
+    }
+
     return this.prisma.tenant.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 
