@@ -1,10 +1,12 @@
 import { Tabs, Typography, Card } from "antd";
 import { BranchManagement } from "@/widgets/branch-management/ui/branch-management";
 import { BackupPage } from "@/pages/settings/ui/backup-page";
+import { BranchSettings } from "@/widgets/branch-settings/ui/branch-settings";
 import {
   SettingOutlined,
   BranchesOutlined,
   DatabaseOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -12,23 +14,19 @@ const { Title, Text } = Typography;
 export const SettingsPage = () => {
   const items = [
     {
-      key: "general",
+      key: "hotel",
       label: (
         <span>
-          <SettingOutlined /> General
+          <HomeOutlined /> Hotel Configuration
         </span>
       ),
-      children: (
-        <Card title="General Settings">
-          <Text>General application settings will go here.</Text>
-        </Card>
-      ),
+      children: <BranchSettings />,
     },
     {
       key: "branches",
       label: (
         <span>
-          <BranchesOutlined /> Branches
+          <BranchesOutlined /> Branches List
         </span>
       ),
       children: (
@@ -46,6 +44,19 @@ export const SettingsPage = () => {
       ),
       children: <BackupPage />,
     },
+    {
+      key: "general",
+      label: (
+        <span>
+          <SettingOutlined /> System Settings
+        </span>
+      ),
+      children: (
+        <Card title="General Settings">
+          <Text>General application settings will go here.</Text>
+        </Card>
+      ),
+    },
   ];
 
   return (
@@ -54,10 +65,12 @@ export const SettingsPage = () => {
         <Title level={2} style={{ margin: 0 }}>
           Settings
         </Title>
-        <Text type="secondary">Manage application configuration</Text>
+        <Text type="secondary">
+          Manage your hotel configuration and branch details
+        </Text>
       </div>
 
-      <Tabs defaultActiveKey="general" items={items} />
+      <Tabs defaultActiveKey="hotel" items={items} />
     </div>
   );
 };

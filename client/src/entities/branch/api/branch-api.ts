@@ -3,9 +3,22 @@ import { baseApi } from "@/shared/api/base-api";
 export interface Branch {
   id: string;
   name: string;
-  address?: string;
   isActive: boolean;
   tenantId: string;
+  legalName?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logoUrl?: string;
+  taxId?: string;
+  latitude?: number;
+  longitude?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  currency?: string;
+  description?: any;
+  isSetupCompleted: boolean;
   createdAt: string;
 }
 
@@ -17,8 +30,21 @@ export interface CreateBranchDto {
 
 export interface UpdateBranchDto {
   name?: string;
-  address?: string;
   isActive?: boolean;
+  legalName?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logoUrl?: string;
+  taxId?: string;
+  latitude?: number;
+  longitude?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  currency?: string;
+  description?: any;
+  isSetupCompleted?: boolean;
 }
 
 export const branchApi = {

@@ -21,13 +21,6 @@ baseApi.interceptors.request.use((config) => {
   const tenantId = localStorage.getItem("activeTenantId");
   const branchId = localStorage.getItem("activeBranchId");
 
-  console.log(
-    "🔄 API Request - Branch ID from localStorage:",
-    branchId,
-    "URL:",
-    config.url,
-  );
-
   if (tenantId) {
     config.headers["x-tenant-id"] = tenantId;
   }

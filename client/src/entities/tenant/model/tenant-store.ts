@@ -6,6 +6,7 @@ export interface Branch {
   name: string;
   address?: string;
   isActive: boolean;
+  isSetupCompleted?: boolean;
 }
 
 interface TenantState {

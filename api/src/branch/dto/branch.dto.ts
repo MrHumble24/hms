@@ -21,9 +21,58 @@ export class UpdateBranchDto {
 
   @IsString()
   @IsOptional()
+  isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  legalName?: string;
+
+  @IsString()
+  @IsOptional()
   address?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  website?: string;
+
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  taxId?: string;
+
+  @IsOptional()
+  latitude?: number;
+
+  @IsOptional()
+  longitude?: number;
+
+  @IsString()
+  @IsOptional()
+  checkInTime?: string;
+
+  @IsString()
+  @IsOptional()
+  checkOutTime?: string;
+
+  @IsString()
+  @IsOptional()
+  currency?: string;
+
+  @IsOptional()
+  description?: any;
 
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  isSetupCompleted?: boolean;
 }

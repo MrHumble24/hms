@@ -69,8 +69,29 @@ model Tenant {
 model Branch {
   id       String  @id @default(uuid())
   name     String
-  address  String?
   isActive Boolean @default(true)
+
+  // Hotel Metadata
+  legalName String?
+  address   String?
+  phone     String?
+  email     String?
+  website   String?
+  logoUrl   String?
+  taxId     String?
+
+  // Location
+  latitude  Float?
+  longitude Float?
+
+  // Operational Settings
+  checkInTime  String? @default("14:00")
+  checkOutTime String? @default("12:00")
+  currency     String  @default("USD")
+  description  Json? // Localized description {en: "", uz: "", ru: ""}
+
+  // Onboarding status
+  isSetupCompleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

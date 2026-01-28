@@ -6,8 +6,9 @@ set -e
 echo "🚀 Starting deployment..."
 
 # Update the repository
-echo "📥 Pulling latest changes..."
-git pull
+echo "📥 Fetching and forcing sync with origin/main..."
+git fetch origin
+git reset --hard origin/main
 
 # Build the API
 echo "🔌 Building API & Running Migrations..."

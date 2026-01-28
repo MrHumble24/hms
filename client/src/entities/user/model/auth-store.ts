@@ -7,6 +7,7 @@ interface Branch {
   name: string;
   address?: string;
   isActive: boolean;
+  isSetupCompleted?: boolean;
 }
 
 export interface User {
