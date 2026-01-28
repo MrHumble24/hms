@@ -28,7 +28,7 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
   create(@Body() createInventoryItemDto: CreateInventoryItemDto) {
     return this.inventoryService.create(createInventoryItemDto);
   }
@@ -59,7 +59,7 @@ export class InventoryController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
   update(
     @Param('id') id: string,
     @Body() updateInventoryItemDto: UpdateInventoryItemDto,

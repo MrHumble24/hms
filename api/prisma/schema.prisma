@@ -850,6 +850,9 @@ model InventoryItem {
   quantity     Int @default(0)
   minThreshold Int @default(5)
 
+  purchasePrice Decimal? @db.Decimal(10, 2)
+  sellPrice     Decimal? @db.Decimal(10, 2)
+
   category InventoryCategory
 
   lastRestocked DateTime @default(now())

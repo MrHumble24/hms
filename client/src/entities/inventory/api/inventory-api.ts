@@ -32,6 +32,8 @@ export interface InventoryItem {
   unit: string;
   quantity: number;
   minThreshold: number;
+  purchasePrice?: number;
+  sellPrice?: number;
   category: InventoryCategory;
   lastRestocked: string;
   updatedAt: string;

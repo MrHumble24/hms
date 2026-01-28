@@ -32,6 +32,16 @@ export class CreateInventoryItemDto {
 
   @IsEnum(InventoryCategory)
   category: InventoryCategory;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  purchasePrice?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  sellPrice?: number;
 }
 
 export class UpdateInventoryItemDto {
@@ -56,6 +66,16 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @Min(0)
   minThreshold?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  purchasePrice?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  sellPrice?: number;
 
   @IsEnum(InventoryCategory)
   @IsOptional()

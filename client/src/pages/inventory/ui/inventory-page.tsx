@@ -84,7 +84,10 @@ export const InventoryPage = () => {
   // Stock filter remains client-only for now unless further refactored
   const filteredItems = items;
 
-  const canManage = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
+  const canManage =
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "ADMIN" ||
+    user?.role === "MANAGER";
   const canDelete = user?.role === "SUPER_ADMIN";
 
   const columns = [
@@ -105,6 +108,24 @@ export const InventoryPage = () => {
       title: t("inventory:columns.category"),
       render: (record: InventoryItem) => (
         <Tag>{t(`inventory:categories.${record.category}`)}</Tag>
+      ),
+    },
+    {
+      title: "Prices",
+      key: "prices",
+      render: (record: InventoryItem) => (
+        <Space direction="vertical" size={0}>
+          {record.sellPrice && (
+            <Text type="success" style={{ fontSize: 13 }}>
+              Sale: ${record.sellPrice}
+            </Text>
+          )}
+          {record.purchasePrice && (
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              Cost: ${record.purchasePrice}
+            </Text>
+          )}
+        </Space>
       ),
     },
     {
@@ -426,6 +447,40 @@ export const InventoryPage = () => {
                         <div>
                           {dayjs(item.updatedAt).format("DD MMM, HH:mm")}
                         </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: 16,
+                        padding: "8px 12px",
+                        background: "#f9f9f9",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <div>
+                        <Text
+                          type="secondary"
+                          style={{ fontSize: 10, display: "block" }}
+                        >
+                          COST PRICE
+                        </Text>
+                        <Text strong style={{ color: "#8c8c8c" }}>
+                          {item.purchasePrice ? `$${item.purchasePrice}` : "-"}
+                        </Text>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <Text
+                          type="secondary"
+                          style={{ fontSize: 10, display: "block" }}
+                        >
+                          SELL PRICE
+                        </Text>
+                        <Text strong style={{ color: "#52c41a" }}>
+                          {item.sellPrice ? `$${item.sellPrice}` : "-"}
+                        </Text>
                       </div>
                     </div>
 
