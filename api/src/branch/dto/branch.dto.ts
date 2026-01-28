@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsBoolean,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateBranchDto {
   @IsString()
@@ -19,7 +25,7 @@ export class UpdateBranchDto {
   @IsOptional()
   name?: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 
@@ -51,9 +57,11 @@ export class UpdateBranchDto {
   @IsOptional()
   taxId?: string;
 
+  @IsNumber()
   @IsOptional()
   latitude?: number;
 
+  @IsNumber()
   @IsOptional()
   longitude?: number;
 

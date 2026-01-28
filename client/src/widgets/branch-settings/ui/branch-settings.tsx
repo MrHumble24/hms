@@ -10,6 +10,7 @@ import {
   Select,
   message,
   Typography,
+  InputNumber,
 } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { branchApi } from "@/entities/branch/api/branch-api";
@@ -70,6 +71,8 @@ export const BranchSettings = () => {
       checkOutTime: values.checkOutTime
         ? values.checkOutTime.format("HH:mm")
         : undefined,
+      latitude: values.latitude ? Number(values.latitude) : undefined,
+      longitude: values.longitude ? Number(values.longitude) : undefined,
       isSetupCompleted: true, // Mark setup as completed when they save
     };
     mutation.mutate(formattedValues);
@@ -113,9 +116,11 @@ export const BranchSettings = () => {
                   <Input />
                 </Form.Item>
               </Col>
-              <Form.Item name="logoUrl" label="Hotel Logo">
-                <FileUpload accept="image/*" />
-              </Form.Item>
+              <Col span={12}>
+                <Form.Item name="logoUrl" label="Hotel Logo">
+                  <FileUpload accept="image/*" />
+                </Form.Item>
+              </Col>
             </Row>
           </Card>
 
@@ -164,12 +169,18 @@ export const BranchSettings = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item name="latitude" label="Latitude">
-                  <Input placeholder="e.g., 41.2995" />
+                  <InputNumber
+                    placeholder="e.g., 41.2995"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="longitude" label="Longitude">
-                  <Input placeholder="e.g., 69.2401" />
+                  <InputNumber
+                    placeholder="e.g., 69.2401"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Col>
             </Row>
