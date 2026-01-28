@@ -27,6 +27,10 @@ export class CreateRoomTypeDto {
   @IsArray()
   @IsOptional()
   amenities?: string[];
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
 }
 
 export class UpdateRoomTypeDto {
@@ -45,6 +49,10 @@ export class UpdateRoomTypeDto {
   @IsArray()
   @IsOptional()
   amenities?: string[];
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
 }
 
 export class CreateRoomDto {
@@ -61,6 +69,14 @@ export class CreateRoomDto {
 
   @IsString()
   typeId: string;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isGalleryInherited?: boolean;
 }
 
 export class UpdateRoomDto {
@@ -105,6 +121,14 @@ export class UpdateRoomDto {
   @IsDateString()
   @IsOptional()
   lastInspectedAt?: string | Date;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isGalleryInherited?: boolean;
 }
 
 export class CreatePriceModifierDto {

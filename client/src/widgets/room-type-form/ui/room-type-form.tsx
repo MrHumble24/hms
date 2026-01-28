@@ -11,6 +11,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { roomApi, type RoomType } from "@/entities/room/api/room-api";
 import { useTranslation } from "react-i18next";
+import { FileUpload } from "@/shared/ui/file-upload";
 
 interface RoomTypeFormProps {
   initialValues?: RoomType | null;
@@ -126,6 +127,10 @@ export const RoomTypeForm = ({
 
         <Form.Item name="description" label={t("room-types:description")}>
           <Input.TextArea rows={4} size="large" />
+        </Form.Item>
+
+        <Form.Item name="images" label={t("room-types:photos")}>
+          <FileUpload multiple maxCount={10} />
         </Form.Item>
       </Form>
     </Drawer>

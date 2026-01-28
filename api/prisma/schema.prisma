@@ -292,7 +292,9 @@ model Room {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id])
 
-  number String
+  number             String
+  images             Json?   @default("[]")
+  isGalleryInherited Boolean @default(true)
 
   floor    Int
   capacity Int        @default(2)
@@ -334,6 +336,7 @@ model RoomType {
   basePrice   Decimal @db.Decimal(10, 2)
   description String?
   amenities   Json?
+  images      Json?   @default("[]")
 
   rooms          Room[]
   ratePlans      RatePlanRoomType[]

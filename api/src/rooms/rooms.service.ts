@@ -44,6 +44,7 @@ export class RoomsService {
         branchId,
         tenantId,
         amenities: createRoomTypeDto.amenities || [],
+        images: createRoomTypeDto.images || [],
       },
     });
   }
@@ -111,6 +112,8 @@ export class RoomsService {
         branchId,
         tenantId,
         status: RoomStatus.CLEAN,
+        images: createRoomDto.images || [],
+        isGalleryInherited: createRoomDto.isGalleryInherited ?? true,
       },
     });
   }
@@ -188,7 +191,7 @@ export class RoomsService {
       where: { id: room.id, tenantId }, // ID is unique, and findOneRoom already validated scope
       data: {
         ...updateRoomDto,
-        status: updateRoomDto.status as RoomStatus,
+        status: updateRoomDto.status as any,
       },
     });
   }

@@ -9,6 +9,8 @@ import {
   Empty,
   Tag,
   Card,
+  Carousel,
+  Image,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -19,6 +21,7 @@ import {
 import { type RoomDashboardItem, roomApi } from "@/entities/room/api/room-api";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
 const { Title, Text } = Typography;
 
@@ -65,6 +68,46 @@ export const RoomSidePanel = ({ room, onClose }: RoomSidePanelProps) => {
         </Space>
       }
     >
+      {/* Visual Gallery Section */}
+      <div style={{ marginBottom: 24, borderRadius: 12, overflow: "hidden" }}>
+        {(() => {
+          const categoryImages = room.type.images || [];
+          const roomImages = room.images || [];
+          const allImages = room.isGalleryInherited
+            ? [...categoryImages, ...roomImages]
+            : roomImages;
+
+          if (allImages.length === 0) return null;
+
+          return (
+            <Carousel autoplay effect="fade">
+              {allImages.map((url, idx) => (
+                <div key={idx}>
+                  <Image
+                    src={resolveImageUrl(url)}
+                    style={{
+                      width: "100%",
+                      height: 240,
+                      objectFit: "cover",
+                      borderRadius: 12,
+                    }}
+                    placeholder={
+                      <div
+                        style={{
+                          width: "100%",
+                          height: 240,
+                          background: "#f5f5f5",
+                        }}
+                      />
+                    }
+                  />
+                </div>
+              ))}
+            </Carousel>
+          );
+        })()}
+      </div>
+
       {/* Status Controller Area */}
       <div style={{ marginBottom: 32 }}>
         <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>

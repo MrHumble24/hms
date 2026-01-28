@@ -7,10 +7,13 @@ import {
   Space,
   Drawer,
   message,
+  Switch,
+  Divider,
 } from "antd";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { roomApi, type RoomDashboardItem } from "@/entities/room/api/room-api";
 import { useTranslation } from "react-i18next";
+import { FileUpload } from "@/shared/ui/file-upload";
 
 const { Option } = Select;
 
@@ -127,6 +130,31 @@ export const RoomForm = ({ initialValues, open, onClose }: RoomFormProps) => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Divider
+          orientation={"left" as any}
+          style={{ fontSize: 13, color: "#8c8c8c" }}
+        >
+          Gallery & Visuals
+        </Divider>
+
+        <Form.Item
+          name="isGalleryInherited"
+          label="Inherit Category Photos?"
+          valuePropName="checked"
+          initialValue={true}
+          extra="If enabled, this room will show all photos from its Room Category."
+        >
+          <Switch checkedChildren="Yes" unCheckedChildren="No" />
+        </Form.Item>
+
+        <Form.Item
+          name="images"
+          label="Room-Specific Photos"
+          extra="Additional photos specific to this room (e.g., specific view or corner details)."
+        >
+          <FileUpload multiple maxCount={5} />
         </Form.Item>
       </Form>
     </Drawer>

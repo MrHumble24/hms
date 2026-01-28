@@ -4,6 +4,9 @@ export interface RoomType {
   id: string;
   name: string;
   basePrice: number;
+  description?: string;
+  amenities?: string[];
+  images?: string[];
 }
 
 export interface Guest {
@@ -45,6 +48,8 @@ export interface RoomDashboardItem {
   bookings: Booking[];
   tasks: HousekeepingTask[];
   maintenance: MaintenanceTicket[];
+  images?: string[];
+  isGalleryInherited?: boolean;
 }
 
 export interface CreateRoomTypeDto {
@@ -52,6 +57,7 @@ export interface CreateRoomTypeDto {
   basePrice: number;
   description?: string;
   amenities?: string[];
+  images?: string[];
 }
 
 export interface CreateRoomDto {
@@ -59,6 +65,8 @@ export interface CreateRoomDto {
   floor: number;
   capacity: number;
   typeId: string;
+  images?: string[];
+  isGalleryInherited?: boolean;
 }
 
 export const roomApi = {
