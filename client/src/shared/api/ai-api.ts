@@ -6,6 +6,6 @@ export const aiApi = {
       "/ai/translate",
       { text },
     );
-    return response;
+    return response as unknown as { en: string; uz: string; ru: string };
   },
 };

@@ -1,6 +1,6 @@
 import { Form, Input, Card, Button, Tooltip, message } from "antd";
 import { useTranslation } from "react-i18next";
-import { MagicOutlined } from "@ant-design/icons";
+import { TranslationOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { aiApi } from "@/shared/api/ai-api";
 
@@ -63,7 +63,7 @@ export const LocalizedInput = ({
         <Tooltip title="Auto-translate with AI">
           <Button
             type="text"
-            icon={<MagicOutlined />}
+            icon={<TranslationOutlined />}
             onClick={handleTranslate}
             loading={isTranslating}
             style={{ color: "#722ed1" }}
