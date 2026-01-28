@@ -40,23 +40,40 @@ export const useTenantStore = create<TenantState>()(
         set({ availableBranches: branches });
 
         // Check if current active branch is still valid
-        const currentId = localStorage.getItem("activeBranchId");
-        const isCurrentValid = branches.find(
-          (b) => b.id === currentId && b.isActive,
+        // Check BOTH localStorage and current state to avoid race conditions
+        const currentIdFromStorage = localStorage.getItem("activeBranchId");
+        const currentState = useTenantStore.getState();
+        const currentId = currentIdFromStorage || currentState.activeBranchId;
+
+        const isCurrentValid =
+          currentId && branches.find((b) => b.id === currentId && b.isActive);
+
+        console.log(
+          "🏢 setAvailableBranches - Current ID:",
+          currentId,
+          "Valid:",
+          !!isCurrentValid,
+          "Branches:",
+          branches.map((b) => b.id),
         );
 
+        // Only auto-select if there's NO valid current branch
         if (!isCurrentValid && branches.length > 0) {
           const firstActiveBranch = branches.find((b) => b.isActive);
           if (firstActiveBranch) {
+            console.log(
+              "🏢 Auto-selecting first branch:",
+              firstActiveBranch.id,
+            );
             set({ activeBranchId: firstActiveBranch.id });
             localStorage.setItem("activeBranchId", firstActiveBranch.id);
           } else {
             set({ activeBranchId: null });
             localStorage.removeItem("activeBranchId");
           }
-        } else if (!isCurrentValid) {
-          set({ activeBranchId: null });
-          localStorage.removeItem("activeBranchId");
+        } else if (isCurrentValid && !currentState.activeBranchId) {
+          // If localStorage has valid ID but state doesn't, sync them
+          set({ activeBranchId: currentId });
         }
       },
 
@@ -72,6 +89,23 @@ export const useTenantStore = create<TenantState>()(
     }),
     {
       name: "tenant-storage",
+      onRehydrateStorage: () => (state) => {
+        // When zustand rehydrates from storage, sync the individual localStorage keys
+        // that the API interceptor reads from
+        if (state) {
+          console.log("🔄 Zustand Hydration - syncing localStorage", {
+            tenantId: state.activeTenantId,
+            branchId: state.activeBranchId,
+          });
+
+          if (state.activeTenantId) {
+            localStorage.setItem("activeTenantId", state.activeTenantId);
+          }
+          if (state.activeBranchId) {
+            localStorage.setItem("activeBranchId", state.activeBranchId);
+          }
+        }
+      },
     },
   ),
 );

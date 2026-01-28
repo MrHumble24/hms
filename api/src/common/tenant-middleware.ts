@@ -16,7 +16,14 @@ export class TenantMiddleware implements NestMiddleware {
     let tenantId = req.headers['x-tenant-id'] as string;
     let branchId = req.headers['x-branch-id'] as string;
 
-    // Fallback to JWT if headers are missing or mismatch (prevents stale headers from blocking users)
+    console.log(
+      '📥 Incoming headers - tenantId:',
+      tenantId,
+      'branchId:',
+      branchId,
+    );
+
+    // Fallback to JWT if headers are missing
     const authHeader = req.headers['authorization'];
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
@@ -24,34 +31,23 @@ export class TenantMiddleware implements NestMiddleware {
         const decoded = jwt.decode(token) as any;
         const isSuperAdmin = decoded?.role === 'SUPER_ADMIN';
 
-        if (decoded?.tenantId) {
-          // If SUPER_ADMIN, they can override tenantId with header
-          // Otherwise, if header is missing OR different from JWT, trust the JWT
-          if (!isSuperAdmin) {
-            if (!tenantId || tenantId !== decoded.tenantId) {
-              tenantId = decoded.tenantId;
-            }
-          } else if (!tenantId) {
-            // Even Super Admin needs a default if no header
-            tenantId = decoded.tenantId;
-          }
+        // Get tenantId from JWT if not in header
+        if (decoded?.tenantId && !tenantId) {
+          tenantId = decoded.tenantId;
         }
 
+        // For non-super-admin, ensure tenantId matches JWT
         if (
-          decoded?.branchIds &&
-          Array.isArray(decoded.branchIds) &&
-          decoded.branchIds.length > 0
+          !isSuperAdmin &&
+          decoded?.tenantId &&
+          tenantId !== decoded.tenantId
         ) {
-          // If SUPER_ADMIN, they can override branchId with header
-          // Otherwise, if branch header is missing or not in the user's allowed list, fallback to primary branch
-          if (!isSuperAdmin) {
-            if (!branchId || !decoded.branchIds.includes(branchId)) {
-              branchId = decoded.branchIds[0];
-            }
-          } else if (!branchId) {
-            // Fallback for Super Admin if no branch header
-            branchId = decoded.branchIds[0];
-          }
+          tenantId = decoded.tenantId;
+        }
+
+        // Get default branchId from JWT only if header is missing
+        if (!branchId && decoded?.branchIds?.length > 0) {
+          branchId = decoded.branchIds[0];
         }
       } catch (e) {
         // Ignore decode errors
@@ -84,23 +80,33 @@ export class TenantMiddleware implements NestMiddleware {
       }
     }
 
-    // Validate branch if we have both
+    // Validate branch belongs to tenant (database validation, not JWT)
     if (tenantId && branchId) {
       const branch = await this.prisma.branch.findUnique({
         where: { id: branchId },
-        select: { id: true, tenantId: true },
+        select: { id: true, tenantId: true, isActive: true },
       });
 
-      if (!branch || branch.tenantId !== tenantId) {
+      if (!branch || branch.tenantId !== tenantId || !branch.isActive) {
+        console.log(
+          '⚠️ Branch validation failed, falling back to first branch',
+        );
         // Fallback if branch is invalid for this tenant
         const firstBranch = await this.prisma.branch.findFirst({
           where: { tenantId, isActive: true },
           orderBy: { createdAt: 'asc' },
           select: { id: true },
         });
-        branchId = firstBranch?.id || (branchId as any); // Cast as last resort to avoid throw
+        branchId = firstBranch?.id || branchId;
       }
     }
+
+    console.log(
+      '✅ Final context - tenantId:',
+      tenantId,
+      'branchId:',
+      branchId,
+    );
 
     tenantContextStorage.run({ tenantId: tenantId, branchId: branchId }, () => {
       next();

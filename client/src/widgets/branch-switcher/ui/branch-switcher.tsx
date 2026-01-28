@@ -29,10 +29,29 @@ export const BranchSwitcher = () => {
   }, [branches, setAvailableBranches]);
 
   const handleBranchChange = (branchId: string) => {
+    console.log("🔀 Branch Change - Setting to:", branchId);
+
+    // First, update localStorage directly to ensure it's set before any API calls
+    localStorage.setItem("activeBranchId", branchId);
+
+    // Then update the store state
     setActiveBranch(branchId);
 
-    // Invalidate all queries to refetch with new branch context
-    queryClient.invalidateQueries();
+    // Verify localStorage was updated
+    console.log(
+      "🔍 LocalStorage immediately after:",
+      localStorage.getItem("activeBranchId"),
+    );
+
+    // Use setTimeout to ensure the state is fully propagated before refetching
+    // This creates a new event loop tick, ensuring all synchronous updates are done
+    setTimeout(() => {
+      console.log(
+        "🔄 Invalidating queries with branchId:",
+        localStorage.getItem("activeBranchId"),
+      );
+      queryClient.invalidateQueries();
+    }, 0);
   };
 
   if (isLoading) {
