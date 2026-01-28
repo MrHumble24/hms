@@ -16,6 +16,7 @@ import { branchApi } from "@/entities/branch/api/branch-api";
 import { useTenantStore } from "@/entities/tenant/model/tenant-store";
 import { useTranslation } from "react-i18next";
 import { LocalizedInput } from "@/shared/ui/localized-input";
+import { FileUpload } from "@/shared/ui/file-upload";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 
@@ -112,11 +113,9 @@ export const BranchSettings = () => {
                   <Input />
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item name="logoUrl" label="Logo URL">
-                  <Input placeholder="https://..." />
-                </Form.Item>
-              </Col>
+              <Form.Item name="logoUrl" label="Hotel Logo">
+                <FileUpload accept="image/*" />
+              </Form.Item>
             </Row>
           </Card>
 

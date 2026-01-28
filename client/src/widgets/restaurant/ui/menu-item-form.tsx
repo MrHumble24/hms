@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { restaurantApi } from "@/entities/restaurant";
 import type { RestaurantMenuItem } from "@/entities/restaurant";
 import { LocalizedInput } from "@/shared/ui/localized-input";
+import { FileUpload } from "@/shared/ui/file-upload";
 import { useTranslation } from "react-i18next";
 import { BrainCircuit } from "lucide-react";
 import { useState } from "react";
@@ -133,8 +134,8 @@ export const MenuItemForm = ({ item, open, onClose }: MenuItemFormProps) => {
           <InputNumber style={{ width: "100%" }} min={0} />
         </Form.Item>
 
-        <Form.Item name="imageUrl" label={t("restaurant:menu.form.imageUrl")}>
-          <Input placeholder="https://..." />
+        <Form.Item name="imageUrl" label={t("restaurant:menu.form.image")}>
+          <FileUpload accept="image/*" />
         </Form.Item>
 
         <Form.Item

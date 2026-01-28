@@ -21,6 +21,9 @@ import { CommunicationsModule } from './communications/communications.module.js'
 import { AuditModule } from './audit/audit.module.js';
 import { BackupModule } from './backup/backup.module.js';
 import { AiModule } from './ai/ai.module.js';
+import { UploadModule } from './upload/upload.module.js';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -44,6 +47,11 @@ import { AiModule } from './ai/ai.module.js';
     AuditModule,
     BackupModule,
     AiModule,
+    UploadModule,
+    ServeStaticModule.forRoot({
+      rootPath: path.join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
