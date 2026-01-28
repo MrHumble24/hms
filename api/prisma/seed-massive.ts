@@ -1391,11 +1391,27 @@ async function main() {
   // 29. Discount Contracts
   console.log('🔹 Creating Discount Contracts...');
 
+  // Fetch actual company IDs from database to ensure they exist
+  const allCompanies = await prisma.company.findMany({
+    select: { id: true, tenantId: true },
+  });
+
+  // Group companies by tenant
+  const companiesByTenant: Record<string, string[]> = {};
+  for (const company of allCompanies) {
+    if (!companiesByTenant[company.tenantId]) {
+      companiesByTenant[company.tenantId] = [];
+    }
+    companiesByTenant[company.tenantId].push(company.id);
+  }
+
   for (const tenantId of tenantIds) {
-    const tenantData = tenantsMap.get(tenantId)!;
+    const tenantCompanies = companiesByTenant[tenantId] || [];
+    if (tenantCompanies.length === 0) continue;
+
     const contracts: any[] = [];
 
-    for (const companyId of tenantData.companies) {
+    for (const companyId of tenantCompanies) {
       contracts.push({
         id: faker.string.uuid(),
         companyId: companyId,
@@ -1409,7 +1425,9 @@ async function main() {
       });
     }
 
-    await prisma.discountContract.createMany({ data: contracts });
+    if (contracts.length > 0) {
+      await prisma.discountContract.createMany({ data: contracts });
+    }
     process.stdout.write('.');
   }
   console.log(`\n✅ Created discount contracts`);
