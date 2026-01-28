@@ -52,7 +52,7 @@ export class RoomsService {
     const { branchId, tenantId } = this.getContext();
     return this.prisma.roomType.findMany({
       where: { branchId, tenantId },
-      include: { rooms: true },
+      include: { rooms: true, branch: true, tenant: true },
     });
   }
 
