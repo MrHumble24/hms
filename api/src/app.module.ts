@@ -20,7 +20,7 @@ import { BranchModule } from './branch/branch.module.js';
 import { CommunicationsModule } from './communications/communications.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { BackupModule } from './backup/backup.module.js';
-import { AiModule } from './ai/ai.module';
+import { AiModule } from './ai/ai.module.js';
 
 @Module({
   imports: [
