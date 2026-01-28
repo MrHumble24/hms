@@ -22,7 +22,7 @@ export class AiService {
 
     try {
       const model = this.genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-pro',
       });
 
       const prompt = `
