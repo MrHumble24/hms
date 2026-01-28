@@ -20,6 +20,7 @@ import { BranchModule } from './branch/branch.module.js';
 import { CommunicationsModule } from './communications/communications.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { BackupModule } from './backup/backup.module.js';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { BackupModule } from './backup/backup.module.js';
     CommunicationsModule,
     AuditModule,
     BackupModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
