@@ -119,7 +119,7 @@ export class TelegramService implements OnModuleInit {
       const { latitude, longitude } = msg.location;
       this.logger.log(`📍 Location: ${latitude}, ${longitude}`);
 
-      await this.bot.sendMessage(chatId, '🔍 Finding hotels...');
+      await this.bot.sendMessage(chatId, '🔍 Searching for hotels near you...');
 
       try {
         const hotels = await this.publicHotelsService.findNearby(
@@ -128,30 +128,74 @@ export class TelegramService implements OnModuleInit {
         );
 
         if (hotels.length === 0) {
-          await this.bot.sendMessage(chatId, '😔 No hotels found nearby.');
+          await this.bot.sendMessage(
+            chatId,
+            '😔 No hotels found nearby. Try a different location.',
+          );
           return;
         }
 
-        const buttons = hotels.slice(0, 8).map((h) => [
-          {
-            text: `${h.isFeatured ? '⭐ ' : ''}${h.name} (${h.distance.toFixed(1)}km)`,
-            callback_data: `hotel_${h.id}`,
-          },
-        ]);
-
         await this.bot.sendMessage(
           chatId,
-          `✅ Found *${hotels.length}* hotels!\n\nSelect one:`,
-          {
-            parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard: buttons },
-          },
+          `✅ Found *${hotels.length}* hotels near you!\n\n👇 Browse and tap *Book Now* to reserve:`,
+          { parse_mode: 'Markdown' },
         );
+
+        // Show each hotel as a detailed card
+        for (const hotel of hotels.slice(0, 5)) {
+          const stars = hotel.starRating ? '⭐'.repeat(hotel.starRating) : '';
+          const featured = hotel.isFeatured ? '🌟 *FEATURED*\n' : '';
+          const distance = `📍 ${hotel.distance.toFixed(1)} km away`;
+          const address = hotel.address ? `\n📮 ${hotel.address}` : '';
+          const price = hotel.startingPrice
+            ? `\n💰 From *${hotel.currency} ${hotel.startingPrice.toLocaleString()}*/night`
+            : '';
+
+          const caption =
+            `${featured}` +
+            `🏨 *${hotel.name}* ${stars}\n` +
+            `${distance}${address}${price}`;
+
+          const bookButton = {
+            inline_keyboard: [
+              [{ text: '📝 Book Now', callback_data: `hotel_${hotel.id}` }],
+            ],
+          };
+
+          try {
+            if (hotel.logoUrl) {
+              await this.bot.sendPhoto(chatId, hotel.logoUrl, {
+                caption,
+                parse_mode: 'Markdown',
+                reply_markup: bookButton,
+              });
+            } else {
+              await this.bot.sendMessage(chatId, caption, {
+                parse_mode: 'Markdown',
+                reply_markup: bookButton,
+              });
+            }
+          } catch (photoErr) {
+            // If photo fails, send as text
+            await this.bot.sendMessage(chatId, caption, {
+              parse_mode: 'Markdown',
+              reply_markup: bookButton,
+            });
+          }
+        }
+
+        if (hotels.length > 5) {
+          await this.bot.sendMessage(
+            chatId,
+            `📋 _${hotels.length - 5} more hotels available. Share location again to refresh._`,
+            { parse_mode: 'Markdown' },
+          );
+        }
       } catch (err: any) {
         this.logger.error('Hotel search error:', err.message);
         await this.bot.sendMessage(
           chatId,
-          '❌ Error finding hotels. Try again.',
+          '❌ Error finding hotels. Please try again.',
         );
       }
     });
