@@ -416,7 +416,7 @@ export class TelegramService implements OnModuleInit {
     });
   }
 
-  // Parse date: DD MM YYYY, DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
+  // Parse date: DD MM YYYY, DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY, DD MM YY
   private parseDate(text: string): Date | null {
     // Normalize separators to spaces
     const normalized = text
@@ -427,21 +427,49 @@ export class TelegramService implements OnModuleInit {
 
     if (parts.length !== 3) return null;
 
+    let day: number, month: number, year: number;
     const [p1, p2, p3] = parts.map((p) => parseInt(p));
 
-    // DD MM YYYY
-    if (p1 <= 31 && p2 <= 12 && p3 >= 2020) {
-      const date = new Date(p3, p2 - 1, p1);
-      if (!isNaN(date.getTime()) && date.getDate() === p1) return date;
+    // Check for NaN
+    if (isNaN(p1) || isNaN(p2) || isNaN(p3)) return null;
+
+    // Determine format based on position of year (4-digit number or 2-digit > 24)
+    if (p3 >= 100 || p3 > 31) {
+      // DD MM YYYY or DD MM YY (year is last)
+      day = p1;
+      month = p2;
+      year = p3 >= 100 ? p3 : p3 < 50 ? 2000 + p3 : 1900 + p3;
+    } else if (p1 >= 100) {
+      // YYYY MM DD (year is first)
+      year = p1;
+      month = p2;
+      day = p3;
+    } else {
+      // All numbers are small - assume DD MM YY
+      day = p1;
+      month = p2;
+      year = p3 < 50 ? 2000 + p3 : 1900 + p3;
     }
 
-    // YYYY MM DD
-    if (p1 >= 2020 && p2 <= 12 && p3 <= 31) {
-      const date = new Date(p1, p2 - 1, p3);
-      if (!isNaN(date.getTime()) && date.getDate() === p3) return date;
+    // Validate ranges
+    if (month < 1 || month > 12) return null;
+    if (day < 1 || day > 31) return null;
+    if (year < 2024 || year > 2100) return null;
+
+    // Create date and validate
+    const date = new Date(year, month - 1, day);
+
+    // Check if date is valid (handles invalid dates like Feb 30)
+    if (isNaN(date.getTime())) return null;
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return null;
     }
 
-    return null;
+    return date;
   }
 
   private formatDate(date: Date): string {
