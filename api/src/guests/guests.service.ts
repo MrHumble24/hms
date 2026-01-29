@@ -66,16 +66,15 @@ export class GuestsService {
     search?: string;
     branchId?: string;
   }) {
-    const { tenantId, branchId } = this.getContext();
-    const where: any = { tenantId, branchId };
+    const { tenantId } = this.getContext();
+    const where: any = { tenantId };
 
-    // Optionally filter by guests who have bookings in a specific branch
+    // Optionally filter by guests who have activity in a specific branch
     if (params.branchId) {
-      where.primaryBookings = {
-        some: {
-          branchId: params.branchId,
-        },
-      };
+      where.OR = [
+        { primaryBookings: { some: { branchId: params.branchId } } },
+        { roomStays: { some: { booking: { branchId: params.branchId } } } },
+      ];
     }
 
     if (params.search) {
