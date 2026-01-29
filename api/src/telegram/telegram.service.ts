@@ -68,7 +68,7 @@ export class TelegramService implements OnModuleInit {
     this.bot = new TelegramBot(token, { polling: true });
     this.logger.log('✅ Telegram Bot started');
 
-    // /start - Welcome message
+    // /start - Welcome
     this.bot.onText(/\/start/, async (msg) => {
       const chatId = msg.chat.id;
       this.resetSession(chatId);
@@ -76,8 +76,8 @@ export class TelegramService implements OnModuleInit {
       await this.bot.sendMessage(
         chatId,
         `🏨 *Welcome to HMS Hotel Booking!*\n\n` +
-          `I'll help you find and book hotels in seconds.\n\n` +
-          `👇 *Tap "Share Location"* to discover nearby hotels.`,
+          `I'll help you find and book hotels.\n\n` +
+          `� *Share your location* to find nearby hotels.`,
         {
           parse_mode: 'Markdown',
           reply_markup: {
@@ -91,33 +91,23 @@ export class TelegramService implements OnModuleInit {
       );
     });
 
-    // Handle "Start Over" button
+    // Start Over button
     this.bot.onText(/🏠 Start Over/, async (msg) => {
       const chatId = msg.chat.id;
       this.resetSession(chatId);
-
       await this.bot.sendMessage(
         chatId,
-        `🏨 *Ready to book!*\n\n📍 Share your location to find nearby hotels.`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            keyboard: [
-              [{ text: '📍 Share Location', request_location: true }],
-              [{ text: '🏠 Start Over' }],
-            ],
-            resize_keyboard: true,
-          },
-        },
+        `🏨 *Ready to book!*\n\n📍 Share your location to find hotels.`,
+        { parse_mode: 'Markdown' },
       );
     });
 
-    // /cancel - Cancel booking
+    // /cancel
     this.bot.onText(/\/cancel/, async (msg) => {
       this.resetSession(msg.chat.id);
       await this.bot.sendMessage(
         msg.chat.id,
-        '❌ Cancelled. Send /start to try again.',
+        '❌ Cancelled. Send /start to begin again.',
       );
     });
 
@@ -129,7 +119,7 @@ export class TelegramService implements OnModuleInit {
       const { latitude, longitude } = msg.location;
       this.logger.log(`📍 Location: ${latitude}, ${longitude}`);
 
-      await this.bot.sendMessage(chatId, '🔍 Finding hotels near you...');
+      await this.bot.sendMessage(chatId, '🔍 Finding hotels...');
 
       try {
         const hotels = await this.publicHotelsService.findNearby(
@@ -138,24 +128,20 @@ export class TelegramService implements OnModuleInit {
         );
 
         if (hotels.length === 0) {
-          await this.bot.sendMessage(
-            chatId,
-            '😔 No hotels found nearby. Try a different location.',
-          );
+          await this.bot.sendMessage(chatId, '😔 No hotels found nearby.');
           return;
         }
 
-        // Show hotels as buttons
         const buttons = hotels.slice(0, 8).map((h) => [
           {
-            text: `${h.isFeatured ? '⭐ ' : ''}${h.name} (${h.distance.toFixed(1)}km)${h.startingPrice ? ` - ${h.currency}${h.startingPrice}` : ''}`,
+            text: `${h.isFeatured ? '⭐ ' : ''}${h.name} (${h.distance.toFixed(1)}km)`,
             callback_data: `hotel_${h.id}`,
           },
         ]);
 
         await this.bot.sendMessage(
           chatId,
-          `✅ Found *${hotels.length}* hotels!\n\nSelect one to book:`,
+          `✅ Found *${hotels.length}* hotels!\n\nSelect one:`,
           {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard: buttons },
@@ -170,7 +156,7 @@ export class TelegramService implements OnModuleInit {
       }
     });
 
-    // Callback queries (button clicks)
+    // Callback queries
     this.bot.on('callback_query', async (query) => {
       if (!query.message || !query.data) return;
       const chatId = query.message.chat.id;
@@ -188,56 +174,35 @@ export class TelegramService implements OnModuleInit {
           session.hotelName = hotel.name;
           session.step = 'entering_check_in';
 
-          await this.sendCheckInPrompt(
-            chatId,
-            hotel.name,
-            hotel.address || undefined,
-          );
-        } catch (err) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Error loading hotel. Try again.',
+            `🏨 *${hotel.name}*\n\n` +
+              `📅 Enter *check-in date*:\n\n` +
+              `Format: \`DD MM YYYY\` or \`DD.MM.YYYY\`\n` +
+              `Example: \`30 01 2026\` or \`30.01.2026\``,
+            { parse_mode: 'Markdown' },
           );
+        } catch (err) {
+          await this.bot.sendMessage(chatId, '❌ Error loading hotel.');
         }
-      }
-
-      // Quick date selection for check-in
-      if (data.startsWith('checkin_')) {
-        const days = parseInt(data.replace('checkin_', ''));
-        const date = this.getDateFromNow(days);
-        session.checkIn = date;
-        session.step = 'entering_check_out';
-        await this.sendCheckOutPrompt(chatId, date);
-      }
-
-      // Quick date selection for check-out
-      if (data.startsWith('checkout_')) {
-        const days = parseInt(data.replace('checkout_', ''));
-        const checkInDate = new Date(session.checkIn!);
-        const date = this.formatDate(
-          new Date(checkInDate.getTime() + days * 24 * 60 * 60 * 1000),
-        );
-        session.checkOut = date;
-        session.nights = days;
-        await this.showRooms(chatId, session);
       }
 
       // Room selected
       if (data.startsWith('room_')) {
-        const [, roomId, price, currency] = data.split('_');
-        session.roomTypeId = roomId;
-        session.roomPrice = parseFloat(price);
-        session.currency = currency;
+        const parts = data.split('_');
+        session.roomTypeId = parts[1];
+        session.roomPrice = parseFloat(parts[2]);
+        session.currency = parts[3];
         session.step = 'entering_name';
 
         await this.bot.sendMessage(
           chatId,
-          `✅ Room selected!\n\n👤 Enter your *full name*:`,
+          `✅ Room selected!\n\n👤 Enter your *full name*:\n\nExample: \`John Doe\``,
           { parse_mode: 'Markdown' },
         );
       }
 
-      // Confirm booking
+      // Confirm
       if (data === 'confirm') {
         await this.createBooking(chatId, session);
       }
@@ -254,23 +219,30 @@ export class TelegramService implements OnModuleInit {
 
     // Text messages
     this.bot.on('message', async (msg) => {
-      if (!msg.text || msg.text.startsWith('/') || msg.location) return;
+      if (
+        !msg.text ||
+        msg.text.startsWith('/') ||
+        msg.location ||
+        msg.text.includes('🏠')
+      )
+        return;
 
       const chatId = msg.chat.id;
       const text = msg.text.trim();
       const session = this.getSession(chatId);
 
-      // Check-in date (text input)
+      // Check-in date
       if (session.step === 'entering_check_in') {
         const parsed = this.parseDate(text);
         if (!parsed) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Invalid date. Use DD.MM.YYYY (e.g., 15.02.2026) or use the buttons above.',
+            '❌ Invalid date.\n\nUse: `DD MM YYYY` or `DD.MM.YYYY`\nExample: `30 01 2026`',
             { parse_mode: 'Markdown' },
           );
           return;
         }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (parsed < today) {
@@ -283,21 +255,28 @@ export class TelegramService implements OnModuleInit {
 
         session.checkIn = this.formatDate(parsed);
         session.step = 'entering_check_out';
-        await this.sendCheckOutPrompt(chatId, session.checkIn);
+
+        await this.bot.sendMessage(
+          chatId,
+          `✅ Check-in: *${this.formatDateDisplay(session.checkIn)}*\n\n` +
+            `📅 Now enter *check-out date*:`,
+          { parse_mode: 'Markdown' },
+        );
         return;
       }
 
-      // Check-out date (text input)
+      // Check-out date
       if (session.step === 'entering_check_out') {
         const parsed = this.parseDate(text);
         if (!parsed) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Invalid date. Use DD.MM.YYYY (e.g., 17.02.2026) or use the buttons above.',
+            '❌ Invalid date.\n\nUse: `DD MM YYYY` or `DD.MM.YYYY`\nExample: `02 02 2026`',
             { parse_mode: 'Markdown' },
           );
           return;
         }
+
         const checkInDate = new Date(session.checkIn!);
         if (parsed <= checkInDate) {
           await this.bot.sendMessage(
@@ -318,11 +297,12 @@ export class TelegramService implements OnModuleInit {
 
       // Guest name
       if (session.step === 'entering_name') {
-        const parts = text.split(' ');
+        const parts = text.split(/\s+/);
         if (parts.length < 2) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Please enter first and last name (e.g., John Doe)',
+            '❌ Please enter first and last name.\n\nExample: `John Doe`',
+            { parse_mode: 'Markdown' },
           );
           return;
         }
@@ -339,9 +319,9 @@ export class TelegramService implements OnModuleInit {
         return;
       }
 
-      // Phone number
+      // Phone
       if (session.step === 'entering_phone') {
-        if (text.length < 7) {
+        if (text.replace(/\D/g, '').length < 7) {
           await this.bot.sendMessage(
             chatId,
             '❌ Please enter a valid phone number.',
@@ -351,105 +331,47 @@ export class TelegramService implements OnModuleInit {
 
         session.phone = text;
         session.step = 'confirming';
-
         await this.showConfirmation(chatId, session);
         return;
       }
     });
   }
 
-  // Parse date from various formats: DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+  // Parse date: DD MM YYYY, DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
   private parseDate(text: string): Date | null {
-    // DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
-    const dmyMatch = text.match(/^(\d{1,2})[\.\/-](\d{1,2})[\.\/-](\d{4})$/);
-    if (dmyMatch) {
-      const [, day, month, year] = dmyMatch;
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      if (!isNaN(date.getTime())) return date;
+    // Normalize separators to spaces
+    const normalized = text
+      .replace(/[\.\/-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const parts = normalized.split(' ');
+
+    if (parts.length !== 3) return null;
+
+    const [p1, p2, p3] = parts.map((p) => parseInt(p));
+
+    // DD MM YYYY
+    if (p1 <= 31 && p2 <= 12 && p3 >= 2020) {
+      const date = new Date(p3, p2 - 1, p1);
+      if (!isNaN(date.getTime()) && date.getDate() === p1) return date;
     }
-    // YYYY-MM-DD
-    const ymdMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (ymdMatch) {
-      const date = new Date(text);
-      if (!isNaN(date.getTime())) return date;
+
+    // YYYY MM DD
+    if (p1 >= 2020 && p2 <= 12 && p3 <= 31) {
+      const date = new Date(p1, p2 - 1, p3);
+      if (!isNaN(date.getTime()) && date.getDate() === p3) return date;
     }
+
     return null;
   }
 
-  // Format date to YYYY-MM-DD
   private formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
   }
 
-  // Get date N days from now formatted
-  private getDateFromNow(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return this.formatDate(date);
-  }
-
-  // Format date for display (DD.MM.YYYY)
   private formatDateDisplay(dateStr: string): string {
     const d = new Date(dateStr);
     return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear()}`;
-  }
-
-  // Send check-in prompt with quick date buttons
-  private async sendCheckInPrompt(
-    chatId: number,
-    hotelName: string,
-    address?: string,
-  ) {
-    const today = this.formatDateDisplay(this.getDateFromNow(0));
-    const tomorrow = this.formatDateDisplay(this.getDateFromNow(1));
-    const day2 = this.formatDateDisplay(this.getDateFromNow(2));
-    const day3 = this.formatDateDisplay(this.getDateFromNow(3));
-
-    await this.bot.sendMessage(
-      chatId,
-      `🏨 *${hotelName}*\n${address ? `📍 ${address}\n` : ''}\n` +
-        `📅 *When do you want to check in?*\n\nChoose a date or type DD.MM.YYYY:`,
-      {
-        parse_mode: 'Markdown',
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: `📅 Today (${today})`, callback_data: 'checkin_0' },
-              { text: `📅 Tomorrow (${tomorrow})`, callback_data: 'checkin_1' },
-            ],
-            [
-              { text: `📅 ${day2}`, callback_data: 'checkin_2' },
-              { text: `📅 ${day3}`, callback_data: 'checkin_3' },
-            ],
-          ],
-        },
-      },
-    );
-  }
-
-  // Send check-out prompt with quick date buttons
-  private async sendCheckOutPrompt(chatId: number, checkIn: string) {
-    const checkInDate = new Date(checkIn);
-    const nights = [1, 2, 3, 5, 7];
-
-    const buttons = nights.map((n) => {
-      const d = new Date(checkInDate.getTime() + n * 24 * 60 * 60 * 1000);
-      return {
-        text: `${n} night${n > 1 ? 's' : ''} (${this.formatDateDisplay(this.formatDate(d))})`,
-        callback_data: `checkout_${n}`,
-      };
-    });
-
-    await this.bot.sendMessage(
-      chatId,
-      `✅ Check-in: *${this.formatDateDisplay(checkIn)}*\n\n📅 *How many nights?*\n\nChoose or type check-out date (DD.MM.YYYY):`,
-      {
-        parse_mode: 'Markdown',
-        reply_markup: {
-          inline_keyboard: [buttons.slice(0, 3), buttons.slice(3, 5)],
-        },
-      },
-    );
   }
 
   private async showRooms(chatId: number, session: UserSession) {
@@ -463,26 +385,26 @@ export class TelegramService implements OnModuleInit {
       if (availability.roomTypes.length === 0) {
         await this.bot.sendMessage(
           chatId,
-          '😔 No rooms available for these dates. Send /start to try different dates.',
+          '😔 No rooms available. Send /start to try different dates.',
         );
         this.resetSession(chatId);
         return;
       }
 
+      session.currency = availability.branch.currency;
+      session.step = 'selecting_room';
+
       const buttons = availability.roomTypes.map((r) => [
         {
-          text: `${r.name} - ${availability.branch.currency}${r.basePrice}/night (${r.availableRooms} left)`,
+          text: `${r.name} - ${availability.branch.currency}${r.basePrice}/night`,
           callback_data: `room_${r.id}_${r.basePrice}_${availability.branch.currency}`,
         },
       ]);
 
-      session.step = 'selecting_room';
-      session.currency = availability.branch.currency;
-
       await this.bot.sendMessage(
         chatId,
         `🏨 *${session.hotelName}*\n` +
-          `📅 ${session.checkIn} → ${session.checkOut} (${session.nights} nights)\n\n` +
+          `📅 ${this.formatDateDisplay(session.checkIn!)} → ${this.formatDateDisplay(session.checkOut!)} (${session.nights} nights)\n\n` +
           `Select a room:`,
         {
           parse_mode: 'Markdown',
@@ -490,7 +412,6 @@ export class TelegramService implements OnModuleInit {
         },
       );
     } catch (err: any) {
-      this.logger.error('Room availability error:', err.message);
       await this.bot.sendMessage(
         chatId,
         `❌ ${err.message || 'Error checking availability.'}`,
@@ -505,17 +426,16 @@ export class TelegramService implements OnModuleInit {
       chatId,
       `📋 *Booking Summary*\n\n` +
         `🏨 ${session.hotelName}\n` +
-        `📅 ${session.checkIn} → ${session.checkOut}\n` +
+        `📅 ${this.formatDateDisplay(session.checkIn!)} → ${this.formatDateDisplay(session.checkOut!)}\n` +
         `🌙 ${session.nights} nights\n` +
         `👤 ${session.firstName} ${session.lastName}\n` +
         `📞 ${session.phone}\n\n` +
-        `� *Total: ${session.currency}${total.toLocaleString()}*\n\n` +
-        `Confirm your booking?`,
+        `💰 *Total: ${session.currency}${total.toLocaleString()}*`,
       {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '✅ Confirm', callback_data: 'confirm' }],
+            [{ text: '✅ Confirm Booking', callback_data: 'confirm' }],
             [{ text: '❌ Cancel', callback_data: 'cancel' }],
           ],
         },
@@ -524,7 +444,7 @@ export class TelegramService implements OnModuleInit {
   }
 
   private async createBooking(chatId: number, session: UserSession) {
-    await this.bot.sendMessage(chatId, '⏳ Creating your booking...');
+    await this.bot.sendMessage(chatId, '⏳ Creating booking...');
 
     try {
       const result = await this.publicBookingService.createPublicBooking({
@@ -549,7 +469,7 @@ export class TelegramService implements OnModuleInit {
           `📌 Confirmation: \`${result.confirmationNumber}\`\n\n` +
           `🏨 ${result.hotel}\n` +
           `🛏️ ${result.room}\n` +
-          `📅 ${session.checkIn} → ${session.checkOut}\n` +
+          `📅 ${this.formatDateDisplay(session.checkIn!)} → ${this.formatDateDisplay(session.checkOut!)}\n` +
           `🌙 ${result.nights} nights\n` +
           `💰 ${result.currency} ${result.totalAmount.toLocaleString()}\n\n` +
           `Show this at the hotel. Thank you! 🙏`,
@@ -558,7 +478,6 @@ export class TelegramService implements OnModuleInit {
 
       this.resetSession(chatId);
     } catch (err: any) {
-      this.logger.error('Booking error:', err.message);
       await this.bot.sendMessage(
         chatId,
         `❌ ${err.message || 'Booking failed.'}\n\nSend /start to try again.`,
