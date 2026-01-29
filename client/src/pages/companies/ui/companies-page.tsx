@@ -95,6 +95,7 @@ export const CompaniesPage = () => {
 
   const canManage =
     user?.role === "SUPER_ADMIN" ||
+    user?.role === "ADMIN" ||
     user?.role === "MANAGER" ||
     user?.role === "ACCOUNTANT";
 

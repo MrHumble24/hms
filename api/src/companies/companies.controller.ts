@@ -25,7 +25,7 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'MANAGER', 'ACCOUNTANT')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'ACCOUNTANT')
   create(@Body() createCompanyDto: CreateCompanyDto) {
     return this.companiesService.create(createCompanyDto);
   }
@@ -41,20 +41,20 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'MANAGER', 'ACCOUNTANT')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'ACCOUNTANT')
   update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
     return this.companiesService.update(id, updateCompanyDto);
   }
 
   @Delete(':id')
-  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
   remove(@Param('id') id: string) {
     return this.companiesService.remove(id);
   }
 
   // Discount Contracts
   @Post(':id/contracts')
-  @Roles('SUPER_ADMIN', 'MANAGER', 'ACCOUNTANT')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'ACCOUNTANT')
   createContract(
     @Param('id') companyId: string,
     @Body() dto: CreateDiscountContractDto,
@@ -63,7 +63,7 @@ export class CompaniesController {
   }
 
   @Patch('contracts/:contractId')
-  @Roles('SUPER_ADMIN', 'MANAGER', 'ACCOUNTANT')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'ACCOUNTANT')
   updateContract(
     @Param('contractId') contractId: string,
     @Body() dto: UpdateDiscountContractDto,
@@ -72,7 +72,7 @@ export class CompaniesController {
   }
 
   @Delete('contracts/:contractId')
-  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
   removeContract(@Param('contractId') contractId: string) {
     return this.companiesService.removeContract(contractId);
   }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Drawer,
   Tabs,
@@ -12,16 +13,23 @@ import {
   Popconfirm,
   message,
   Grid,
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  DatePicker,
 } from "antd";
 import {
   FileDoneOutlined,
   CalendarOutlined,
   PlusOutlined,
   DeleteOutlined,
+  PercentageOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { companiesApi } from "@/entities/companies/api/companies-api";
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/entities/user/model/auth-store";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
@@ -36,11 +44,38 @@ export const CompanyDetails = ({ id, open, onClose }: CompanyDetailsProps) => {
   const { t } = useTranslation(["companies", "common"]);
   const screens = Grid.useBreakpoint();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const [form] = Form.useForm();
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
+  const canManage =
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "ADMIN" ||
+    user?.role === "MANAGER" ||
+    user?.role === "ACCOUNTANT";
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["companies", id],
     queryFn: () => companiesApi.findOne(id!),
     enabled: !!id && open,
+  });
+
+  const createContractMutation = useMutation({
+    mutationFn: (values: any) =>
+      companiesApi.createContract(id!, {
+        ...values,
+        startDate: values.startDate.toISOString(),
+        endDate: values.endDate ? values.endDate.toISOString() : undefined,
+      }),
+    onSuccess: () => {
+      message.success(t("common:success"));
+      queryClient.invalidateQueries({ queryKey: ["companies", id] });
+      setIsContractModalOpen(false);
+      form.resetFields();
+    },
+    onError: (err: any) => {
+      message.error(err.response?.data?.message || t("common:error"));
+    },
   });
 
   const deleteContractMutation = useMutation({
@@ -110,16 +145,22 @@ export const CompanyDetails = ({ id, open, onClose }: CompanyDetailsProps) => {
     {
       title: "",
       key: "actions",
-      render: (record: any) => (
-        <Space>
-          <Popconfirm
-            title={t("common:areYouSure")}
-            onConfirm={() => deleteContractMutation.mutate(record.id)}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" />
-          </Popconfirm>
-        </Space>
-      ),
+      render: (record: any) =>
+        canManage && (
+          <Space>
+            <Popconfirm
+              title={t("common:areYouSure")}
+              onConfirm={() => deleteContractMutation.mutate(record.id)}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              />
+            </Popconfirm>
+          </Space>
+        ),
     },
   ];
 
@@ -199,13 +240,16 @@ export const CompanyDetails = ({ id, open, onClose }: CompanyDetailsProps) => {
                         justifyContent: "flex-end",
                       }}
                     >
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<PlusOutlined />}
-                      >
-                        New Contract
-                      </Button>
+                      {canManage && (
+                        <Button
+                          type="primary"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          onClick={() => setIsContractModalOpen(true)}
+                        >
+                          {t("companies:actions.newContract")}
+                        </Button>
+                      )}
                     </div>
                     <Table
                       dataSource={company.contracts}
@@ -221,6 +265,56 @@ export const CompanyDetails = ({ id, open, onClose }: CompanyDetailsProps) => {
           />
         </Space>
       )}
+
+      <Modal
+        title={t("companies:actions.newContract")}
+        open={isContractModalOpen}
+        onCancel={() => {
+          setIsContractModalOpen(false);
+          form.resetFields();
+        }}
+        onOk={() => form.submit()}
+        confirmLoading={createContractMutation.isPending}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={(v) => createContractMutation.mutate(v)}
+          initialValues={{ startDate: dayjs(), isActive: true }}
+        >
+          <Form.Item
+            name="discountPercent"
+            label="Discount %"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              style={{ width: "100%" }}
+              prefix={<PercentageOutlined />}
+              placeholder="e.g. 15"
+            />
+          </Form.Item>
+
+          <Space style={{ width: "100%" }}>
+            <Form.Item
+              name="startDate"
+              label="Start Date"
+              rules={[{ required: true }]}
+            >
+              <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name="endDate" label="End Date (Optional)">
+              <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+          </Space>
+
+          <Form.Item name="description" label="Internal Notes">
+            <Input.TextArea rows={3} placeholder="Contract details..." />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Drawer>
   );
 };
