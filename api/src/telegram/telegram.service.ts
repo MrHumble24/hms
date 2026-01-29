@@ -188,11 +188,10 @@ export class TelegramService implements OnModuleInit {
           session.hotelName = hotel.name;
           session.step = 'entering_check_in';
 
-          await this.bot.sendMessage(
+          await this.sendCheckInPrompt(
             chatId,
-            `🏨 *${hotel.name}*\n\n📍 ${hotel.address || ''}\n\n` +
-              `📅 Enter *check-in date*:\n\`YYYY-MM-DD\` (e.g. \`2026-02-10\`)`,
-            { parse_mode: 'Markdown' },
+            hotel.name,
+            hotel.address || undefined,
           );
         } catch (err) {
           await this.bot.sendMessage(
@@ -200,6 +199,27 @@ export class TelegramService implements OnModuleInit {
             '❌ Error loading hotel. Try again.',
           );
         }
+      }
+
+      // Quick date selection for check-in
+      if (data.startsWith('checkin_')) {
+        const days = parseInt(data.replace('checkin_', ''));
+        const date = this.getDateFromNow(days);
+        session.checkIn = date;
+        session.step = 'entering_check_out';
+        await this.sendCheckOutPrompt(chatId, date);
+      }
+
+      // Quick date selection for check-out
+      if (data.startsWith('checkout_')) {
+        const days = parseInt(data.replace('checkout_', ''));
+        const checkInDate = new Date(session.checkIn!);
+        const date = this.formatDate(
+          new Date(checkInDate.getTime() + days * 24 * 60 * 60 * 1000),
+        );
+        session.checkOut = date;
+        session.nights = days;
+        await this.showRooms(chatId, session);
       }
 
       // Room selected
@@ -240,43 +260,46 @@ export class TelegramService implements OnModuleInit {
       const text = msg.text.trim();
       const session = this.getSession(chatId);
 
-      // Check-in date
+      // Check-in date (text input)
       if (session.step === 'entering_check_in') {
-        if (!this.isValidDate(text)) {
+        const parsed = this.parseDate(text);
+        if (!parsed) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Invalid date. Use format `YYYY-MM-DD`',
+            '❌ Invalid date. Use DD.MM.YYYY (e.g., 15.02.2026) or use the buttons above.',
             { parse_mode: 'Markdown' },
           );
           return;
         }
-        if (new Date(text) < new Date()) {
-          await this.bot.sendMessage(chatId, '❌ Date must be in the future.');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (parsed < today) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Date must be today or in the future.',
+          );
           return;
         }
 
-        session.checkIn = text;
+        session.checkIn = this.formatDate(parsed);
         session.step = 'entering_check_out';
-
-        await this.bot.sendMessage(
-          chatId,
-          `✅ Check-in: *${text}*\n\n📅 Enter *check-out date*:`,
-          { parse_mode: 'Markdown' },
-        );
+        await this.sendCheckOutPrompt(chatId, session.checkIn);
         return;
       }
 
-      // Check-out date
+      // Check-out date (text input)
       if (session.step === 'entering_check_out') {
-        if (!this.isValidDate(text)) {
+        const parsed = this.parseDate(text);
+        if (!parsed) {
           await this.bot.sendMessage(
             chatId,
-            '❌ Invalid date. Use format `YYYY-MM-DD`',
+            '❌ Invalid date. Use DD.MM.YYYY (e.g., 17.02.2026) or use the buttons above.',
             { parse_mode: 'Markdown' },
           );
           return;
         }
-        if (new Date(text) <= new Date(session.checkIn!)) {
+        const checkInDate = new Date(session.checkIn!);
+        if (parsed <= checkInDate) {
           await this.bot.sendMessage(
             chatId,
             '❌ Check-out must be after check-in.',
@@ -284,10 +307,9 @@ export class TelegramService implements OnModuleInit {
           return;
         }
 
-        session.checkOut = text;
+        session.checkOut = this.formatDate(parsed);
         session.nights = Math.ceil(
-          (new Date(text).getTime() - new Date(session.checkIn!).getTime()) /
-            (1000 * 60 * 60 * 24),
+          (parsed.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
         );
 
         await this.showRooms(chatId, session);
@@ -336,8 +358,98 @@ export class TelegramService implements OnModuleInit {
     });
   }
 
-  private isValidDate(date: string): boolean {
-    return /^\d{4}-\d{2}-\d{2}$/.test(date) && !isNaN(new Date(date).getTime());
+  // Parse date from various formats: DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+  private parseDate(text: string): Date | null {
+    // DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = text.match(/^(\d{1,2})[\.\/-](\d{1,2})[\.\/-](\d{4})$/);
+    if (dmyMatch) {
+      const [, day, month, year] = dmyMatch;
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) return date;
+    }
+    // YYYY-MM-DD
+    const ymdMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+      const date = new Date(text);
+      if (!isNaN(date.getTime())) return date;
+    }
+    return null;
+  }
+
+  // Format date to YYYY-MM-DD
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  // Get date N days from now formatted
+  private getDateFromNow(days: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return this.formatDate(date);
+  }
+
+  // Format date for display (DD.MM.YYYY)
+  private formatDateDisplay(dateStr: string): string {
+    const d = new Date(dateStr);
+    return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear()}`;
+  }
+
+  // Send check-in prompt with quick date buttons
+  private async sendCheckInPrompt(
+    chatId: number,
+    hotelName: string,
+    address?: string,
+  ) {
+    const today = this.formatDateDisplay(this.getDateFromNow(0));
+    const tomorrow = this.formatDateDisplay(this.getDateFromNow(1));
+    const day2 = this.formatDateDisplay(this.getDateFromNow(2));
+    const day3 = this.formatDateDisplay(this.getDateFromNow(3));
+
+    await this.bot.sendMessage(
+      chatId,
+      `🏨 *${hotelName}*\n${address ? `📍 ${address}\n` : ''}\n` +
+        `📅 *When do you want to check in?*\n\nChoose a date or type DD.MM.YYYY:`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: `📅 Today (${today})`, callback_data: 'checkin_0' },
+              { text: `📅 Tomorrow (${tomorrow})`, callback_data: 'checkin_1' },
+            ],
+            [
+              { text: `📅 ${day2}`, callback_data: 'checkin_2' },
+              { text: `📅 ${day3}`, callback_data: 'checkin_3' },
+            ],
+          ],
+        },
+      },
+    );
+  }
+
+  // Send check-out prompt with quick date buttons
+  private async sendCheckOutPrompt(chatId: number, checkIn: string) {
+    const checkInDate = new Date(checkIn);
+    const nights = [1, 2, 3, 5, 7];
+
+    const buttons = nights.map((n) => {
+      const d = new Date(checkInDate.getTime() + n * 24 * 60 * 60 * 1000);
+      return {
+        text: `${n} night${n > 1 ? 's' : ''} (${this.formatDateDisplay(this.formatDate(d))})`,
+        callback_data: `checkout_${n}`,
+      };
+    });
+
+    await this.bot.sendMessage(
+      chatId,
+      `✅ Check-in: *${this.formatDateDisplay(checkIn)}*\n\n📅 *How many nights?*\n\nChoose or type check-out date (DD.MM.YYYY):`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [buttons.slice(0, 3), buttons.slice(3, 5)],
+        },
+      },
+    );
   }
 
   private async showRooms(chatId: number, session: UserSession) {
