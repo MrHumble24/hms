@@ -34,6 +34,7 @@ import { EmehmonPage } from "@/pages/emehmon";
 import { ConciergePage } from "@/pages/concierge/ui/concierge-page";
 
 import { SuspendedPage } from "@/pages/suspended";
+import { TelegramBookingPage } from "@/pages/telegram";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,14 @@ export const router = createBrowserRouter([
       {
         path: "/restaurant/public/menu",
         element: <GuestMenuPage />,
+      },
+      {
+        path: "/tg",
+        element: <TelegramBookingPage />,
+      },
+      {
+        path: "/tg/book",
+        element: <TelegramBookingPage />,
       },
     ],
   },

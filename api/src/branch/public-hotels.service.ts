@@ -91,4 +91,33 @@ export class PublicHotelsService {
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
   }
+
+  /**
+   * Get hotel details by ID or slug
+   */
+  async getHotelDetails(idOrSlug: string) {
+    const branch = await this.prisma.branch.findFirst({
+      where: {
+        OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+        isActive: true,
+        tenant: { isActive: true },
+      },
+      include: {
+        tenant: true,
+        roomTypes: {
+          orderBy: { basePrice: 'asc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!branch) {
+      throw new Error('Hotel not found');
+    }
+
+    return {
+      ...branch,
+      startingPrice: branch.roomTypes[0]?.basePrice || null,
+    };
+  }
 }
