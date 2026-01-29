@@ -63,8 +63,8 @@ export class GuestsService {
     search?: string;
     branchId?: string;
   }) {
-    const { tenantId } = this.getContext();
-    const where: any = { tenantId };
+    const { tenantId, branchId } = this.getContext();
+    const where: any = { tenantId, branchId };
 
     // Optionally filter by guests who have bookings in a specific branch
     if (params.branchId) {
