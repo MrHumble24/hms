@@ -58,6 +58,15 @@ export interface CreateHotelServiceDto {
   currency?: string;
 }
 
+export interface UpdateHotelServiceDto {
+  name?: string;
+  description?: string;
+  category?: ServiceCategory;
+  basePrice?: number;
+  currency?: string;
+  isActive?: boolean;
+}
+
 export interface CreateServiceRequestDto {
   serviceId: string;
   bookingId: string;
@@ -81,6 +90,11 @@ export const hotelServiceApi = {
   createService: (data: CreateHotelServiceDto) =>
     baseApi
       .post<HotelService>("/hotel-services/catalog", data)
+      .then((res) => res as unknown as HotelService),
+
+  updateService: (id: string, data: UpdateHotelServiceDto) =>
+    baseApi
+      .patch<HotelService>(`/hotel-services/catalog/${id}`, data)
       .then((res) => res as unknown as HotelService),
 
   // Requests

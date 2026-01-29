@@ -17,6 +17,8 @@ import {
   Statistic,
   Row,
   Col,
+  Switch,
+  Popconfirm,
 } from "antd";
 import {
   BellOutlined,
@@ -29,10 +31,14 @@ import {
   FormatPainterOutlined,
   HeartOutlined,
   CarOutlined,
+  EditOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   hotelServiceApi,
+  type HotelService,
   type HotelServiceRequest,
 } from "@/entities/hotel-service/api/hotel-service-api";
 import dayjs from "dayjs";
@@ -43,6 +49,9 @@ const { Option } = Select;
 export const ConciergePage = () => {
   const queryClient = useQueryClient();
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<HotelService | null>(
+    null,
+  );
   const [form] = Form.useForm();
 
   const { data: requests = [], isLoading: isLoadingRequests } = useQuery({
@@ -68,11 +77,49 @@ export const ConciergePage = () => {
     mutationFn: (values: any) => hotelServiceApi.createService(values),
     onSuccess: () => {
       message.success("Service added to catalog");
-      setIsServiceModalOpen(false);
-      form.resetFields();
+      closeServiceModal();
       queryClient.invalidateQueries({ queryKey: ["service-catalog"] });
     },
   });
+
+  const updateServiceMutation = useMutation({
+    mutationFn: ({ id, values }: { id: string; values: any }) =>
+      hotelServiceApi.updateService(id, values),
+    onSuccess: () => {
+      message.success("Service updated");
+      closeServiceModal();
+      queryClient.invalidateQueries({ queryKey: ["service-catalog"] });
+    },
+  });
+
+  const toggleServiceMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      hotelServiceApi.updateService(id, { isActive }),
+    onSuccess: () => {
+      message.success("Service status updated");
+      queryClient.invalidateQueries({ queryKey: ["service-catalog"] });
+    },
+  });
+
+  const openEditModal = (service: HotelService) => {
+    setEditingService(service);
+    form.setFieldsValue(service);
+    setIsServiceModalOpen(true);
+  };
+
+  const closeServiceModal = () => {
+    setIsServiceModalOpen(false);
+    setEditingService(null);
+    form.resetFields();
+  };
+
+  const onServiceFormFinish = (values: any) => {
+    if (editingService) {
+      updateServiceMutation.mutate({ id: editingService.id, values });
+    } else {
+      createServiceMutation.mutate(values);
+    }
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -303,11 +350,44 @@ export const ConciergePage = () => {
                   <Col key={service.id} xs={24} sm={12} lg={8} xl={6}>
                     <Card
                       hoverable
+                      style={{ opacity: service.isActive ? 1 : 0.6 }}
                       actions={[
-                        <Button type="link">Edit</Button>,
-                        <Button type="link" danger>
-                          Deactivate
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => openEditModal(service)}
+                        >
+                          Edit
                         </Button>,
+                        <Popconfirm
+                          title={
+                            service.isActive
+                              ? "Deactivate this service?"
+                              : "Activate this service?"
+                          }
+                          onConfirm={() =>
+                            toggleServiceMutation.mutate({
+                              id: service.id,
+                              isActive: !service.isActive,
+                            })
+                          }
+                          okText="Yes"
+                          cancelText="No"
+                        >
+                          <Button
+                            type="link"
+                            danger={service.isActive}
+                            icon={
+                              service.isActive ? (
+                                <EyeInvisibleOutlined />
+                              ) : (
+                                <EyeOutlined />
+                              )
+                            }
+                          >
+                            {service.isActive ? "Deactivate" : "Activate"}
+                          </Button>
+                        </Popconfirm>,
                       ]}
                     >
                       <Card.Meta
@@ -320,7 +400,14 @@ export const ConciergePage = () => {
                             }}
                           />
                         }
-                        title={service.name}
+                        title={
+                          <Space>
+                            {service.name}
+                            {!service.isActive && (
+                              <Tag color="default">INACTIVE</Tag>
+                            )}
+                          </Space>
+                        }
                         description={
                           <div>
                             <div
@@ -353,17 +440,17 @@ export const ConciergePage = () => {
       />
 
       <Modal
-        title="Create New Hotel Service"
+        title={
+          editingService ? "Edit Hotel Service" : "Create New Hotel Service"
+        }
         open={isServiceModalOpen}
-        onCancel={() => setIsServiceModalOpen(false)}
+        onCancel={closeServiceModal}
         onOk={() => form.submit()}
-        confirmLoading={createServiceMutation.isPending}
+        confirmLoading={
+          createServiceMutation.isPending || updateServiceMutation.isPending
+        }
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={(v) => createServiceMutation.mutate(v)}
-        >
+        <Form form={form} layout="vertical" onFinish={onServiceFormFinish}>
           <Form.Item
             name="name"
             label="Service Name"
@@ -412,6 +499,14 @@ export const ConciergePage = () => {
           </Row>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item
+            name="isActive"
+            label="Active Status"
+            valuePropName="checked"
+            initialValue={true}
+          >
+            <Switch />
           </Form.Item>
         </Form>
       </Modal>

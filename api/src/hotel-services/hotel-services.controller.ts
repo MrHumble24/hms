@@ -12,6 +12,7 @@ import {
   CreateHotelServiceDto,
   CreateServiceRequestDto,
   UpdateServiceRequestDto,
+  UpdateHotelServiceDto,
 } from './dto/hotel-services.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
@@ -33,6 +34,12 @@ export class HotelServicesController {
   @Get('catalog')
   findAllServices() {
     return this.servicesService.findAllServices();
+  }
+
+  @Patch('catalog/:id')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  updateService(@Param('id') id: string, @Body() dto: UpdateHotelServiceDto) {
+    return this.servicesService.updateService(id, dto);
   }
 
   // --- Requests ---

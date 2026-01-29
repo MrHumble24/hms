@@ -9,6 +9,7 @@ import {
   CreateHotelServiceDto,
   CreateServiceRequestDto,
   UpdateServiceRequestDto,
+  UpdateHotelServiceDto,
 } from './dto/hotel-services.dto.js';
 import {
   FolioItemSource,
@@ -44,7 +45,14 @@ export class HotelServicesService {
   async findAllServices() {
     const { branchId } = this.getContext();
     return (this.prisma as any).hotelService.findMany({
-      where: { branchId, isActive: true },
+      where: { branchId },
+    });
+  }
+
+  async updateService(id: string, dto: UpdateHotelServiceDto) {
+    return (this.prisma as any).hotelService.update({
+      where: { id },
+      data: dto,
     });
   }
 

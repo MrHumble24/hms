@@ -38,6 +38,32 @@ export class CreateHotelServiceDto {
   isActive?: boolean;
 }
 
+export class UpdateHotelServiceDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsEnum(ServiceCategory)
+  @IsOptional()
+  category?: ServiceCategory;
+
+  @IsNumber()
+  @IsOptional()
+  basePrice?: number;
+
+  @IsEnum(Currency)
+  @IsOptional()
+  currency?: Currency;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}
+
 export class CreateServiceRequestDto {
   @IsUUID()
   serviceId: string;
