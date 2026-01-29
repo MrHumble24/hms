@@ -88,8 +88,10 @@ export class BookingsService {
 
           // --- AVAILABILITY CHECK & LOCKING ---
           // Use FOR UPDATE to lock the room record during this transaction
-          // This prevents race conditions where two transactions check availability at the same time
-          await tx.$executeRaw`SELECT id FROM "Room" WHERE id = ${stay.roomId} FOR UPDATE`;
+          const [lockedRoom] = await tx.$queryRaw<
+            any[]
+          >`SELECT "number" FROM "Room" WHERE id = ${stay.roomId} FOR UPDATE`;
+          const roomNumber = lockedRoom?.number || 'Selected room';
 
           // Check for overlapping stays for this specific room
           const overlappingStay = await tx.roomStay.findFirst({
@@ -107,7 +109,7 @@ export class BookingsService {
 
           if (overlappingStay) {
             throw new BadRequestException(
-              `Room ${stay.roomId} is already occupied or reserved during the selected dates.`,
+              `Room ${roomNumber} is already booked for these dates.`,
             );
           }
           // ------------------------------------
