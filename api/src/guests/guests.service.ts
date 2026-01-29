@@ -17,6 +17,9 @@ export class GuestsService {
     if (!context?.tenantId) {
       throw new BadRequestException('Tenant context is required');
     }
+    if (!context?.branchId) {
+      throw new BadRequestException('Branch context is required');
+    }
     return context;
   }
 
