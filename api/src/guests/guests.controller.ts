@@ -23,6 +23,19 @@ export class GuestsController {
     return this.guestsService.create(createGuestDto);
   }
 
+  @Get('lookup/global')
+  lookupGlobal(
+    @Query('passportSeries') series: string,
+    @Query('passportNumber') number: string,
+  ) {
+    return this.guestsService.lookupGlobal(series, number);
+  }
+
+  @Post(':id/pull')
+  pullToBranch(@Param('id') id: string) {
+    return this.guestsService.pullToBranch(id);
+  }
+
   @Get()
   findAll(
     @Query('skip') skip?: string,

@@ -102,8 +102,9 @@ export class GuestsService {
   async findOne(id: string) {
     const { tenantId, branchId } = this.getContext();
     const guest = await this.prisma.guest.findFirst({
-      where: { id, tenantId, branchId },
+      where: { id, tenantId }, // Allow finding from any branch for the "Pull" logic
       include: {
+        branch: true,
         primaryBookings: {
           include: {
             roomStays: { include: { room: true } },
@@ -113,6 +114,34 @@ export class GuestsService {
     });
     if (!guest) throw new NotFoundException('Guest not found');
     return guest;
+  }
+
+  async lookupGlobal(passportSeries: string, passportNumber: string) {
+    const { tenantId } = this.getContext();
+    const guest = await this.prisma.guest.findUnique({
+      where: {
+        tenantId_passportSeries_passportNumber: {
+          tenantId,
+          passportSeries,
+          passportNumber,
+        },
+      },
+      include: {
+        branch: true,
+      },
+    });
+
+    return guest;
+  }
+
+  async pullToBranch(id: string) {
+    const { tenantId, branchId } = this.getContext();
+
+    // Reassign guest to current branch
+    return this.prisma.guest.update({
+      where: { id, tenantId },
+      data: { branchId },
+    });
   }
 
   async update(id: string, updateGuestDto: UpdateGuestDto) {

@@ -11,6 +11,8 @@ import {
   Typography,
   Drawer,
   message,
+  Alert,
+  Spin,
 } from "antd";
 import {
   UserOutlined,
@@ -19,13 +21,16 @@ import {
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { type Guest, guestApi } from "@/entities/guest/api/guest-api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
+import { useDebounce } from "@/shared/lib/hooks/use-debounce";
+import { useEffect, useState } from "react";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 interface GuestFormProps {
@@ -41,6 +46,65 @@ export const GuestForm = ({ initialValues, open, onClose }: GuestFormProps) => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const isEdit = !!initialValues;
+
+  const [globalGuest, setGlobalGuest] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const passportSeries = Form.useWatch("passportSeries", form);
+  const passportNumber = Form.useWatch("passportNumber", form);
+  const debouncedPassport = useDebounce(
+    { series: passportSeries, number: passportNumber },
+    800,
+  );
+
+  // Global Lookup Logic
+  useEffect(() => {
+    const performLookup = async () => {
+      if (
+        !isEdit &&
+        debouncedPassport.series?.length === 2 &&
+        debouncedPassport.number?.length === 7
+      ) {
+        setIsSearching(true);
+        try {
+          const result = await guestApi.lookupGlobal(
+            debouncedPassport.series.toUpperCase(),
+            debouncedPassport.number,
+          );
+          setGlobalGuest(result);
+        } catch (err) {
+          console.error("Lookup failed", err);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setGlobalGuest(null);
+      }
+    };
+    performLookup();
+  }, [debouncedPassport, isEdit]);
+
+  const pullMutation = useMutation({
+    mutationFn: (id: string) => guestApi.pullToBranch(id),
+    onSuccess: (res: any) => {
+      message.success("Profile successfully imported to this branch!");
+      queryClient.invalidateQueries({ queryKey: ["guests"] });
+      // Pre-fill the form with the pulled data
+      form.setFieldsValue({
+        ...res,
+        dateOfBirth: res.dateOfBirth ? dayjs(res.dateOfBirth) : null,
+        dateOfEntry: res.dateOfEntry ? dayjs(res.dateOfEntry) : null,
+        passportIssueDate: res.passportIssueDate
+          ? dayjs(res.passportIssueDate)
+          : null,
+        passportExpiryDate: res.passportExpiryDate
+          ? dayjs(res.passportExpiryDate)
+          : null,
+      });
+      setGlobalGuest(null);
+    },
+    onError: () => message.error("Failed to import profile."),
+  });
 
   const mutation = useMutation({
     mutationFn: (data: any) => {
@@ -122,6 +186,34 @@ export const GuestForm = ({ initialValues, open, onClose }: GuestFormProps) => {
         onFinish={onFinish}
         requiredMark="optional"
       >
+        {globalGuest && (
+          <Alert
+            message="Global Profile Found"
+            description={
+              <div>
+                <Text>
+                  This guest is registered at <b>{globalGuest.branch?.name}</b>.
+                  Would you like to adopt this profile for your branch to avoid
+                  duplication?
+                </Text>
+                <div style={{ marginTop: 12 }}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<SwapOutlined />}
+                    onClick={() => pullMutation.mutate(globalGuest.id)}
+                    loading={pullMutation.isPending}
+                  >
+                    Adopt Profile
+                  </Button>
+                </div>
+              </div>
+            }
+            type="info"
+            showIcon
+            style={{ marginBottom: 24, borderRadius: 12 }}
+          />
+        )}
         <section>
           <Title level={5}>
             <UserOutlined style={{ marginRight: 8 }} />
@@ -209,7 +301,12 @@ export const GuestForm = ({ initialValues, open, onClose }: GuestFormProps) => {
                   { required: true, message: t("guests:passportNumberReq") },
                 ]}
               >
-                <Input placeholder="1234567" maxLength={7} size="large" />
+                <Input
+                  placeholder="1234567"
+                  maxLength={7}
+                  size="large"
+                  suffix={isSearching ? <Spin size="small" /> : null}
+                />
               </Form.Item>
             </Col>
             <Col span={6}>

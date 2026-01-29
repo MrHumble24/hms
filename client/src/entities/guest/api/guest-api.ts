@@ -64,4 +64,16 @@ export const guestApi = {
     const response = await api.delete(`/guests/${id}`);
     return response;
   },
+
+  lookupGlobal: async (series: string, number: string) => {
+    const response = await api.get<Guest | null>("/guests/lookup/global", {
+      params: { passportSeries: series, passportNumber: number },
+    });
+    return response as unknown as Guest | null;
+  },
+
+  pullToBranch: async (id: string) => {
+    const response = await api.post<Guest>(`/guests/${id}/pull`);
+    return response;
+  },
 };
