@@ -41,6 +41,17 @@ export class TelegramService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    // In PM2 cluster mode, only start the bot on instance 0 to avoid 409 conflicts
+    const instanceId =
+      process.env.NODE_APP_INSTANCE || process.env.pm_id || '0';
+
+    if (instanceId !== '0') {
+      this.logger.log(
+        `Skipping Telegram bot on PM2 instance ${instanceId} (only runs on instance 0)`,
+      );
+      return;
+    }
+
     this.initializeBot();
   }
 
