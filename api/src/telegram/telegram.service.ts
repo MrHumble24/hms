@@ -145,20 +145,22 @@ export class TelegramService implements OnModuleInit {
         for (const hotel of hotels.slice(0, 5)) {
           const stars = hotel.starRating ? '⭐'.repeat(hotel.starRating) : '';
           const featured = hotel.isFeatured ? '🌟 *FEATURED*\n' : '';
-          const tenantName = hotel.tenant?.name
-            ? `🏢 ${hotel.tenant.name}\n`
-            : '';
+          const legalName = hotel.legalName ? `🏢 ${hotel.legalName}\n` : '';
           const distance = `📍 ${hotel.distance.toFixed(1)} km away`;
-          const address = hotel.address ? `\n📮 ${hotel.address}` : '';
+          const physicalAddress = hotel.address ? `\n📮 ${hotel.address}` : '';
           const price = hotel.startingPrice
             ? `\n💰 From *${hotel.currency} ${hotel.startingPrice.toLocaleString()}*/night`
             : '';
+          const checkTimes =
+            hotel.checkInTime && hotel.checkOutTime
+              ? `\n🕐 Check-in: ${hotel.checkInTime} | Check-out: ${hotel.checkOutTime}`
+              : '';
 
           const caption =
             `${featured}` +
             `🏨 *${hotel.name}* ${stars}\n` +
-            `${tenantName}` +
-            `${distance}${address}${price}`;
+            `${legalName}` +
+            `${distance}${physicalAddress}${price}${checkTimes}`;
 
           const bookButton = {
             inline_keyboard: [
@@ -166,14 +168,43 @@ export class TelegramService implements OnModuleInit {
             ],
           };
 
+          // Parse gallery
+          let galleryImages: string[] = [];
           try {
-            if (hotel.logoUrl) {
+            if (hotel.gallery) {
+              galleryImages = Array.isArray(hotel.gallery)
+                ? hotel.gallery
+                : JSON.parse(hotel.gallery as string);
+            }
+          } catch (e) {
+            galleryImages = [];
+          }
+
+          try {
+            // If hotel has gallery images, send as media group
+            if (galleryImages.length > 0) {
+              const mediaGroup = galleryImages.slice(0, 5).map((url, i) => ({
+                type: 'photo' as const,
+                media: url,
+                caption: i === 0 ? caption : undefined,
+                parse_mode: 'Markdown' as const,
+              }));
+
+              await this.bot.sendMediaGroup(chatId, mediaGroup);
+              // Send book button separately
+              await this.bot.sendMessage(chatId, `👆 *${hotel.name}*`, {
+                parse_mode: 'Markdown',
+                reply_markup: bookButton,
+              });
+            } else if (hotel.logoUrl) {
+              // Fallback to logo
               await this.bot.sendPhoto(chatId, hotel.logoUrl, {
                 caption,
                 parse_mode: 'Markdown',
                 reply_markup: bookButton,
               });
             } else {
+              // No images
               await this.bot.sendMessage(chatId, caption, {
                 parse_mode: 'Markdown',
                 reply_markup: bookButton,
