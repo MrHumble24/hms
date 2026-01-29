@@ -99,9 +99,11 @@ export class HotelServicesService {
 
     const totalAmount = Number(service.basePrice) * (dto.quantity || 1);
 
+    const { roomId, bookingId: _dtoBookingId, ...rest } = dto;
+
     return (this.prisma as any).hotelServiceRequest.create({
       data: {
-        ...dto,
+        ...rest,
         bookingId,
         tenantId,
         branchId,
