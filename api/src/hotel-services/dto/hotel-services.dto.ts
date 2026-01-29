@@ -13,6 +13,7 @@ import {
   ServiceRequestStatus,
   Currency,
 } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class CreateHotelServiceDto {
   @IsString()
@@ -27,6 +28,7 @@ export class CreateHotelServiceDto {
   category: ServiceCategory;
 
   @IsNumber()
+  @Type(() => Number)
   basePrice: number;
 
   @IsEnum(Currency)
@@ -53,6 +55,7 @@ export class UpdateHotelServiceDto {
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   basePrice?: number;
 
   @IsEnum(Currency)
@@ -73,6 +76,7 @@ export class CreateServiceRequestDto {
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   quantity?: number;
 
   @IsString()

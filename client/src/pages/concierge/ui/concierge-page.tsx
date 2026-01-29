@@ -485,6 +485,7 @@ export const ConciergePage = () => {
                   formatter={(v) =>
                     `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
+                  parser={(v) => v!.replace(/\$\s?|(,*)/g, "")}
                 />
               </Form.Item>
             </Col>
