@@ -15,11 +15,14 @@ import {
   InputNumber,
   Drawer,
   Input,
+  Tag,
 } from "antd";
 import {
   ShoppingCartOutlined,
   PlusOutlined,
   ReloadOutlined,
+  CustomerServiceOutlined,
+  CoffeeOutlined,
 } from "@ant-design/icons";
 import {
   Utensils,
@@ -33,6 +36,11 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { restaurantApi } from "@/entities/restaurant";
 import type { RestaurantMenuItem } from "@/entities/restaurant";
+import {
+  hotelServiceApi,
+  type HotelService,
+  type HotelServiceRequest,
+} from "@/entities/hotel-service";
 import { useTranslation } from "react-i18next";
 import { resolveImageUrl } from "@/shared/lib/utils/resolve-image-url";
 
@@ -65,6 +73,9 @@ export const GuestMenuPage = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"RESTAURANT" | "SERVICES">(
+    "RESTAURANT",
+  );
   const [ordersOpen, setOrdersOpen] = useState(false);
 
   const { data: menuData, isLoading: itemsLoading } = useQuery({
@@ -84,6 +95,15 @@ export const GuestMenuPage = () => {
     queryKey: ["public-categories"],
     queryFn: restaurantApi.getPublicCategories,
     refetchInterval: 300000, // Refresh categories every 5 minutes
+    enabled: activeTab === "RESTAURANT",
+  });
+
+  const { data: serviceCatalog = [], isLoading: servicesLoading } = useQuery<
+    HotelService[]
+  >({
+    queryKey: ["public-service-catalog"],
+    queryFn: hotelServiceApi.getPublicCatalog,
+    enabled: activeTab === "SERVICES",
   });
 
   // Order Tracking
@@ -91,8 +111,16 @@ export const GuestMenuPage = () => {
     queryKey: ["my-orders-status", roomId],
     queryFn: () => restaurantApi.getRoomOrders(roomId as string),
     enabled: !!roomId,
-    refetchInterval: 3000, // Poll every 3 seconds to mimic real-time
+    refetchInterval: 10000,
   });
+
+  const { data: myServiceRequests = [], refetch: refetchServiceRequests } =
+    useQuery<HotelServiceRequest[]>({
+      queryKey: ["my-service-requests", roomId],
+      queryFn: () => hotelServiceApi.getRoomRequests(roomId as string),
+      enabled: !!roomId,
+      refetchInterval: 10000,
+    });
 
   const createOrderMutation = useMutation({
     mutationFn: restaurantApi.createGuestOrder,
@@ -102,6 +130,23 @@ export const GuestMenuPage = () => {
       setCart([]);
       localStorage.removeItem(`guestCart_${roomId}`);
       setCartOpen(false);
+      setOrdersOpen(true);
+    },
+    onError: (err: any) => {
+      message.error(err.response?.data?.message || t("common:error"));
+    },
+  });
+
+  const createServiceRequestMutation = useMutation({
+    mutationFn: (serviceId: string) =>
+      hotelServiceApi.createPublicRequest({
+        serviceId,
+        roomId: roomId as string,
+        quantity: 1,
+      }),
+    onSuccess: () => {
+      message.success("Service request placed successfully");
+      refetchServiceRequests();
       setOrdersOpen(true);
     },
     onError: (err: any) => {
@@ -230,6 +275,34 @@ export const GuestMenuPage = () => {
             </Text>
           </div>
           <Space>
+            <div
+              style={{
+                display: "flex",
+                background: "#f0f0f0",
+                padding: "4px",
+                borderRadius: "12px",
+                marginRight: "8px",
+              }}
+            >
+              <Button
+                size="small"
+                type={activeTab === "RESTAURANT" ? "primary" : "text"}
+                icon={<CoffeeOutlined />}
+                onClick={() => setActiveTab("RESTAURANT")}
+                style={{ borderRadius: "8px" }}
+              >
+                Food
+              </Button>
+              <Button
+                size="small"
+                type={activeTab === "SERVICES" ? "primary" : "text"}
+                icon={<CustomerServiceOutlined />}
+                onClick={() => setActiveTab("SERVICES")}
+                style={{ borderRadius: "8px" }}
+              >
+                Hotel
+              </Button>
+            </div>
             <Button
               type="text"
               icon={<ClipboardList size={20} />}
@@ -248,7 +321,11 @@ export const GuestMenuPage = () => {
         {/* Search Bar */}
         <div style={{ marginTop: 12 }}>
           <Input
-            placeholder="Search our menu..."
+            placeholder={
+              activeTab === "RESTAURANT"
+                ? "Search our menu..."
+                : "Search hotel services..."
+            }
             prefix={<Search size={16} color="#bfbfbf" />}
             size="large"
             value={searchQuery}
@@ -259,145 +336,280 @@ export const GuestMenuPage = () => {
           />
         </div>
 
-        {/* Categories Scroll */}
-        <div
-          style={{
-            display: "flex",
-            overflowX: "auto",
-            padding: "12px 0 4px",
-            gap: 8,
-            scrollbarWidth: "none",
-          }}
-          className="no-scrollbar"
-        >
-          <Button
-            shape="round"
-            type={activeCategory === null ? "primary" : "default"}
-            onClick={() => setActiveCategory(null)}
+        {/* Categories Scroll (Restaurant Only) */}
+        {activeTab === "RESTAURANT" && (
+          <div
+            style={{
+              display: "flex",
+              overflowX: "auto",
+              padding: "12px 0 4px",
+              gap: 8,
+              scrollbarWidth: "none",
+            }}
+            className="no-scrollbar"
           >
-            All
-          </Button>
-          {categories.map((cat) => (
             <Button
-              key={cat.id}
               shape="round"
-              type={activeCategory === cat.id ? "primary" : "default"}
-              onClick={() => setActiveCategory(cat.id)}
+              type={activeCategory === null ? "primary" : "default"}
+              onClick={() => setActiveCategory(null)}
             >
-              {getLocalized(cat.name)}
+              All
             </Button>
-          ))}
-        </div>
+            {categories.map((cat: any) => (
+              <Button
+                key={cat.id}
+                shape="round"
+                type={activeCategory === cat.id ? "primary" : "default"}
+                onClick={() => setActiveCategory(cat.id)}
+              >
+                {getLocalized(cat.name)}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ padding: "16px" }}>
-        {itemsLoading ? (
-          <div style={{ textAlign: "center", padding: 40 }}>Loading...</div>
-        ) : filteredItems.length === 0 ? (
-          <Empty description="No items found" style={{ marginTop: 40 }} />
-        ) : (
-          <Row gutter={[16, 20]}>
-            {filteredItems.map((item) => (
-              <Col xs={24} key={item.id}>
-                <Card
-                  bodyStyle={{ padding: 12 }}
-                  style={{
-                    borderRadius: 20,
-                    border: "none",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
-                    overflow: "hidden",
-                  }}
-                  onClick={() => addToCart(item)}
-                >
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <div
+        {activeTab === "RESTAURANT" ? (
+          <>
+            {itemsLoading ? (
+              <div style={{ textAlign: "center", padding: 40 }}>Loading...</div>
+            ) : filteredItems.length === 0 ? (
+              <Empty description="No items found" style={{ marginTop: 40 }} />
+            ) : (
+              <Row gutter={[16, 20]}>
+                {filteredItems.map((item) => (
+                  <Col xs={24} key={item.id}>
+                    <Card
+                      bodyStyle={{ padding: 12 }}
                       style={{
-                        width: 100,
-                        height: 100,
-                        flexShrink: 0,
-                        borderRadius: 16,
+                        borderRadius: 20,
+                        border: "none",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
                         overflow: "hidden",
-                        background: "#fafafa",
                       }}
+                      onClick={() => addToCart(item)}
                     >
-                      {item.imageUrl ? (
-                        <img
-                          alt={getLocalized(item.name)}
-                          src={resolveImageUrl(item.imageUrl)}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
+                      <div style={{ display: "flex", gap: 16 }}>
                         <div
                           style={{
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Utensils size={32} color="#ddd" />
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div>
-                        <Title
-                          level={5}
-                          style={{ margin: "0 0 4px", fontSize: 16 }}
-                        >
-                          {getLocalized(item.name)}
-                        </Title>
-                        <Text
-                          type="secondary"
-                          style={{
-                            fontSize: 12,
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
+                            width: 100,
+                            height: 100,
+                            flexShrink: 0,
+                            borderRadius: 16,
                             overflow: "hidden",
+                            background: "#fafafa",
                           }}
                         >
-                          {getLocalized(item.description)}
-                        </Text>
+                          {item.imageUrl ? (
+                            <img
+                              alt={getLocalized(item.name)}
+                              src={resolveImageUrl(item.imageUrl)}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Utensils size={32} color="#ddd" />
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          style={{
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Title
+                              level={5}
+                              style={{ margin: "0 0 4px", fontSize: 16 }}
+                            >
+                              {getLocalized(item.name)}
+                            </Title>
+                            <Text
+                              type="secondary"
+                              style={{
+                                fontSize: 12,
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {getLocalized(item.description)}
+                            </Text>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              strong
+                              style={{ color: "#2d3436", fontSize: 16 }}
+                            >
+                              {new Intl.NumberFormat().format(item.price)}{" "}
+                              <span style={{ fontSize: 12, fontWeight: 400 }}>
+                                {t("common:currency")}
+                              </span>
+                            </Text>
+                            <Button
+                              type="primary"
+                              size="small"
+                              shape="circle"
+                              icon={<PlusOutlined />}
+                              style={{ background: "#2d3436", border: "none" }}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </>
+        ) : (
+          <>
+            {servicesLoading ? (
+              <div style={{ textAlign: "center", padding: 40 }}>Loading...</div>
+            ) : serviceCatalog.length === 0 ? (
+              <Empty
+                description="No hotel services available"
+                style={{ marginTop: 40 }}
+              />
+            ) : (
+              <Row gutter={[16, 20]}>
+                {serviceCatalog
+                  .filter(
+                    (s: any) =>
+                      !searchQuery ||
+                      s.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                  )
+                  .map((service: any) => (
+                    <Col xs={24} key={service.id}>
+                      <Card
+                        bodyStyle={{ padding: 12 }}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          borderRadius: 20,
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+                          overflow: "hidden",
                         }}
                       >
-                        <Text strong style={{ color: "#2d3436", fontSize: 16 }}>
-                          {new Intl.NumberFormat().format(item.price)}{" "}
-                          <span style={{ fontSize: 12, fontWeight: 400 }}>
-                            {t("common:currency")}
-                          </span>
-                        </Text>
-                        <Button
-                          type="primary"
-                          size="small"
-                          shape="circle"
-                          icon={<PlusOutlined />}
-                          style={{ background: "#2d3436", border: "none" }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                        <div style={{ display: "flex", gap: 16 }}>
+                          <div
+                            style={{
+                              width: 80,
+                              height: 80,
+                              flexShrink: 0,
+                              borderRadius: 16,
+                              overflow: "hidden",
+                              background: "#e3f2fd",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#1976d2",
+                            }}
+                          >
+                            <CustomerServiceOutlined style={{ fontSize: 32 }} />
+                          </div>
+                          <div
+                            style={{
+                              flex: 1,
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <Title
+                                  level={5}
+                                  style={{ margin: "0 0 4px", fontSize: 16 }}
+                                >
+                                  {service.name}
+                                </Title>
+                                <Tag color="blue" style={{ margin: 0 }}>
+                                  {service.category}
+                                </Tag>
+                              </div>
+                              <Text
+                                type="secondary"
+                                style={{ fontSize: 12, display: "block" }}
+                              >
+                                {service.description}
+                              </Text>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginTop: 8,
+                              }}
+                            >
+                              <Text
+                                strong
+                                style={{ color: "#2d3436", fontSize: 16 }}
+                              >
+                                {new Intl.NumberFormat().format(
+                                  service.basePrice,
+                                )}{" "}
+                                <span style={{ fontSize: 12, fontWeight: 400 }}>
+                                  {service.currency || t("common:currency")}
+                                </span>
+                              </Text>
+                              <Button
+                                type="primary"
+                                size="small"
+                                shape="round"
+                                onClick={() =>
+                                  createServiceRequestMutation.mutate(
+                                    service.id,
+                                  )
+                                }
+                                loading={
+                                  createServiceRequestMutation.isPending &&
+                                  createServiceRequestMutation.variables ===
+                                    service.id
+                                }
+                                style={{
+                                  background: "#2d3436",
+                                  border: "none",
+                                }}
+                              >
+                                Request
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  ))}
+              </Row>
+            )}
+          </>
         )}
       </div>
 
@@ -445,79 +657,147 @@ export const GuestMenuPage = () => {
           <Button
             type="text"
             icon={<ReloadOutlined style={{ fontSize: 14 }} />}
-            onClick={() => refetchOrders()}
+            onClick={() => {
+              refetchOrders();
+              refetchServiceRequests();
+            }}
           />
         }
       >
-        {myOrders.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="You haven't placed any orders yet."
-            style={{ marginTop: 40 }}
-          />
-        ) : (
-          <List
-            dataSource={myOrders}
-            renderItem={(order) => (
-              <Card
-                style={{ marginBottom: 16, borderRadius: 16 }}
-                bodyStyle={{ padding: 16 }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 12,
-                  }}
+        <div style={{ marginBottom: 24 }}>
+          <Title level={5}>
+            <Utensils size={18} style={{ marginRight: 8 }} /> Restaurant Orders
+          </Title>
+          <Divider style={{ margin: "12px 0" }} />
+          {myOrders.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="No restaurant orders found"
+            />
+          ) : (
+            <List
+              dataSource={myOrders}
+              renderItem={(order) => (
+                <Card
+                  style={{ marginBottom: 16, borderRadius: 16 }}
+                  bodyStyle={{ padding: 16 }}
                 >
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    ID: #{order.id.slice(-6).toUpperCase()}
-                  </Text>
-                  <Badge
-                    color={getStatusColor(order.status)}
-                    text={
-                      <span style={{ fontWeight: 600 }}>{order.status}</span>
-                    }
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      ID: #{order.id.slice(-6).toUpperCase()}
+                    </Text>
+                    <Badge
+                      color={getStatusColor(order.status)}
+                      text={
+                        <span style={{ fontWeight: 600 }}>{order.status}</span>
+                      }
+                    />
+                  </div>
+                  <List
+                    size="small"
+                    dataSource={order.items}
+                    renderItem={(it: any) => (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 13,
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text>
+                          {it.quantity}x {getLocalized(it.menuItem.name)}
+                        </Text>
+                      </div>
+                    )}
                   />
-                </div>
-                <List
-                  size="small"
-                  dataSource={order.items}
-                  renderItem={(it: any) => (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 13,
-                        marginBottom: 4,
-                      }}
-                    >
-                      <Text>
-                        {it.quantity}x {getLocalized(it.menuItem.name)}
-                      </Text>
-                    </div>
-                  )}
-                />
-                <Divider style={{ margin: "12px 0" }} />
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
+                  <Divider style={{ margin: "12px 0" }} />
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Text type="secondary">
+                      <Clock size={12} style={{ marginRight: 4 }} />
+                      {new Date(order.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                    <Text strong>
+                      {new Intl.NumberFormat().format(order.totalAmount)}{" "}
+                      {t("common:currency")}
+                    </Text>
+                  </div>
+                </Card>
+              )}
+            />
+          )}
+        </div>
+
+        <div>
+          <Title level={5}>
+            <CustomerServiceOutlined style={{ marginRight: 8 }} /> Hotel
+            Services
+          </Title>
+          <Divider style={{ margin: "12px 0" }} />
+          {myServiceRequests.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="No hotel service requests"
+            />
+          ) : (
+            <List
+              dataSource={myServiceRequests}
+              renderItem={(req: any) => (
+                <Card
+                  style={{ marginBottom: 16, borderRadius: 16 }}
+                  bodyStyle={{ padding: 16 }}
                 >
-                  <Text type="secondary">
-                    <Clock size={12} style={{ marginRight: 4 }} />
-                    {new Date(order.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                  <Text strong>
-                    {new Intl.NumberFormat().format(order.totalAmount)}{" "}
-                    {t("common:currency")}
-                  </Text>
-                </div>
-              </Card>
-            )}
-          />
-        )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Text strong>{req.service.name}</Text>
+                    <Tag
+                      color={
+                        req.status === "COMPLETED"
+                          ? "green"
+                          : req.status === "REQUESTED"
+                            ? "orange"
+                            : "blue"
+                      }
+                    >
+                      {req.status}
+                    </Tag>
+                  </div>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Text type="secondary">
+                      <Clock size={12} style={{ marginRight: 4 }} />
+                      {new Date(req.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                    <Text strong>
+                      {new Intl.NumberFormat().format(req.totalAmount)}{" "}
+                      {req.service.currency || t("common:currency")}
+                    </Text>
+                  </div>
+                </Card>
+              )}
+            />
+          )}
+        </div>
       </Drawer>
 
       <Drawer

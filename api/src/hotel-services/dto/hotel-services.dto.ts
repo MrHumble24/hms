@@ -72,7 +72,12 @@ export class CreateServiceRequestDto {
   serviceId: string;
 
   @IsUUID()
-  bookingId: string;
+  @IsOptional()
+  bookingId?: string;
+
+  @IsString()
+  @IsOptional()
+  roomId?: string;
 
   @IsNumber()
   @IsOptional()
