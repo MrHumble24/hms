@@ -1,9 +1,11 @@
-import { Tabs } from "antd";
+import { Tabs, Button, Popconfirm, Tooltip } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
 import { useTabStore } from "@/entities/navigation/model/tab-store";
 import { useNavigate } from "react-router-dom";
 
 export const TabBar = () => {
-  const { tabs, activeTabKey, setActiveTab, removeTab } = useTabStore();
+  const { tabs, activeTabKey, setActiveTab, removeTab, removeAllTabs } =
+    useTabStore();
   const navigate = useNavigate();
 
   const onChange = (key: string) => {
@@ -26,6 +28,11 @@ export const TabBar = () => {
         navigate(activeTab.path);
       }
     }
+  };
+
+  const handleCloseAll = () => {
+    removeAllTabs();
+    navigate("/");
   };
 
   return (
@@ -52,6 +59,36 @@ export const TabBar = () => {
         }))}
         style={{ marginBottom: -1 }}
         size="small"
+        tabBarExtraContent={
+          tabs.length > 1 ? (
+            <Tooltip title="Close All Tabs">
+              <Popconfirm
+                title="Are you sure you want to close all tabs?"
+                onConfirm={handleCloseAll}
+                placement="bottomRight"
+                okText="Close All"
+                okButtonProps={{ danger: true }}
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CloseOutlined style={{ fontSize: 12 }} />}
+                  style={{
+                    marginRight: 16,
+                    color: "#ff4d4f",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: 28,
+                    borderRadius: 4,
+                  }}
+                >
+                  Close All
+                </Button>
+              </Popconfirm>
+            </Tooltip>
+          ) : null
+        }
       />
     </div>
   );

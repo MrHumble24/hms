@@ -15,6 +15,7 @@ interface TabStore {
   addTab: (tab: AppTab) => void;
   removeTab: (targetKey: string) => void;
   setActiveTab: (key: string) => void;
+  removeAllTabs: () => void;
 }
 
 export const useTabStore = create<TabStore>()(
@@ -51,6 +52,19 @@ export const useTabStore = create<TabStore>()(
         set({ tabs: newTabs, activeTabKey: newActiveKey });
       },
       setActiveTab: (key) => set({ activeTabKey: key }),
+      removeAllTabs: () => {
+        set({
+          tabs: [
+            {
+              key: "dashboard",
+              label: "Dashboard",
+              path: "/",
+              closable: false,
+            },
+          ],
+          activeTabKey: "dashboard",
+        });
+      },
     }),
     {
       name: "hms-tabs-storage",
