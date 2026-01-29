@@ -20,7 +20,9 @@ export class CompaniesService {
   private getContext() {
     const context = getTenantContext();
     if (!context?.tenantId || !context?.branchId) {
-      throw new BadRequestException('Tenant and Branch context are required');
+      throw new BadRequestException(
+        'Tenant and Branch context are required!!!',
+      );
     }
     return context;
   }
