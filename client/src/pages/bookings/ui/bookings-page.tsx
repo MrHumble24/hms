@@ -41,6 +41,7 @@ import { CheckoutModal } from "@/widgets/bookings/ui/checkout-modal";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import { usePaginationSearchParams } from "@/shared/hooks/use-pagination-search-params";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -73,6 +74,7 @@ export const BookingsPage = () => {
   const { t } = useTranslation(["bookings", "common"]);
   const screens = Grid.useBreakpoint();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [checkoutBooking, setCheckoutBooking] = useState<Booking | null>(null);
@@ -399,7 +401,7 @@ export const BookingsPage = () => {
         <Space>
           <Button
             icon={<CalendarOutlined />}
-            onClick={() => (window.location.href = "/bookings/timeline")}
+            onClick={() => navigate("/bookings/timeline")}
           >
             Tape Chart
           </Button>

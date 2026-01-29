@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Drawer,
   Form,
@@ -36,16 +37,30 @@ const { RangePicker } = DatePicker;
 interface CreateBookingDrawerProps {
   open: boolean;
   onClose: () => void;
+  initialValues?: {
+    roomId?: string;
+    dates?: [dayjs.Dayjs, dayjs.Dayjs];
+  };
 }
 
 export const CreateBookingDrawer = ({
   open,
   onClose,
+  initialValues,
 }: CreateBookingDrawerProps) => {
   const { t } = useTranslation(["bookings", "common"]); // Assuming 'bookings' namespace exists or will default
   const screens = Grid.useBreakpoint();
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+
+  // Handle initial values when drawer opens
+  useEffect(() => {
+    if (open && initialValues) {
+      form.setFieldsValue(initialValues);
+    } else if (open) {
+      form.resetFields();
+    }
+  }, [open, initialValues, form]);
 
   // Fetch Data
   const { data: guests = [], isLoading: isLoadingGuests } = useQuery({
@@ -193,7 +208,8 @@ export const CreateBookingDrawer = ({
           >
             <RangePicker
               style={{ width: "100%" }}
-              format="YYYY-MM-DD"
+              format="YYYY-MM-DD HH:mm"
+              showTime
               disabledDate={(current) =>
                 current && current < dayjs().startOf("day")
               }

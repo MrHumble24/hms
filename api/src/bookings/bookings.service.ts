@@ -553,6 +553,9 @@ export class BookingsService {
             booking: {
               include: {
                 primaryGuest: true,
+                folios: {
+                  take: 1,
+                },
               },
             },
           },
