@@ -24,10 +24,10 @@ export class GuestsService {
   }
 
   async create(createGuestDto: CreateGuestDto) {
-    const { tenantId } = this.getContext();
+    const { tenantId, branchId } = this.getContext();
     const { passportSeries, passportNumber } = createGuestDto;
 
-    // Check for duplicate passport within this tenant
+    // Check for duplicate passport within this tenant/branch
     const existingGuest = await this.prisma.guest.findUnique({
       where: {
         tenantId_passportSeries_passportNumber: {
@@ -46,6 +46,7 @@ export class GuestsService {
       data: {
         ...createGuestDto,
         tenantId,
+        branchId,
         dateOfBirth: new Date(createGuestDto.dateOfBirth),
         dateOfEntry: createGuestDto.dateOfEntry
           ? new Date(createGuestDto.dateOfEntry)
@@ -66,16 +67,13 @@ export class GuestsService {
     search?: string;
     branchId?: string;
   }) {
-    const { tenantId } = this.getContext();
-    const where: any = { tenantId };
+    const { tenantId, branchId: contextBranchId } = this.getContext();
 
-    // Optionally filter by guests who have activity in a specific branch
-    if (params.branchId) {
-      where.OR = [
-        { primaryBookings: { some: { branchId: params.branchId } } },
-        { roomStays: { some: { booking: { branchId: params.branchId } } } },
-      ];
-    }
+    // Primary isolation: Filter by branch from context
+    const where: any = {
+      tenantId,
+      branchId: contextBranchId,
+    };
 
     if (params.search) {
       where.OR = [
@@ -102,9 +100,16 @@ export class GuestsService {
   }
 
   async findOne(id: string) {
-    const { tenantId } = this.getContext();
-    const guest = await this.prisma.guest.findUnique({
-      where: { id, tenantId },
+    const { tenantId, branchId } = this.getContext();
+    const guest = await this.prisma.guest.findFirst({
+      where: { id, tenantId, branchId },
+      include: {
+        primaryBookings: {
+          include: {
+            roomStays: { include: { room: true } },
+          },
+        },
+      },
     });
     if (!guest) throw new NotFoundException('Guest not found');
     return guest;
