@@ -52,12 +52,10 @@ export class TelegramService implements OnModuleInit {
   }
 
   private initializeBot() {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.BOT_TOKEN;
 
     if (!token) {
-      this.logger.warn(
-        'TELEGRAM_BOT_TOKEN is not defined. Telegram Bot is disabled.',
-      );
+      this.logger.warn('BOT_TOKEN is not defined. Telegram Bot is disabled.');
       return;
     }
 
