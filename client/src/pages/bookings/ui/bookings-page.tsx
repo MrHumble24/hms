@@ -396,7 +396,9 @@ export const BookingsPage = () => {
           <Title level={2} style={{ margin: 0 }}>
             {t("bookings:title", "Bookings")}
           </Title>
-          <Text type="secondary">Manage your reservations and occupancy</Text>
+          <Text type="secondary">
+            Manage your reservations and occupancy!!!
+          </Text>
         </div>
         <Space>
           <Button
