@@ -145,6 +145,9 @@ export class TelegramService implements OnModuleInit {
         for (const hotel of hotels.slice(0, 5)) {
           const stars = hotel.starRating ? '⭐'.repeat(hotel.starRating) : '';
           const featured = hotel.isFeatured ? '🌟 *FEATURED*\n' : '';
+          const tenantName = hotel.tenant?.name
+            ? `🏢 ${hotel.tenant.name}\n`
+            : '';
           const distance = `📍 ${hotel.distance.toFixed(1)} km away`;
           const address = hotel.address ? `\n📮 ${hotel.address}` : '';
           const price = hotel.startingPrice
@@ -154,6 +157,7 @@ export class TelegramService implements OnModuleInit {
           const caption =
             `${featured}` +
             `🏨 *${hotel.name}* ${stars}\n` +
+            `${tenantName}` +
             `${distance}${address}${price}`;
 
           const bookButton = {
