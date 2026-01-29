@@ -75,11 +75,37 @@ export class TelegramService implements OnModuleInit {
 
       await this.bot.sendMessage(
         chatId,
-        `🏨 *Welcome to HMS!*\n\nI'll help you book a hotel in seconds.\n\n📍 Share your location to find nearby hotels.`,
+        `🏨 *Welcome to HMS Hotel Booking!*\n\n` +
+          `I'll help you find and book hotels in seconds.\n\n` +
+          `👇 *Tap "Share Location"* to discover nearby hotels.`,
         {
           parse_mode: 'Markdown',
           reply_markup: {
-            keyboard: [[{ text: '📍 Share Location', request_location: true }]],
+            keyboard: [
+              [{ text: '📍 Share Location', request_location: true }],
+              [{ text: '🏠 Start Over' }],
+            ],
+            resize_keyboard: true,
+          },
+        },
+      );
+    });
+
+    // Handle "Start Over" button
+    this.bot.onText(/🏠 Start Over/, async (msg) => {
+      const chatId = msg.chat.id;
+      this.resetSession(chatId);
+
+      await this.bot.sendMessage(
+        chatId,
+        `🏨 *Ready to book!*\n\n📍 Share your location to find nearby hotels.`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            keyboard: [
+              [{ text: '📍 Share Location', request_location: true }],
+              [{ text: '🏠 Start Over' }],
+            ],
             resize_keyboard: true,
           },
         },
