@@ -533,4 +533,34 @@ export class BookingsService {
       };
     });
   }
+
+  async getTimeline(dateFrom: string, dateTo: string) {
+    const { branchId, tenantId } = this.getContext();
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+
+    // Fetch all rooms in the branch
+    const rooms = await this.prisma.room.findMany({
+      where: { branchId, tenantId },
+      include: {
+        type: true,
+        roomStays: {
+          where: {
+            status: { not: RoomStayStatus.CANCELLED },
+            AND: [{ startDate: { lt: end } }, { endDate: { gt: start } }],
+          },
+          include: {
+            booking: {
+              include: {
+                primaryGuest: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { number: 'asc' },
+    });
+
+    return rooms;
+  }
 }

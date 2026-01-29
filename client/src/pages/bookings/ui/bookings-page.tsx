@@ -27,6 +27,7 @@ import {
   KeyOutlined,
   ClearOutlined,
   ApartmentOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -395,15 +396,23 @@ export const BookingsPage = () => {
           </Title>
           <Text type="secondary">Manage your reservations and occupancy</Text>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={() => setIsDrawerOpen(true)}
-          style={{ width: screens.md ? "auto" : "100%" }}
-        >
-          {t("bookings:newReservation", "New Reservation")}
-        </Button>
+        <Space>
+          <Button
+            icon={<CalendarOutlined />}
+            onClick={() => (window.location.href = "/bookings/timeline")}
+          >
+            Tape Chart
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={() => setIsDrawerOpen(true)}
+            style={{ width: screens.md ? "auto" : "100%" }}
+          >
+            {t("bookings:newReservation", "New Reservation")}
+          </Button>
+        </Space>
       </div>
 
       <Card>

@@ -13,6 +13,7 @@ import { HousekeepingPage } from "@/pages/housekeeping/ui/housekeeping-page";
 import { FolioMainPage } from "@/pages/finance/ui/folio-page";
 import { FolioManagerPage } from "@/pages/finance/ui/manager-overview";
 import { BookingsPage } from "@/pages/bookings";
+import { TimelinePage } from "@/pages/bookings/ui/timeline-page";
 import { AdminLayout } from "@/app/layouts/admin-layout";
 import { StaffPage } from "@/pages/staff/ui/staff-page";
 import { SettingsPage } from "@/pages/settings/ui/settings-page";
@@ -71,6 +72,14 @@ export const router = createBrowserRouter([
             element: (
               <RoleGuard permission="bookings">
                 <BookingsPage />
+              </RoleGuard>
+            ),
+          },
+          {
+            path: "/bookings/timeline",
+            element: (
+              <RoleGuard permission="bookings">
+                <TimelinePage />
               </RoleGuard>
             ),
           },
