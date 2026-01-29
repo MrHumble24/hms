@@ -26,6 +26,7 @@ import {
   CheckCircleOutlined,
   KeyOutlined,
   ClearOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -204,6 +205,15 @@ export const BookingsPage = () => {
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.primaryGuest?.phone}
           </Text>
+          {record.company && (
+            <Tag
+              icon={<ApartmentOutlined />}
+              color="orange"
+              style={{ marginTop: 4, borderRadius: 4 }}
+            >
+              {record.company.name}
+            </Tag>
+          )}
         </Space>
       ),
     },
@@ -609,6 +619,17 @@ export const BookingsPage = () => {
                       <Text type="secondary" style={{ fontSize: 13 }}>
                         {item.primaryGuest?.phone}
                       </Text>
+                      {item.company && (
+                        <div style={{ marginTop: 4 }}>
+                          <Tag
+                            icon={<ApartmentOutlined />}
+                            color="orange"
+                            style={{ margin: 0, borderRadius: 4 }}
+                          >
+                            {item.company.name}
+                          </Tag>
+                        </div>
+                      )}
                     </div>
                     <Space direction="vertical" size={4} align="end">
                       <Tag

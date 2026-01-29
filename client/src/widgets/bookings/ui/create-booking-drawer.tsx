@@ -24,10 +24,13 @@ import {
   UserOutlined,
   HomeOutlined,
   CalendarOutlined,
+  BankOutlined,
+  PercentageOutlined,
 } from "@ant-design/icons";
+import { companiesApi } from "@/entities/companies/api/companies-api";
 import dayjs from "dayjs";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 interface CreateBookingDrawerProps {
@@ -55,6 +58,22 @@ export const CreateBookingDrawer = ({
     queryFn: () => roomApi.getAllRooms().then((res) => res.data), // Note: This gets all rooms, ideally we filter by availability in backend
   });
 
+  const { data: companies = [], isLoading: isLoadingCompanies } = useQuery({
+    queryKey: ["companies"],
+    queryFn: () => companiesApi.findAll(),
+  });
+
+  const selectedCompanyId = Form.useWatch("companyId", form);
+  const selectedCompany = companies.find(
+    (c: any) => c.id === selectedCompanyId,
+  );
+  const activeContract = selectedCompany?.contracts?.find(
+    (con: any) =>
+      con.isActive &&
+      dayjs(con.startDate).isBefore(dayjs()) &&
+      (!con.endDate || dayjs(con.endDate).isAfter(dayjs())),
+  );
+
   const createMutation = useMutation({
     mutationFn: (data: CreateBookingDto) => bookingApi.create(data),
     onSuccess: () => {
@@ -80,6 +99,7 @@ export const CreateBookingDrawer = ({
       checkOut: end.toISOString(),
       primaryGuestId: values.guestId,
       source: values.source,
+      companyId: values.companyId,
       roomStays: [
         {
           roomId: values.roomId,
@@ -103,6 +123,11 @@ export const CreateBookingDrawer = ({
     label: `${r.number} - ${r.type?.name} ($${r.type?.basePrice?.toLocaleString()})`,
     value: r.id,
     status: r.status, // We can disable if dirty/occupied technically, but business logic might allow override
+  }));
+
+  const companyOptions = companies.map((c: any) => ({
+    label: c.name,
+    value: c.id,
   }));
 
   return (
@@ -229,6 +254,54 @@ export const CreateBookingDrawer = ({
               }))}
             />
           </Form.Item>
+        </div>
+
+        {/* Section 4: Corporate Link */}
+        <div style={{ marginBottom: 24 }}>
+          <Title level={5}>
+            <BankOutlined />{" "}
+            {t("bookings:corporateLink", "Corporate & Business")}
+          </Title>
+          <Divider style={{ margin: "12px 0" }} />
+
+          <Form.Item
+            name="companyId"
+            label={t("bookings:selectCompany", "Associate with Company")}
+          >
+            <Select
+              showSearch
+              placeholder="Search by company name"
+              optionFilterProp="label"
+              options={companyOptions}
+              loading={isLoadingCompanies}
+              allowClear
+            />
+          </Form.Item>
+
+          {activeContract && (
+            <div
+              style={{
+                background: "#f6ffed",
+                border: "1px solid #b7eb8f",
+                padding: "12px",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <PercentageOutlined style={{ color: "#52c41a", fontSize: 20 }} />
+              <div>
+                <Text strong style={{ color: "#389e0d" }}>
+                  Active Corporate Discount Found!
+                </Text>
+                <div style={{ fontSize: 12 }}>
+                  A <b>{activeContract.discountPercent}%</b> discount will be
+                  applied to this booking automatically.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Form>
     </Drawer>

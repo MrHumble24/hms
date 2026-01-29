@@ -64,6 +64,23 @@ export class BookingsService {
         },
       });
 
+      // 1.1 Check for active corporate discount
+      let companyDiscount = 0;
+      if (companyId) {
+        const activeContract = await tx.discountContract.findFirst({
+          where: {
+            companyId,
+            isActive: true,
+            startDate: { lte: new Date() },
+            OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (activeContract) {
+          companyDiscount = activeContract.discountPercent;
+        }
+      }
+
       // 2. Create Room Stays (Line Items)
       if (roomStays && roomStays.length > 0) {
         for (const stay of roomStays) {
@@ -95,6 +112,13 @@ export class BookingsService {
               include: { type: true },
             });
             dailyRate = Number(room?.type.basePrice || 0);
+          }
+
+          // Apply corporate discount if any
+          if (companyDiscount > 0) {
+            dailyRate = dailyRate * (1 - companyDiscount / 100);
+            // Round to 2 decimal places to be safe with Decimal type
+            dailyRate = Math.round(dailyRate * 100) / 100;
           }
 
           await tx.roomStay.create({
@@ -194,6 +218,11 @@ export class BookingsService {
             },
           },
         },
+        {
+          company: {
+            name: { contains: params.search, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
@@ -204,6 +233,7 @@ export class BookingsService {
         take: params.take || 10,
         include: {
           primaryGuest: true,
+          company: true,
           roomStays: {
             include: {
               room: {

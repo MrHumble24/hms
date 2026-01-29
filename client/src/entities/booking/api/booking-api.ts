@@ -53,6 +53,7 @@ export interface Booking {
   source: BookingSource;
   ratePlanId?: string;
   companyId?: string;
+  company?: any;
   totalPrice?: number;
   createdAt: string;
   updatedAt: string;
