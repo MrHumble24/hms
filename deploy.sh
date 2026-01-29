@@ -6,9 +6,10 @@ set -e
 echo "🚀 Starting deployment..."
 
 # Update the repository
-echo "📥 Fetching and forcing sync with the latest code..."
-git fetch --all
-git reset --hard origin/main
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "📥 Fetching and forcing sync with origin/$CURRENT_BRANCH..."
+git fetch origin
+git reset --hard "origin/$CURRENT_BRANCH"
 
 # Build the API
 echo "🔌 Building API & Running Migrations..."
