@@ -23,6 +23,7 @@ import { BackupModule } from './backup/backup.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { UploadModule } from './upload/upload.module.js';
 import { HotelServicesModule } from './hotel-services/hotel-services.module.js';
+import { TelegramModule } from './telegram/telegram.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 
@@ -49,6 +50,7 @@ import * as path from 'path';
     AiModule,
     UploadModule,
     HotelServicesModule,
+    TelegramModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
@@ -71,6 +73,7 @@ export class AppModule implements NestModule {
         'admin/(.*)',
         'uploads/(.*)',
         'uploads',
+        'public/(.*)',
       )
       .forRoutes('*');
   }

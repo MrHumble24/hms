@@ -594,6 +594,7 @@ enum BookingSource {
   BOOKING_COM
   EXPEDIA
   WEBSITE
+  TELEGRAM
 }
 
 // =========================================================
