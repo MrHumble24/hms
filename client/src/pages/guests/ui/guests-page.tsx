@@ -20,9 +20,13 @@ import {
   EditOutlined,
   DeleteOutlined,
   ReloadOutlined,
+  SwapOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { guestApi, type Guest } from "@/entities/guest/api/guest-api";
+import { useAuthStore } from "@/entities/user/model/auth-store";
+import { useTenantStore } from "@/entities/tenant/model/tenant-store";
 import { GuestForm } from "@/widgets/guest-form/ui/guest-form";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
@@ -34,6 +38,8 @@ export const GuestsPage = () => {
   const { t } = useTranslation(["guests", "common"]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  useAuthStore();
+  const { activeBranchId } = useTenantStore();
   const screens = Grid.useBreakpoint();
   const isMobile = screens.md === false;
 
@@ -49,12 +55,13 @@ export const GuestsPage = () => {
   const guests = data?.data || [];
   const total = data?.total || 0;
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => guestApi.remove(id),
+  const pullMutation = useMutation({
+    mutationFn: (id: string) => guestApi.pullToBranch(id),
     onSuccess: () => {
-      message.success(t("guests:deleteSuccess"));
+      message.success("Guest record restored to this branch!");
       queryClient.invalidateQueries({ queryKey: ["guests"] });
     },
+    onError: () => message.error("Failed to restore record."),
   });
 
   // Client-side filtering removed in favor of server-side
@@ -100,43 +107,83 @@ export const GuestsPage = () => {
       ),
     },
     {
-      title: t("guests:gender"),
-      dataIndex: "gender",
-      key: "gender",
-      render: (gender: string) => (
-        <Tag color={gender === "MALE" ? "blue" : "magenta"}>
-          {t(`guests:${gender.toLowerCase()}`)}
-        </Tag>
-      ),
-    },
-    {
       title: t("guests:dateOfBirth"),
       dataIndex: "dateOfBirth",
       key: "dob",
       render: (val: string) => dayjs(val).format("DD.MM.YYYY"),
     },
+    {
+      title: "Branch",
+      key: "branch",
+      render: (record: any) => {
+        const isCurrentBranch = record.branchId === activeBranchId;
+        return (
+          <Space direction="vertical" size={0}>
+            <Text style={{ fontSize: 13 }}>
+              {isCurrentBranch ? (
+                <Tag icon={<HomeOutlined />} color="green">
+                  {record.branch?.name || "Local"}
+                </Tag>
+              ) : (
+                <Tag color="orange">{record.branch?.name || "Other"}</Tag>
+              )}
+            </Text>
+          </Space>
+        );
+      },
+    },
   ];
 
-  const renderActions = (record: Guest) => (
-    <Space size="middle">
-      <Button
-        type="text"
-        icon={<EditOutlined />}
-        onClick={() => {
-          setSelectedGuest(record);
-          setIsFormOpen(true);
-        }}
-      />
-      <Popconfirm
-        title={t("guests:deleteConfirm")}
-        onConfirm={() => deleteMutation.mutate(record.id)}
-        okText={t("common:yes")}
-        cancelText={t("common:no")}
-      >
-        <Button type="text" danger icon={<DeleteOutlined />} />
-      </Popconfirm>
-    </Space>
-  );
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => guestApi.remove(id),
+    onSuccess: () => {
+      message.success(t("guests:deleteSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["guests"] });
+    },
+  });
+
+  const renderActions = (record: any) => {
+    const isCurrentBranch = record.branchId === activeBranchId;
+
+    return (
+      <Space size="middle">
+        {!isCurrentBranch && (
+          <Popconfirm
+            title="This guest is in another branch. Restore to current branch?"
+            onConfirm={() => pullMutation.mutate(record.id)}
+            okText="Restore"
+          >
+            <Button
+              type="primary"
+              ghost
+              size="small"
+              icon={<SwapOutlined />}
+              title="Pull to current branch"
+              loading={pullMutation.isPending}
+            >
+              Adopt
+            </Button>
+          </Popconfirm>
+        )}
+        <Button
+          type="text"
+          icon={<EditOutlined />}
+          onClick={() => {
+            setSelectedGuest(record);
+            setIsFormOpen(true);
+          }}
+        />
+        <Popconfirm
+          title={t("guests:deleteConfirm")}
+          onConfirm={() => deleteMutation.mutate(record.id)}
+          okText={t("common:yes")}
+          cancelText={t("common:no")}
+        >
+          <Button type="text" danger icon={<DeleteOutlined />} />
+        </Popconfirm>
+      </Space>
+    );
+  };
 
   const updatedColumns = [
     ...columns.slice(0, -1),

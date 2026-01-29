@@ -69,12 +69,11 @@ export class GuestsService {
   }) {
     const { tenantId, branchId: contextBranchId } = this.getContext();
 
-    // Primary isolation: Filter by branch from context
-    const where: any = {
-      tenantId,
-      branchId: contextBranchId,
-    };
+    const where: any = { tenantId };
 
+    // If there's a search term, allow searching across all branches for this tenant
+    // so receptionists can find existing profiles.
+    // Otherwise, strictly isolate to the current branch.
     if (params.search) {
       where.OR = [
         { firstName: { contains: params.search, mode: 'insensitive' } },
@@ -84,6 +83,8 @@ export class GuestsService {
         { phone: { contains: params.search, mode: 'insensitive' } },
         { email: { contains: params.search, mode: 'insensitive' } },
       ];
+    } else {
+      where.branchId = contextBranchId;
     }
 
     const [data, total] = await Promise.all([
@@ -92,6 +93,7 @@ export class GuestsService {
         skip: params.skip || 0,
         take: params.take || 10,
         orderBy: { createdAt: 'desc' },
+        include: { branch: true },
       }),
       this.prisma.guest.count({ where }),
     ]);
