@@ -1,18 +1,23 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { DatePicker, message } from "antd";
-import { EnvironmentOutlined, ClockCircleOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
-import { useTelegram } from "@/shared/hooks/use-telegram";
 import {
   publicBookingApi,
+  type AvailabilityResponse,
   type NearbyHotel,
   type RoomTypeAvailability,
-  type AvailabilityResponse,
 } from "@/shared/api/public-booking-api";
+import { useTelegram } from "@/shared/hooks/use-telegram";
+import {
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  SearchOutlined,
+  StarFilled,
+} from "@ant-design/icons";
+import { DatePicker, message, Spin } from "antd";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./telegram-app.css";
 
-type Step = "hotel" | "dates" | "rooms" | "guest" | "confirm" | "success";
+type Step = "discover" | "dates" | "rooms" | "guest" | "confirm" | "success";
 
 interface GuestInfo {
   firstName: string;
@@ -28,12 +33,19 @@ interface GuestInfo {
 
 export const TelegramBookingPage = () => {
   const [searchParams] = useSearchParams();
-  const { haptic, showBackButton, hideBackButton, user, getStartParam } =
-    useTelegram();
+  const {
+    haptic,
+    showBackButton,
+    hideBackButton,
+    user,
+    getStartParam,
+    requestLocation,
+  } = useTelegram();
 
   // State
-  const [step, setStep] = useState<Step>("hotel");
+  const [step, setStep] = useState<Step>("discover");
   const [loading, setLoading] = useState(false);
+  const [hotels, setHotels] = useState<NearbyHotel[]>([]);
   const [hotel, setHotel] = useState<NearbyHotel | null>(null);
   const [checkIn, setCheckIn] = useState<dayjs.Dayjs | null>(null);
   const [checkOut, setCheckOut] = useState<dayjs.Dayjs | null>(null);
@@ -55,20 +67,31 @@ export const TelegramBookingPage = () => {
     gender: "",
   });
   const [bookingResult, setBookingResult] = useState<any>(null);
+  const [locationRequested, setLocationRequested] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Get hotel ID from URL or Telegram start_param
   const hotelId = searchParams.get("hotel") || getStartParam();
+  const urlLat = searchParams.get("lat");
+  const urlLng = searchParams.get("lng");
 
-  // Load hotel details
+  // Load hotel details if ID provided
   useEffect(() => {
     if (hotelId) {
       loadHotel(hotelId);
+    } else if (urlLat && urlLng) {
+      // If coordinates provided, search nearby
+      loadNearbyHotels(parseFloat(urlLat), parseFloat(urlLng));
     }
-  }, [hotelId]);
+  }, [hotelId, urlLat, urlLng]);
 
   // Back button handling
   useEffect(() => {
-    if (step !== "hotel" && step !== "success") {
+    if (step !== "discover" && step !== "success") {
       showBackButton(() => goBack());
     } else {
       hideBackButton();
@@ -86,6 +109,43 @@ export const TelegramBookingPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadNearbyHotels = async (lat: number, lng: number) => {
+    setLoading(true);
+    setLocationError(null);
+    setUserLocation({ lat, lng });
+    try {
+      const data = await publicBookingApi.findNearbyHotels(lat, lng);
+      setHotels(data);
+    } catch (err) {
+      message.error("Failed to find nearby hotels");
+    } finally {
+      setLoading(false);
+      setLocationRequested(false);
+    }
+  };
+
+  const handleRequestLocation = () => {
+    setLocationRequested(true);
+    setLocationError(null);
+    haptic("medium");
+
+    requestLocation(
+      (lat, lng) => {
+        loadNearbyHotels(lat, lng);
+      },
+      (error) => {
+        setLocationError(error);
+        setLocationRequested(false);
+      },
+    );
+  };
+
+  const selectHotel = (selectedHotel: NearbyHotel) => {
+    haptic("selection");
+    setHotel(selectedHotel);
+    setStep("dates");
   };
 
   const checkRoomAvailability = async () => {
@@ -122,7 +182,6 @@ export const TelegramBookingPage = () => {
   };
 
   const handleConfirm = () => {
-    // Validate guest info
     const required: (keyof GuestInfo)[] = [
       "firstName",
       "lastName",
@@ -184,40 +243,30 @@ export const TelegramBookingPage = () => {
 
   const goBack = () => {
     haptic("light");
-    const steps: Step[] = ["hotel", "dates", "rooms", "guest", "confirm"];
-    const currentIndex = steps.indexOf(step);
-    if (currentIndex > 0) {
-      setStep(steps[currentIndex - 1]);
+    if (step === "dates" && hotels.length > 0) {
+      setHotel(null);
+      setStep("discover");
+    } else {
+      const steps: Step[] = ["discover", "dates", "rooms", "guest", "confirm"];
+      const currentIndex = steps.indexOf(step);
+      if (currentIndex > 0) {
+        setStep(steps[currentIndex - 1]);
+      }
     }
   };
 
   const nights = checkIn && checkOut ? checkOut.diff(checkIn, "day") : 0;
   const totalPrice = selectedRoom ? Number(selectedRoom.basePrice) * nights : 0;
 
+  // ==================== RENDER ====================
+
   // Loading state
-  if (loading && !hotel) {
+  if (loading && !hotel && hotels.length === 0) {
     return (
       <div className="tg-app">
         <div className="tg-loading">
           <div className="tg-spinner" />
-          <p>Loading hotel details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // No hotel selected
-  if (!hotel && !loading) {
-    return (
-      <div className="tg-app">
-        <div className="tg-header">
-          <div className="tg-header-content">
-            <h1 className="tg-header-title">🏨 HMS Booking</h1>
-            <p className="tg-header-subtitle">Find your perfect stay</p>
-          </div>
-        </div>
-        <div className="tg-loading">
-          <p>Please select a hotel from the bot to continue.</p>
+          <p>Searching for hotels...</p>
         </div>
       </div>
     );
@@ -225,14 +274,168 @@ export const TelegramBookingPage = () => {
 
   return (
     <div className="tg-app">
+      {/* Step: Discover Hotels */}
+      {step === "discover" && !hotel && (
+        <>
+          <div className="tg-header">
+            <div className="tg-header-content">
+              <h1 className="tg-header-title">🏨 HMS Booking</h1>
+              <p className="tg-header-subtitle">Find your perfect stay</p>
+            </div>
+          </div>
+
+          {hotels.length === 0 ? (
+            <div className="tg-section" style={{ paddingTop: 40 }}>
+              <div style={{ textAlign: "center", marginBottom: 32 }}>
+                <div style={{ fontSize: 64, marginBottom: 16 }}>📍</div>
+                <h2
+                  style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}
+                >
+                  Find Hotels Near You
+                </h2>
+                <p style={{ color: "#666", fontSize: 14, margin: "0 0 24px" }}>
+                  Share your location to discover the best hotels nearby
+                </p>
+              </div>
+
+              <button
+                className="tg-button"
+                onClick={handleRequestLocation}
+                disabled={locationRequested && !userLocation}
+              >
+                {locationRequested && !userLocation ? (
+                  <>
+                    <Spin size="small" style={{ marginRight: 8 }} />
+                    Getting Location...
+                  </>
+                ) : (
+                  <>
+                    <EnvironmentOutlined /> Share My Location
+                  </>
+                )}
+              </button>
+
+              {locationError && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginTop: 16,
+                    color: "#ff4d4f",
+                    fontSize: 13,
+                  }}
+                >
+                  {locationError}
+                </div>
+              )}
+
+              <div style={{ textAlign: "center", marginTop: 24 }}>
+                <p style={{ color: "#999", fontSize: 12 }}>
+                  Or select a hotel from the bot menu
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="tg-section">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 16,
+                }}
+              >
+                <SearchOutlined style={{ color: "#1677ff" }} />
+                <span style={{ fontSize: 14, color: "#666" }}>
+                  Found {hotels.length} hotels near you
+                </span>
+              </div>
+
+              {hotels.map((h) => (
+                <div
+                  key={h.id}
+                  className="tg-card"
+                  onClick={() => selectHotel(h)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {h.logoUrl && (
+                    <img
+                      src={h.logoUrl}
+                      alt={h.name}
+                      className="tg-card-image"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  )}
+                  <div className="tg-card-body">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div>
+                        <h3 className="tg-card-title">
+                          {h.isFeatured && (
+                            <StarFilled
+                              style={{ color: "#ffc107", marginRight: 6 }}
+                            />
+                          )}
+                          {h.name}
+                        </h3>
+                        <p className="tg-card-subtitle">
+                          <EnvironmentOutlined />{" "}
+                          {h.address || "Address available at hotel"}
+                        </p>
+                      </div>
+                      {h.starRating && (
+                        <span className="tg-badge tg-badge-promoted">
+                          ⭐ {h.starRating}
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        marginTop: 12,
+                      }}
+                    >
+                      <span className="tg-badge tg-badge-distance">
+                        📏 {h.distance.toFixed(1)} km
+                      </span>
+                      {h.startingPrice && (
+                        <span className="tg-badge tg-badge-price">
+                          💰 From {h.currency} {h.startingPrice}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {/* Step: Date Selection */}
       {step === "dates" && hotel && (
         <>
           <div className="tg-gallery">
             <img
-              src={hotel.logoUrl || "/placeholder-hotel.jpg"}
+              src={
+                hotel.logoUrl ||
+                "https://via.placeholder.com/400x280?text=Hotel"
+              }
               alt={hotel.name}
               className="tg-gallery-image"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "https://via.placeholder.com/400x280?text=Hotel";
+              }}
             />
             <div className="tg-gallery-overlay">
               <h1 className="tg-gallery-title">

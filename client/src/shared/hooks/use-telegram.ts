@@ -85,6 +85,30 @@ export interface TelegramWebApp {
   sendData: (data: string) => void;
   setHeaderColor: (color: string) => void;
   setBackgroundColor: (color: string) => void;
+  // Location Manager (Telegram Bot API 6.9+)
+  LocationManager?: {
+    isInited: boolean;
+    isLocationAvailable: boolean;
+    isAccessRequested: boolean;
+    isAccessGranted: boolean;
+    init: (callback?: () => void) => void;
+    getLocation: (
+      callback: (
+        location: {
+          latitude: number;
+          longitude: number;
+          altitude?: number;
+          course?: number;
+          speed?: number;
+          horizontal_accuracy?: number;
+          vertical_accuracy?: number;
+          course_accuracy?: number;
+          speed_accuracy?: number;
+        } | null,
+      ) => void,
+    ) => void;
+    openSettings: () => void;
+  };
 }
 
 export const useTelegram = () => {
@@ -179,6 +203,68 @@ export const useTelegram = () => {
     return webApp?.initDataUnsafe?.start_param || null;
   };
 
+  // Request location using Telegram's LocationManager or fallback to browser
+  const requestLocation = (
+    onSuccess: (lat: number, lng: number) => void,
+    onError: (error: string) => void,
+  ) => {
+    // Try Telegram's LocationManager first (available in newer versions)
+    if (webApp?.LocationManager) {
+      const lm = webApp.LocationManager;
+
+      // Initialize if needed
+      if (!lm.isInited) {
+        lm.init(() => {
+          if (lm.isLocationAvailable && lm.isAccessGranted) {
+            lm.getLocation((location) => {
+              if (location) {
+                onSuccess(location.latitude, location.longitude);
+              } else {
+                onError("Could not get location from Telegram");
+              }
+            });
+          } else if (!lm.isAccessGranted) {
+            // Need to request access - show settings
+            lm.openSettings();
+            onError("Please grant location access in settings");
+          } else {
+            onError("Location not available");
+          }
+        });
+      } else if (lm.isAccessGranted) {
+        lm.getLocation((location) => {
+          if (location) {
+            onSuccess(location.latitude, location.longitude);
+          } else {
+            onError("Could not get location");
+          }
+        });
+      } else {
+        lm.openSettings();
+        onError("Please grant location access");
+      }
+      return;
+    }
+
+    // Fallback to browser geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          onSuccess(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          onError(
+            "Could not get your location. Please share location via the bot.",
+          );
+        },
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    } else {
+      onError("Location not supported. Please share location via the bot.");
+    }
+  };
+
   return {
     webApp,
     user,
@@ -192,6 +278,7 @@ export const useTelegram = () => {
     sendDataToBot,
     closeApp,
     getStartParam,
+    requestLocation,
     themeParams: webApp?.themeParams || {},
   };
 };
