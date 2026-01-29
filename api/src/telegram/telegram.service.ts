@@ -6,26 +6,24 @@ import { PublicBookingService } from './public-booking.service.js';
 interface UserSession {
   step:
     | 'idle'
-    | 'selecting_dates'
+    | 'entering_check_in'
+    | 'entering_check_out'
     | 'selecting_room'
-    | 'entering_guest_info'
+    | 'entering_name'
+    | 'entering_phone'
     | 'confirming';
-  selectedHotelId?: string;
-  selectedHotelName?: string;
+  hotelId?: string;
+  hotelName?: string;
   checkIn?: string;
   checkOut?: string;
-  selectedRoomTypeId?: string;
-  selectedRoomTypeName?: string;
-  guestInfo?: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    citizenship?: string;
-    passportSeries?: string;
-    passportNumber?: string;
-    dateOfBirth?: string;
-    gender?: 'MALE' | 'FEMALE';
-  };
+  roomTypeId?: string;
+  roomTypeName?: string;
+  roomPrice?: number;
+  currency?: string;
+  nights?: number;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }
 
 @Injectable()
@@ -34,28 +32,18 @@ export class TelegramService implements OnModuleInit {
   private readonly logger = new Logger(TelegramService.name);
   private sessions: Map<number, UserSession> = new Map();
 
-  // Mini App URL - configure in .env for production
-  private readonly miniAppUrl = process.env.MINI_APP_URL;
-  private readonly useMiniApp =
-    this.miniAppUrl && !this.miniAppUrl.includes('example.com');
-
   constructor(
     private publicHotelsService: PublicHotelsService,
     private publicBookingService: PublicBookingService,
   ) {}
 
   onModuleInit() {
-    // In PM2 cluster mode, only start the bot on instance 0 to avoid 409 conflicts
     const instanceId =
       process.env.NODE_APP_INSTANCE || process.env.pm_id || '0';
-
     if (instanceId !== '0') {
-      this.logger.log(
-        `Skipping Telegram bot on PM2 instance ${instanceId} (only runs on instance 0)`,
-      );
+      this.logger.log(`Skipping Telegram bot on PM2 instance ${instanceId}`);
       return;
     }
-
     this.initializeBot();
   }
 
@@ -66,500 +54,378 @@ export class TelegramService implements OnModuleInit {
     return this.sessions.get(chatId)!;
   }
 
+  private resetSession(chatId: number) {
+    this.sessions.set(chatId, { step: 'idle' });
+  }
+
   private initializeBot() {
     const token = process.env.BOT_TOKEN;
-
     if (!token) {
-      this.logger.warn('BOT_TOKEN is not defined. Telegram Bot is disabled.');
+      this.logger.warn('BOT_TOKEN not defined. Bot disabled.');
       return;
     }
 
-    try {
-      this.bot = new TelegramBot(token, { polling: true });
-      this.logger.log('✅ Telegram Bot initialized and polling...');
+    this.bot = new TelegramBot(token, { polling: true });
+    this.logger.log('✅ Telegram Bot started');
 
-      if (this.useMiniApp) {
-        this.logger.log(`📱 Mini App enabled: ${this.miniAppUrl}`);
-      } else {
-        this.logger.log(
-          '⚠️ Mini App disabled (no valid MINI_APP_URL). Using inline booking.',
-        );
-      }
+    // /start - Welcome message
+    this.bot.onText(/\/start/, async (msg) => {
+      const chatId = msg.chat.id;
+      this.resetSession(chatId);
 
-      // /start command
-      this.bot.onText(/\/start/, async (msg) => {
-        const chatId = msg.chat.id;
-        this.sessions.set(chatId, { step: 'idle' });
-
-        const welcomeText =
-          `🏨 *Welcome to HMS Booking Bot!*\n\n` +
-          `I can help you find and book the best hotels near your location.\n\n` +
-          `📍 *Share your location* to discover nearby hotels\n\n` +
-          `Tap the button below to get started! 👇`;
-
-        await this.bot.sendMessage(chatId, welcomeText, {
+      await this.bot.sendMessage(
+        chatId,
+        `🏨 *Welcome to HMS!*\n\nI'll help you book a hotel in seconds.\n\n📍 Share your location to find nearby hotels.`,
+        {
           parse_mode: 'Markdown',
           reply_markup: {
-            keyboard: [
-              [{ text: '📍 Share My Location', request_location: true }],
-            ],
+            keyboard: [[{ text: '📍 Share Location', request_location: true }]],
             resize_keyboard: true,
-            one_time_keyboard: false,
           },
-        });
-      });
+        },
+      );
+    });
 
-      // /cancel command
-      this.bot.onText(/\/cancel/, async (msg) => {
-        const chatId = msg.chat.id;
-        this.sessions.set(chatId, { step: 'idle' });
-        await this.bot.sendMessage(
-          chatId,
-          '❌ Booking cancelled. Send /start to begin again.',
-        );
-      });
+    // /cancel - Cancel booking
+    this.bot.onText(/\/cancel/, async (msg) => {
+      this.resetSession(msg.chat.id);
+      await this.bot.sendMessage(
+        msg.chat.id,
+        '❌ Cancelled. Send /start to try again.',
+      );
+    });
 
-      // Location handler - Shows hotels
-      this.bot.on('location', async (msg) => {
-        const chatId = msg.chat.id;
-        if (!msg.location) return;
+    // Location - Find hotels
+    this.bot.on('location', async (msg) => {
+      const chatId = msg.chat.id;
+      if (!msg.location) return;
 
-        const { latitude, longitude } = msg.location;
-        this.logger.log(
-          `📍 User ${chatId} shared location: ${latitude}, ${longitude}`,
-        );
+      const { latitude, longitude } = msg.location;
+      this.logger.log(`📍 Location: ${latitude}, ${longitude}`);
 
-        await this.bot.sendMessage(
-          chatId,
-          '🔍 *Searching for the best hotels near you...*',
-          {
-            parse_mode: 'Markdown',
-          },
+      await this.bot.sendMessage(chatId, '🔍 Finding hotels near you...');
+
+      try {
+        const hotels = await this.publicHotelsService.findNearby(
+          latitude,
+          longitude,
         );
 
-        try {
-          const hotels = await this.publicHotelsService.findNearby(
-            latitude,
-            longitude,
-          );
-
-          if (hotels.length === 0) {
-            await this.bot.sendMessage(
-              chatId,
-              '😔 No hotels found within 50km of your location.',
-            );
-            return;
-          }
-
+        if (hotels.length === 0) {
           await this.bot.sendMessage(
             chatId,
-            `✅ *Found ${hotels.length} hotels near you!*`,
-            {
-              parse_mode: 'Markdown',
-            },
+            '😔 No hotels found nearby. Try a different location.',
           );
-
-          // Show each hotel
-          for (const hotel of hotels.slice(0, 5)) {
-            const isPromoted = hotel.isFeatured ? '🌟 *PROMOTED* 🌟\n' : '';
-            const distance = `📏 ${hotel.distance.toFixed(1)} km away`;
-            const price = hotel.startingPrice
-              ? `\n💰 From ${hotel.currency} ${hotel.startingPrice}/night`
-              : '';
-            const rating = hotel.starRating ? ` ⭐ ${hotel.starRating}` : '';
-
-            const caption =
-              `${isPromoted}` +
-              `🏩 *${hotel.name}*${rating}\n` +
-              `📍 ${hotel.address || 'Address available at hotel'}\n` +
-              `${distance}${price}`;
-
-            // Build inline keyboard
-            let inlineKeyboard: TelegramBot.InlineKeyboardButton[][];
-
-            if (this.useMiniApp) {
-              // Use Mini App for booking
-              inlineKeyboard = [
-                [
-                  {
-                    text: '🔥 Book Now',
-                    web_app: { url: `${this.miniAppUrl}?hotel=${hotel.id}` },
-                  },
-                ],
-                [
-                  { text: '📞 Call', callback_data: `call_${hotel.id}` },
-                  { text: '📍 Map', callback_data: `map_${hotel.id}` },
-                ],
-              ];
-            } else {
-              // Use inline booking flow
-              inlineKeyboard = [
-                [{ text: '🔥 Book Now', callback_data: `book_${hotel.id}` }],
-                [
-                  { text: '📞 Call', callback_data: `call_${hotel.id}` },
-                  { text: '📍 Map', callback_data: `map_${hotel.id}` },
-                ],
-              ];
-            }
-
-            try {
-              if (hotel.logoUrl) {
-                await this.bot.sendPhoto(chatId, hotel.logoUrl, {
-                  caption,
-                  parse_mode: 'Markdown',
-                  reply_markup: { inline_keyboard: inlineKeyboard },
-                });
-              } else {
-                await this.bot.sendMessage(chatId, caption, {
-                  parse_mode: 'Markdown',
-                  reply_markup: { inline_keyboard: inlineKeyboard },
-                });
-              }
-            } catch (sendErr: any) {
-              this.logger.error(
-                `Error sending hotel ${hotel.name}:`,
-                sendErr?.message,
-              );
-              // Try without photo
-              await this.bot.sendMessage(chatId, caption, {
-                parse_mode: 'Markdown',
-                reply_markup: { inline_keyboard: inlineKeyboard },
-              });
-            }
-          }
-        } catch (err: any) {
-          this.logger.error('Error searching hotels:', err?.message || err);
-          await this.bot.sendMessage(
-            chatId,
-            '❌ Error searching for hotels. Please try again.',
-          );
-        }
-      });
-
-      // Callback query handler
-      this.bot.on('callback_query', async (query) => {
-        if (!query.message || !query.data) return;
-        const chatId = query.message.chat.id;
-        const data = query.data;
-        const session = this.getSession(chatId);
-
-        await this.bot.answerCallbackQuery(query.id);
-
-        // Book hotel (inline flow)
-        if (data.startsWith('book_')) {
-          const hotelId = data.replace('book_', '');
-          session.selectedHotelId = hotelId;
-          session.step = 'selecting_dates';
-
-          await this.bot.sendMessage(
-            chatId,
-            `🏨 Great choice!\n\nPlease enter your *check-in date* in format:\n\`YYYY-MM-DD\`\n\nExample: \`2026-02-15\``,
-            { parse_mode: 'Markdown' },
-          );
-        }
-
-        // Call hotel
-        if (data.startsWith('call_')) {
-          const hotelId = data.replace('call_', '');
-          try {
-            const hotel =
-              await this.publicHotelsService.getHotelDetails(hotelId);
-            if (hotel.phone) {
-              await this.bot.sendMessage(
-                chatId,
-                `📞 *${hotel.name}*\n\nPhone: ${hotel.phone}`,
-                { parse_mode: 'Markdown' },
-              );
-            } else {
-              await this.bot.sendMessage(
-                chatId,
-                '� Phone number not available.',
-              );
-            }
-          } catch (err) {
-            await this.bot.sendMessage(chatId, '❌ Could not load hotel info.');
-          }
-        }
-
-        // Show on map
-        if (data.startsWith('map_')) {
-          const hotelId = data.replace('map_', '');
-          try {
-            const hotel =
-              await this.publicHotelsService.getHotelDetails(hotelId);
-            if (hotel.latitude && hotel.longitude) {
-              await this.bot.sendLocation(
-                chatId,
-                hotel.latitude,
-                hotel.longitude,
-              );
-            } else {
-              await this.bot.sendMessage(chatId, '📍 Location not available.');
-            }
-          } catch (err) {
-            await this.bot.sendMessage(chatId, '❌ Could not load location.');
-          }
-        }
-
-        // Room selection
-        if (data.startsWith('room_')) {
-          const roomTypeId = data.replace('room_', '');
-          session.selectedRoomTypeId = roomTypeId;
-          session.step = 'entering_guest_info';
-          session.guestInfo = {};
-
-          await this.bot.sendMessage(
-            chatId,
-            `✅ Room selected!\n\nNow I need your guest information.\n\nPlease enter your *First Name*:`,
-            { parse_mode: 'Markdown' },
-          );
-        }
-
-        // Confirm booking
-        if (data === 'confirm_booking') {
-          await this.processBooking(chatId, session);
-        }
-
-        // Cancel booking
-        if (data === 'cancel_booking') {
-          this.sessions.set(chatId, { step: 'idle' });
-          await this.bot.sendMessage(
-            chatId,
-            '❌ Booking cancelled. Send /start to try again.',
-          );
-        }
-
-        // Gender selection
-        if (data.startsWith('gender_')) {
-          if (session.guestInfo) {
-            session.guestInfo.gender = data.replace('gender_', '') as
-              | 'MALE'
-              | 'FEMALE';
-            session.step = 'confirming';
-            await this.showBookingSummary(chatId, session);
-          }
-        }
-      });
-
-      // Text message handler (for inline booking flow)
-      this.bot.on('message', async (msg) => {
-        if (!msg.text || msg.text.startsWith('/') || msg.location) return;
-        const chatId = msg.chat.id;
-        const text = msg.text.trim();
-        const session = this.getSession(chatId);
-
-        // Date input
-        if (session.step === 'selecting_dates') {
-          if (!session.checkIn) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-              await this.bot.sendMessage(
-                chatId,
-                '❌ Invalid format. Use YYYY-MM-DD (e.g., 2026-02-15)',
-              );
-              return;
-            }
-            session.checkIn = text;
-            await this.bot.sendMessage(
-              chatId,
-              `✅ Check-in: *${text}*\n\nNow enter your *check-out date*:`,
-              { parse_mode: 'Markdown' },
-            );
-          } else {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-              await this.bot.sendMessage(
-                chatId,
-                '❌ Invalid format. Use YYYY-MM-DD',
-              );
-              return;
-            }
-            session.checkOut = text;
-            await this.showAvailableRooms(chatId, session);
-          }
           return;
         }
 
-        // Guest info collection
-        if (session.step === 'entering_guest_info' && session.guestInfo) {
-          const info = session.guestInfo;
+        // Show hotels as buttons
+        const buttons = hotels.slice(0, 8).map((h) => [
+          {
+            text: `${h.isFeatured ? '⭐ ' : ''}${h.name} (${h.distance.toFixed(1)}km)${h.startingPrice ? ` - ${h.currency}${h.startingPrice}` : ''}`,
+            callback_data: `hotel_${h.id}`,
+          },
+        ]);
 
-          if (!info.firstName) {
-            info.firstName = text;
-            await this.bot.sendMessage(chatId, 'Enter your *Last Name*:', {
-              parse_mode: 'Markdown',
-            });
-          } else if (!info.lastName) {
-            info.lastName = text;
-            await this.bot.sendMessage(chatId, 'Enter your *Phone Number*:', {
-              parse_mode: 'Markdown',
-            });
-          } else if (!info.phone) {
-            info.phone = text;
-            await this.bot.sendMessage(
-              chatId,
-              'Enter your *Citizenship* (e.g., Uzbekistan):',
-              { parse_mode: 'Markdown' },
-            );
-          } else if (!info.citizenship) {
-            info.citizenship = text;
-            await this.bot.sendMessage(
-              chatId,
-              'Enter your *Passport Series* (e.g., AA):',
-              { parse_mode: 'Markdown' },
-            );
-          } else if (!info.passportSeries) {
-            info.passportSeries = text.toUpperCase();
-            await this.bot.sendMessage(
-              chatId,
-              'Enter your *Passport Number*:',
-              { parse_mode: 'Markdown' },
-            );
-          } else if (!info.passportNumber) {
-            info.passportNumber = text;
-            await this.bot.sendMessage(
-              chatId,
-              'Enter your *Date of Birth* (YYYY-MM-DD):',
-              { parse_mode: 'Markdown' },
-            );
-          } else if (!info.dateOfBirth) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-              await this.bot.sendMessage(
-                chatId,
-                '❌ Invalid format. Use YYYY-MM-DD',
-              );
-              return;
-            }
-            info.dateOfBirth = text;
-            await this.bot.sendMessage(chatId, 'Select your *Gender*:', {
-              parse_mode: 'Markdown',
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    { text: '👨 Male', callback_data: 'gender_MALE' },
-                    { text: '👩 Female', callback_data: 'gender_FEMALE' },
-                  ],
-                ],
-              },
-            });
-          }
-        }
-      });
-    } catch (err) {
-      this.logger.error('Failed to initialize Telegram Bot:', err);
-    }
-  }
-
-  private async showAvailableRooms(chatId: number, session: UserSession) {
-    try {
-      const availability = await this.publicBookingService.checkAvailability({
-        branchId: session.selectedHotelId!,
-        checkIn: session.checkIn!,
-        checkOut: session.checkOut!,
-      });
-
-      session.selectedHotelName = availability.branch.name;
-
-      if (availability.roomTypes.length === 0) {
         await this.bot.sendMessage(
           chatId,
-          '😔 No rooms available for these dates. Try /start again.',
+          `✅ Found *${hotels.length}* hotels!\n\nSelect one to book:`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: buttons },
+          },
+        );
+      } catch (err: any) {
+        this.logger.error('Hotel search error:', err.message);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error finding hotels. Try again.',
+        );
+      }
+    });
+
+    // Callback queries (button clicks)
+    this.bot.on('callback_query', async (query) => {
+      if (!query.message || !query.data) return;
+      const chatId = query.message.chat.id;
+      const data = query.data;
+      const session = this.getSession(chatId);
+
+      await this.bot.answerCallbackQuery(query.id);
+
+      // Hotel selected
+      if (data.startsWith('hotel_')) {
+        const hotelId = data.replace('hotel_', '');
+        try {
+          const hotel = await this.publicHotelsService.getHotelDetails(hotelId);
+          session.hotelId = hotelId;
+          session.hotelName = hotel.name;
+          session.step = 'entering_check_in';
+
+          await this.bot.sendMessage(
+            chatId,
+            `🏨 *${hotel.name}*\n\n📍 ${hotel.address || ''}\n\n` +
+              `📅 Enter *check-in date*:\n\`YYYY-MM-DD\` (e.g. \`2026-02-10\`)`,
+            { parse_mode: 'Markdown' },
+          );
+        } catch (err) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Error loading hotel. Try again.',
+          );
+        }
+      }
+
+      // Room selected
+      if (data.startsWith('room_')) {
+        const [, roomId, price, currency] = data.split('_');
+        session.roomTypeId = roomId;
+        session.roomPrice = parseFloat(price);
+        session.currency = currency;
+        session.step = 'entering_name';
+
+        await this.bot.sendMessage(
+          chatId,
+          `✅ Room selected!\n\n👤 Enter your *full name*:`,
+          { parse_mode: 'Markdown' },
+        );
+      }
+
+      // Confirm booking
+      if (data === 'confirm') {
+        await this.createBooking(chatId, session);
+      }
+
+      // Cancel
+      if (data === 'cancel') {
+        this.resetSession(chatId);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Cancelled. Send /start to try again.',
+        );
+      }
+    });
+
+    // Text messages
+    this.bot.on('message', async (msg) => {
+      if (!msg.text || msg.text.startsWith('/') || msg.location) return;
+
+      const chatId = msg.chat.id;
+      const text = msg.text.trim();
+      const session = this.getSession(chatId);
+
+      // Check-in date
+      if (session.step === 'entering_check_in') {
+        if (!this.isValidDate(text)) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Invalid date. Use format `YYYY-MM-DD`',
+            { parse_mode: 'Markdown' },
+          );
+          return;
+        }
+        if (new Date(text) < new Date()) {
+          await this.bot.sendMessage(chatId, '❌ Date must be in the future.');
+          return;
+        }
+
+        session.checkIn = text;
+        session.step = 'entering_check_out';
+
+        await this.bot.sendMessage(
+          chatId,
+          `✅ Check-in: *${text}*\n\n📅 Enter *check-out date*:`,
+          { parse_mode: 'Markdown' },
         );
         return;
       }
 
-      const roomButtons = availability.roomTypes.map((rt) => [
+      // Check-out date
+      if (session.step === 'entering_check_out') {
+        if (!this.isValidDate(text)) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Invalid date. Use format `YYYY-MM-DD`',
+            { parse_mode: 'Markdown' },
+          );
+          return;
+        }
+        if (new Date(text) <= new Date(session.checkIn!)) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Check-out must be after check-in.',
+          );
+          return;
+        }
+
+        session.checkOut = text;
+        session.nights = Math.ceil(
+          (new Date(text).getTime() - new Date(session.checkIn!).getTime()) /
+            (1000 * 60 * 60 * 24),
+        );
+
+        await this.showRooms(chatId, session);
+        return;
+      }
+
+      // Guest name
+      if (session.step === 'entering_name') {
+        const parts = text.split(' ');
+        if (parts.length < 2) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Please enter first and last name (e.g., John Doe)',
+          );
+          return;
+        }
+
+        session.firstName = parts[0];
+        session.lastName = parts.slice(1).join(' ');
+        session.step = 'entering_phone';
+
+        await this.bot.sendMessage(
+          chatId,
+          `✅ Name: *${session.firstName} ${session.lastName}*\n\n📞 Enter your *phone number*:`,
+          { parse_mode: 'Markdown' },
+        );
+        return;
+      }
+
+      // Phone number
+      if (session.step === 'entering_phone') {
+        if (text.length < 7) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ Please enter a valid phone number.',
+          );
+          return;
+        }
+
+        session.phone = text;
+        session.step = 'confirming';
+
+        await this.showConfirmation(chatId, session);
+        return;
+      }
+    });
+  }
+
+  private isValidDate(date: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) && !isNaN(new Date(date).getTime());
+  }
+
+  private async showRooms(chatId: number, session: UserSession) {
+    try {
+      const availability = await this.publicBookingService.checkAvailability({
+        branchId: session.hotelId!,
+        checkIn: session.checkIn!,
+        checkOut: session.checkOut!,
+      });
+
+      if (availability.roomTypes.length === 0) {
+        await this.bot.sendMessage(
+          chatId,
+          '😔 No rooms available for these dates. Send /start to try different dates.',
+        );
+        this.resetSession(chatId);
+        return;
+      }
+
+      const buttons = availability.roomTypes.map((r) => [
         {
-          text: `${rt.name} - ${availability.branch.currency} ${rt.basePrice}/night (${rt.availableRooms} left)`,
-          callback_data: `room_${rt.id}`,
+          text: `${r.name} - ${availability.branch.currency}${r.basePrice}/night (${r.availableRooms} left)`,
+          callback_data: `room_${r.id}_${r.basePrice}_${availability.branch.currency}`,
         },
       ]);
 
+      session.step = 'selecting_room';
+      session.currency = availability.branch.currency;
+
       await this.bot.sendMessage(
         chatId,
-        `🏨 *${availability.branch.name}*\n` +
-          `📅 ${session.checkIn} → ${session.checkOut} (${availability.nights} nights)\n\n` +
-          `Select a room type:`,
+        `🏨 *${session.hotelName}*\n` +
+          `📅 ${session.checkIn} → ${session.checkOut} (${session.nights} nights)\n\n` +
+          `Select a room:`,
         {
           parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard: roomButtons },
+          reply_markup: { inline_keyboard: buttons },
         },
       );
-
-      session.step = 'selecting_room';
     } catch (err: any) {
+      this.logger.error('Room availability error:', err.message);
       await this.bot.sendMessage(
         chatId,
-        `❌ ${err.message || 'Error checking availability'}`,
+        `❌ ${err.message || 'Error checking availability.'}`,
       );
     }
   }
 
-  private async showBookingSummary(chatId: number, session: UserSession) {
-    const info = session.guestInfo!;
-    const summary =
-      `📋 *Booking Summary*\n\n` +
-      `🏨 *Hotel:* ${session.selectedHotelName}\n` +
-      `📅 *Check-in:* ${session.checkIn}\n` +
-      `📅 *Check-out:* ${session.checkOut}\n\n` +
-      `👤 *Guest:* ${info.firstName} ${info.lastName}\n` +
-      `📞 *Phone:* ${info.phone}\n` +
-      `🛂 *Passport:* ${info.passportSeries}${info.passportNumber}\n\n` +
-      `Is this information correct?`;
+  private async showConfirmation(chatId: number, session: UserSession) {
+    const total = (session.roomPrice || 0) * (session.nights || 1);
 
-    await this.bot.sendMessage(chatId, summary, {
-      parse_mode: 'Markdown',
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '✅ Confirm Booking', callback_data: 'confirm_booking' }],
-          [{ text: '❌ Cancel', callback_data: 'cancel_booking' }],
-        ],
+    await this.bot.sendMessage(
+      chatId,
+      `📋 *Booking Summary*\n\n` +
+        `🏨 ${session.hotelName}\n` +
+        `📅 ${session.checkIn} → ${session.checkOut}\n` +
+        `🌙 ${session.nights} nights\n` +
+        `👤 ${session.firstName} ${session.lastName}\n` +
+        `📞 ${session.phone}\n\n` +
+        `� *Total: ${session.currency}${total.toLocaleString()}*\n\n` +
+        `Confirm your booking?`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '✅ Confirm', callback_data: 'confirm' }],
+            [{ text: '❌ Cancel', callback_data: 'cancel' }],
+          ],
+        },
       },
-    });
+    );
   }
 
-  private async processBooking(chatId: number, session: UserSession) {
-    const info = session.guestInfo!;
-
-    await this.bot.sendMessage(chatId, '⏳ Processing your booking...');
+  private async createBooking(chatId: number, session: UserSession) {
+    await this.bot.sendMessage(chatId, '⏳ Creating your booking...');
 
     try {
       const result = await this.publicBookingService.createPublicBooking({
-        branchId: session.selectedHotelId!,
-        roomTypeId: session.selectedRoomTypeId!,
+        branchId: session.hotelId!,
+        roomTypeId: session.roomTypeId!,
         checkIn: session.checkIn!,
         checkOut: session.checkOut!,
-        firstName: info.firstName!,
-        lastName: info.lastName!,
-        phone: info.phone!,
-        citizenship: info.citizenship!,
-        passportSeries: info.passportSeries!,
-        passportNumber: info.passportNumber!,
-        dateOfBirth: info.dateOfBirth!,
-        gender: info.gender!,
+        firstName: session.firstName!,
+        lastName: session.lastName!,
+        phone: session.phone!,
+        citizenship: 'N/A',
+        passportSeries: 'XX',
+        passportNumber: '0000000',
+        dateOfBirth: '1990-01-01',
+        gender: 'MALE',
         telegramUserId: String(chatId),
       });
 
-      const successMessage =
-        `🎉 *Booking Confirmed!*\n\n` +
-        `📌 *Confirmation #:* \`${result.confirmationNumber}\`\n` +
-        `🏨 *Hotel:* ${result.hotel}\n` +
-        `🛏️ *Room:* ${result.room}\n` +
-        `📅 *Check-in:* ${session.checkIn}\n` +
-        `📅 *Check-out:* ${session.checkOut}\n` +
-        `🌙 *Nights:* ${result.nights}\n` +
-        `💰 *Total:* ${result.currency} ${result.totalAmount.toLocaleString()}\n\n` +
-        `Please present this confirmation at the hotel reception.\n\n` +
-        `Thank you for booking with HMS! 🙏`;
-
-      await this.bot.sendMessage(chatId, successMessage, {
-        parse_mode: 'Markdown',
-      });
-      this.sessions.set(chatId, { step: 'idle' });
-    } catch (err: any) {
       await this.bot.sendMessage(
         chatId,
-        `❌ Booking failed: ${err.message || 'Unknown error'}\n\nPlease try again with /start`,
+        `🎉 *Booking Confirmed!*\n\n` +
+          `📌 Confirmation: \`${result.confirmationNumber}\`\n\n` +
+          `🏨 ${result.hotel}\n` +
+          `🛏️ ${result.room}\n` +
+          `📅 ${session.checkIn} → ${session.checkOut}\n` +
+          `🌙 ${result.nights} nights\n` +
+          `💰 ${result.currency} ${result.totalAmount.toLocaleString()}\n\n` +
+          `Show this at the hotel. Thank you! 🙏`,
+        { parse_mode: 'Markdown' },
       );
-      this.sessions.set(chatId, { step: 'idle' });
+
+      this.resetSession(chatId);
+    } catch (err: any) {
+      this.logger.error('Booking error:', err.message);
+      await this.bot.sendMessage(
+        chatId,
+        `❌ ${err.message || 'Booking failed.'}\n\nSend /start to try again.`,
+      );
+      this.resetSession(chatId);
     }
   }
 }
