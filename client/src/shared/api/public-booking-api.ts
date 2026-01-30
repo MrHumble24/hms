@@ -80,6 +80,14 @@ export interface BookingResponse {
   guest: string;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 const publicApi = axios.create({
   baseURL: `${API_URL}/public`,
   headers: {
@@ -94,9 +102,11 @@ export const publicBookingApi = {
     lng?: number,
     radiusKm: number = 50,
     search?: string,
-  ): Promise<NearbyHotel[]> => {
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<NearbyHotel>> => {
     const { data } = await axios.get(`${API_URL}/public/hotels/nearby`, {
-      params: { lat, lng, radiusKm, search },
+      params: { lat, lng, radiusKm, search, page, limit },
     });
     return data;
   },

@@ -127,7 +127,7 @@ export class TelegramService implements OnModuleInit {
           longitude,
         );
 
-        if (hotels.length === 0) {
+        if (hotels.data.length === 0) {
           await this.bot.sendMessage(
             chatId,
             '😔 No hotels found nearby. Try a different location.',
@@ -137,12 +137,12 @@ export class TelegramService implements OnModuleInit {
 
         await this.bot.sendMessage(
           chatId,
-          `✅ Found *${hotels.length}* hotels near you!\n\n👇 Browse and tap *Book Now* to reserve:`,
+          `✅ Found *${hotels.total}* hotels near you!\n\n👇 Browse and tap *Book Now* to reserve:`,
           { parse_mode: 'Markdown' },
         );
 
         // Show each hotel as a detailed card
-        for (const hotel of hotels.slice(0, 5)) {
+        for (const hotel of hotels.data.slice(0, 5)) {
           const stars = hotel.starRating ? '⭐'.repeat(hotel.starRating) : '';
           const featured = hotel.isFeatured ? '🌟 *FEATURED*\n' : '';
           const legalName = hotel.legalName ? `🏢 ${hotel.legalName}\n` : '';
@@ -219,10 +219,10 @@ export class TelegramService implements OnModuleInit {
           }
         }
 
-        if (hotels.length > 5) {
+        if (hotels.total > 5) {
           await this.bot.sendMessage(
             chatId,
-            `📋 _${hotels.length - 5} more hotels available. Share location again to refresh._`,
+            `📋 _${hotels.total - 5} more hotels available. Share location again to refresh._`,
             { parse_mode: 'Markdown' },
           );
         }

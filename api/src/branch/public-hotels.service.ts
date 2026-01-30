@@ -15,6 +15,8 @@ export class PublicHotelsService {
     userLng?: number,
     radiusKm: number = 50,
     search?: string,
+    page: number = 1,
+    limit: number = 10,
   ) {
     // We search across all branches of all tenants
     const branches = await this.prisma.branch.findMany({
@@ -81,7 +83,7 @@ export class PublicHotelsService {
     }
 
     // Sort: Promoted first, then by distance (if location exists), then by name
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       // Promoted (isFeatured) comes first
       if (a.isFeatured && !b.isFeatured) return -1;
       if (!a.isFeatured && b.isFeatured) return 1;
@@ -95,6 +97,19 @@ export class PublicHotelsService {
       }
       return a.name.localeCompare(b.name);
     });
+
+    // Pagination
+    const total = sorted.length;
+    const startIndex = (page - 1) * limit;
+    const data = sorted.slice(startIndex, startIndex + limit);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      hasMore: startIndex + limit < total,
+    };
   }
 
   async getTrending(limit: number = 10) {

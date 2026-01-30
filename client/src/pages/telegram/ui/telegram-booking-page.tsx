@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { Input, Empty, Tag } from "antd";
@@ -67,7 +67,30 @@ export const TelegramBookingPage = () => {
     confirmBooking,
     relocate,
     haptic,
+    loadMore,
+    hasMore,
+    loadingMore,
+    totalHotels,
   } = useBookingFlow();
+
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, hasMore, loadingMore, loading]);
 
   // Check URL params for hotel ID
   const hotelId = searchParams.get("hotel");
@@ -222,7 +245,7 @@ export const TelegramBookingPage = () => {
                   fontWeight: 600,
                 }}
               >
-                {hotels.length} results
+                {totalHotels} results
               </span>
             </div>
 
@@ -246,52 +269,86 @@ export const TelegramBookingPage = () => {
                 />
               </div>
             ) : (
-              <div className="tg-hotel-list">
-                {hotels.map((hotel: NearbyHotel) => (
-                  <div
-                    key={hotel.id}
-                    className="tg-hotel-card"
-                    onClick={() => selectHotel(hotel)}
-                  >
-                    <div className="tg-hotel-image-container">
-                      <img
-                        src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
-                        alt={hotel.name}
-                        className="tg-hotel-image"
-                      />
-                      <div className="tg-hotel-badge">
-                        {hotel.isFeatured ? "HOT" : "PROMO"}
-                      </div>
-                      <div className="tg-hotel-rating">
-                        <StarFilled style={{ color: "#faad14" }} />
-                        <span>{hotel.starRating || 4.5}</span>
-                      </div>
-                    </div>
-                    <div className="tg-hotel-details">
-                      <div className="tg-hotel-row">
-                        <h4 className="tg-hotel-name">{hotel.name}</h4>
-                        <div className="tg-hotel-price-tag">
-                          <span className="tg-price-amount">
-                            {Number(hotel.startingPrice).toLocaleString()}
-                          </span>
-                          <span className="tg-price-unit">UZS / night</span>
+              <>
+                <div className="tg-hotel-list">
+                  {hotels.map((hotel: NearbyHotel) => (
+                    <div
+                      key={hotel.id}
+                      className="tg-hotel-card"
+                      onClick={() => selectHotel(hotel)}
+                    >
+                      <div className="tg-hotel-image-container">
+                        <img
+                          src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
+                          alt={hotel.name}
+                          className="tg-hotel-image"
+                        />
+                        <div className="tg-hotel-badge">
+                          {hotel.isFeatured ? "HOT" : "PROMO"}
+                        </div>
+                        <div className="tg-hotel-rating">
+                          <StarFilled style={{ color: "#faad14" }} />
+                          <span>{hotel.starRating || 4.5}</span>
                         </div>
                       </div>
-                      <div className="tg-hotel-meta">
-                        <span>
-                          <EnvironmentOutlined /> {hotel.address?.split(",")[0]}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {hotel.distance
-                            ? `${hotel.distance.toFixed(1)} km`
-                            : "< 1 km"}
-                        </span>
+                      <div className="tg-hotel-details">
+                        <div className="tg-hotel-row">
+                          <h4 className="tg-hotel-name">{hotel.name}</h4>
+                          <div className="tg-hotel-price-tag">
+                            <span className="tg-price-amount">
+                              {Number(hotel.startingPrice).toLocaleString()}
+                            </span>
+                            <span className="tg-price-unit">UZS / night</span>
+                          </div>
+                        </div>
+                        <div className="tg-hotel-meta">
+                          <span>
+                            <EnvironmentOutlined />{" "}
+                            {hotel.address?.split(",")[0]}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {hotel.distance
+                              ? `${hotel.distance.toFixed(1)} km`
+                              : "< 1 km"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {/* Infinite Scroll Trigger */}
+                <div
+                  ref={observerTarget}
+                  style={{
+                    height: 60,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 10,
+                  }}
+                >
+                  {loadingMore && (
+                    <div className="tg-loading-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  )}
+                  {!hasMore && hotels.length > 0 && (
+                    <span
+                      style={{
+                        color: "var(--tg-hint)",
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      ✨ You've seen everything
+                    </span>
+                  )}
+                </div>
+              </>
             )}
           </div>
 

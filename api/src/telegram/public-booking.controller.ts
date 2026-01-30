@@ -27,12 +27,16 @@ export class PublicBookingController {
     @Query('lng') lng?: string,
     @Query('radiusKm') radiusKm?: string,
     @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.publicHotelsService.findNearby(
       lat ? parseFloat(lat) : undefined,
       lng ? parseFloat(lng) : undefined,
       radiusKm ? parseFloat(radiusKm) : 50,
       search,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
     );
   }
 

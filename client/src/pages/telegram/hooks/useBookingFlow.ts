@@ -23,6 +23,7 @@ export function useBookingFlow() {
 
   // Data State
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [relocating, setRelocating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [userLocation, setUserLocation] = useState<{
@@ -32,6 +33,11 @@ export function useBookingFlow() {
   const [hotels, setHotels] = useState<NearbyHotel[]>([]);
   const [trendingHotels, setTrendingHotels] = useState<NearbyHotel[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
+  const [totalHotels, setTotalHotels] = useState(0);
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const [selectedHotel, setSelectedHotel] = useState<NearbyHotel | null>(null);
   const [checkIn, setCheckIn] = useState<dayjs.Dayjs | null>(null);
@@ -55,23 +61,49 @@ export function useBookingFlow() {
 
   // Load nearby hotels (with optional search)
   const loadNearbyHotels = useCallback(
-    async (lat?: number, lng?: number, search?: string) => {
+    async (lat?: number, lng?: number, search?: string, p: number = 1) => {
+      if (p === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       try {
-        const data = await publicBookingApi.findNearbyHotels(
+        const response = await publicBookingApi.findNearbyHotels(
           lat,
           lng,
           50,
           search,
+          p,
+          10,
         );
-        setHotels(data);
+
+        if (p === 1) {
+          setHotels(response.data);
+        } else {
+          setHotels((prev) => [...prev, ...response.data]);
+        }
+
+        setTotalHotels(response.total);
+        setHasMore(response.hasMore);
+        setPage(p);
       } catch (err) {
         console.error("Failed to find hotels", err);
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     },
     [],
   );
+
+  // Load more hotels
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    const lat = userLocation?.lat || DEFAULT_LOCATION.lat;
+    const lng = userLocation?.lng || DEFAULT_LOCATION.lng;
+    loadNearbyHotels(lat, lng, searchQuery, page + 1);
+  }, [loadingMore, hasMore, userLocation, searchQuery, page, loadNearbyHotels]);
 
   // Load trending hotels
   const loadTrendingData = useCallback(async () => {
@@ -99,7 +131,7 @@ export function useBookingFlow() {
     (query: string) => {
       setSearchQuery(query);
       if (!userLocation) return;
-      loadNearbyHotels(userLocation.lat, userLocation.lng, query);
+      loadNearbyHotels(userLocation.lat, userLocation.lng, query, 1);
     },
     [userLocation, loadNearbyHotels],
   );
@@ -305,6 +337,7 @@ export function useBookingFlow() {
     activeTab,
     step,
     loading,
+    loadingMore,
     relocating,
     searchQuery,
     userLocation,
@@ -321,6 +354,8 @@ export function useBookingFlow() {
     totalPrice,
     mapCenter,
     user,
+    hasMore,
+    totalHotels,
 
     // Actions
     setActiveTab,
@@ -339,5 +374,6 @@ export function useBookingFlow() {
     relocate,
     reset,
     haptic,
+    loadMore,
   };
 }
