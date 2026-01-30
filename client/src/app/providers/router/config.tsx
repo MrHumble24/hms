@@ -35,6 +35,7 @@ import { ConciergePage } from "@/pages/concierge/ui/concierge-page";
 
 import { SuspendedPage } from "@/pages/suspended";
 import { TelegramBookingPage } from "@/pages/telegram";
+import { LogsPage } from "@/pages/admin/logs/ui/logs-page";
 
 export const router = createBrowserRouter([
   {
@@ -231,6 +232,14 @@ export const router = createBrowserRouter([
             element: (
               <RoleGuard permission="admin-tenants">
                 <TenantDetailsPage />
+              </RoleGuard>
+            ),
+          },
+          {
+            path: "/admin/logs",
+            element: (
+              <RoleGuard permission="admin-logs">
+                <LogsPage />
               </RoleGuard>
             ),
           },

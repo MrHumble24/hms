@@ -16,6 +16,7 @@ import { StaffModule } from './staff/staff.module.js';
 import { EmehmonModule } from './emehmon/emehmon.module.js';
 import { RestaurantModule } from './restaurant/restaurant.module.js';
 import { TenantMiddleware } from './common/tenant-middleware.js';
+import { LoggerMiddleware } from './common/logger-middleware.js';
 import { BranchModule } from './branch/branch.module.js';
 import { CommunicationsModule } from './communications/communications.module.js';
 import { AuditModule } from './audit/audit.module.js';
@@ -65,6 +66,7 @@ import * as path from 'path';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
     consumer
       .apply(TenantMiddleware)
       .exclude(

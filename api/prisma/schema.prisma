@@ -1207,6 +1207,26 @@ model AuditLog {
   @@index([tenantId, branchId, createdAt])
 }
 
+model SystemLog {
+  id        String   @id @default(uuid())
+  level     LogLevel @default(INFO)
+  context   String? // e.g., "HTTP", "AUTH", "DATABASE"
+  message   String
+  metadata  Json? // For structured logs (IP, UserAgent, Payload, etc.)
+  timestamp DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([level])
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
 enum AuditAction {
   CREATE
   UPDATE
