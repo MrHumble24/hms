@@ -1,5 +1,11 @@
-import { Button, Divider } from "antd";
+import { Button, Divider, Tag } from "antd";
+import {
+  CheckCircleOutlined,
+  BankOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useTelegram } from "@/shared/hooks/use-telegram";
 import type {
   NearbyHotel,
   RoomTypeAvailability,
@@ -28,75 +34,154 @@ export function ConfirmStep({
   loading,
   onConfirm,
 }: ConfirmStepProps) {
-  return (
-    <div className="tg-discovery-container">
-      <div className="tg-header">
-        <h2>Confirm Booking</h2>
-        <p>Please review your stay details</p>
-      </div>
+  const { haptic } = useTelegram();
 
-      <div className="tg-step-content">
-        <div
-          className="tg-date-box"
+  return (
+    <div className="tg-step-content" style={{ paddingBottom: 100 }}>
+      <div className="tg-header-top" style={{ marginBottom: 32 }}>
+        <h2 className="tg-section-title" style={{ margin: 0 }}>
+          Review & Confirm
+        </h2>
+        <p
           style={{
-            background: "transparent",
-            border: "1px solid var(--tg-secondary-bg)",
+            margin: "4px 0 0",
+            color: "var(--tg-hint)",
+            fontWeight: 600,
           }}
         >
-          <h3 style={{ margin: "0 0 16px", fontSize: 18 }}>{hotel.name}</h3>
+          Your final step to a perfect stay
+        </p>
+      </div>
 
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="tg-hotel-card" style={{ padding: 20 }}>
           <div
             style={{
+              marginBottom: 20,
               display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 12,
+              alignItems: "center",
+              gap: 10,
             }}
           >
-            <span style={{ color: "var(--tg-hint)" }}>Room Type</span>
-            <span style={{ fontWeight: 600 }}>{room.name}</span>
+            <BankOutlined
+              style={{ color: "var(--tg-primary)", fontSize: 20 }}
+            />
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>
+              {hotel.name}
+            </h3>
           </div>
 
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 12,
+              background: "var(--tg-secondary-bg)",
+              borderRadius: 16,
+              padding: 20,
             }}
           >
-            <span style={{ color: "var(--tg-hint)" }}>Check-in</span>
-            <span style={{ fontWeight: 600 }}>
-              {checkIn.format("DD MMM YYYY")}
-            </span>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "var(--tg-hint)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
+              >
+                Selected Room
+              </span>
+              <span style={{ fontWeight: 800, fontSize: 15 }}>{room.name}</span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "var(--tg-hint)",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Check In
+                </span>
+                <span style={{ fontWeight: 700 }}>
+                  {checkIn.format("DD MMM, YYYY")}
+                </span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", opacity: 0.3 }}
+              >
+                <ArrowRightOutlined />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  textAlign: "right",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "var(--tg-hint)",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Check Out
+                </span>
+                <span style={{ fontWeight: 700 }}>
+                  {checkOut.format("DD MMM, YYYY")}
+                </span>
+              </div>
+            </div>
+
+            <Divider
+              style={{ margin: "12px 0", borderColor: "rgba(0,0,0,0.05)" }}
+            />
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "var(--tg-hint)",
+                  fontWeight: 700,
+                }}
+              >
+                Total Duration
+              </span>
+              <Tag
+                color="blue"
+                style={{ borderRadius: 6, margin: 0, fontWeight: 700 }}
+              >
+                {nights} Nights
+              </Tag>
+            </div>
           </div>
+        </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}
-          >
-            <span style={{ color: "var(--tg-hint)" }}>Check-out</span>
-            <span style={{ fontWeight: 600 }}>
-              {checkOut.format("DD MMM YYYY")}
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}
-          >
-            <span style={{ color: "var(--tg-hint)" }}>Duration</span>
-            <span style={{ fontWeight: 600 }}>
-              {nights} night{nights > 1 ? "s" : ""}
-            </span>
-          </div>
-
-          <Divider style={{ margin: "16px 0" }} />
-
+        <div
+          className="tg-hotel-card"
+          style={{
+            padding: 24,
+            background: "var(--tg-bg)",
+            border: "2px solid var(--tg-primary)",
+            boxShadow: "0 8px 24px rgba(24, 144, 255, 0.15)",
+          }}
+        >
           <div
             style={{
               display: "flex",
@@ -104,35 +189,89 @@ export function ConfirmStep({
               alignItems: "center",
             }}
           >
-            <span style={{ fontSize: 16, fontWeight: 700 }}>Total Price</span>
-            <span
-              style={{ fontSize: 20, fontWeight: 800, color: "var(--tg-link)" }}
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "var(--tg-hint)",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  marginBottom: 4,
+                }}
+              >
+                Total Amount
+              </div>
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 900,
+                  color: "var(--tg-text)",
+                  letterSpacing: -0.5,
+                }}
+              >
+                <span style={{ fontSize: 18, marginRight: 4, opacity: 0.6 }}>
+                  {currency}
+                </span>
+                {totalPrice.toLocaleString()}
+              </div>
+            </div>
+            <div
+              style={{
+                background: "var(--tg-primary)",
+                color: "white",
+                padding: "10px 14px",
+                borderRadius: 12,
+              }}
             >
-              {currency} {totalPrice.toLocaleString()}
-            </span>
+              <CheckCircleOutlined style={{ fontSize: 24 }} />
+            </div>
           </div>
         </div>
-
-        <p
-          style={{
-            fontSize: 12,
-            color: "var(--tg-hint)",
-            textAlign: "center",
-            marginTop: 20,
-          }}
-        >
-          By tapping the button below, you agree to our booking terms and
-          conditions.
-        </p>
       </div>
 
-      <div className="tg-fixed-footer">
+      <p
+        style={{
+          textAlign: "center",
+          fontSize: 12,
+          color: "var(--tg-hint)",
+          margin: "32px 20px",
+          lineHeight: "1.6",
+          fontWeight: 600,
+        }}
+      >
+        By confirming, you agree to the hotel's policies and booking terms.
+        Secure payment will be handled at the property.
+      </p>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "16px 20px 32px",
+          background: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(10px)",
+          borderTop: "1px solid rgba(0, 0, 0, 0.05)",
+          zIndex: 100,
+        }}
+      >
         <Button
           type="primary"
-          className="tg-main-button"
           block
-          onClick={onConfirm}
+          size="large"
           loading={loading}
+          style={{
+            height: 54,
+            borderRadius: 12,
+            fontSize: 16,
+            fontWeight: 800,
+            boxShadow: "0 4px 15px rgba(24, 144, 255, 0.3)",
+          }}
+          onClick={() => {
+            onConfirm();
+            haptic("success");
+          }}
         >
           Confirm Reservation
         </Button>
