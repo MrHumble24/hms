@@ -52,49 +52,52 @@ export class PublicHotelsService {
       },
     });
 
+    const hasUserLocation = userLat !== undefined && userLng !== undefined;
+
     const hotelsWithDistance = (branches as any[]).map((branch) => {
-      let distance = 0;
-      if (
-        userLat !== undefined &&
-        userLng !== undefined &&
-        branch.latitude &&
-        branch.longitude
-      ) {
+      // Treat missing coordinates as "infinitely far" so they sort to the end
+      const hasHotelLocation =
+        branch.latitude != null && branch.longitude != null;
+
+      let distance = Infinity;
+      if (hasUserLocation && hasHotelLocation) {
         distance = this.calculateDistance(
           userLat,
           userLng,
-          branch.latitude,
-          branch.longitude,
+          Number(branch.latitude),
+          Number(branch.longitude),
         );
       }
 
       return {
         ...branch,
         distance,
+        hasLocation: hasHotelLocation,
         // Calculate a "starting from" price if possible
         startingPrice: branch.roomTypes?.[0]?.basePrice || null,
       };
     });
 
-    // Filter by radius if location is provided, otherwise just return search results
+    // Filter by radius if location is provided (regardless of search)
     let filtered = hotelsWithDistance;
-    if (userLat !== undefined && userLng !== undefined && !search) {
-      filtered = hotelsWithDistance.filter((h) => h.distance <= radiusKm);
+    if (hasUserLocation) {
+      filtered = hotelsWithDistance.filter(
+        (h) => h.distance <= radiusKm || !h.hasLocation, // Include hotels without location but at the end
+      );
     }
 
-    // Sort: Promoted first, then by distance (if location exists), then by name
+    // Sort: First by distance (closest first), then by featured, then alphabetically
     const sorted = filtered.sort((a, b) => {
-      // Promoted (isFeatured) comes first
-      if (a.isFeatured && !b.isFeatured) return -1;
-      if (!a.isFeatured && b.isFeatured) return 1;
-      // Then by distance
-      if (
-        userLat !== undefined &&
-        userLng !== undefined &&
-        a.distance !== b.distance
-      ) {
+      // Primary sort: distance (closest first, Infinity goes to end)
+      if (a.distance !== b.distance) {
         return a.distance - b.distance;
       }
+
+      // Secondary sort: featured hotels get priority
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+
+      // Tertiary sort: alphabetical by name
       return a.name.localeCompare(b.name);
     });
 
