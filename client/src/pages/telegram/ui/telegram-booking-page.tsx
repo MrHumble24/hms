@@ -1,52 +1,104 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
-  publicBookingApi,
-  type AvailabilityResponse,
-  type NearbyHotel,
-  type RoomTypeAvailability,
-} from "@/shared/api/public-booking-api";
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Input,
+  message,
+  Spin,
+  Rate,
+  Tag,
+  Empty,
+  Form,
+  Select,
+  Divider,
+} from "antd";
+import {
+  EnvironmentOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+  UserOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { useTelegram } from "@/shared/hooks/use-telegram";
 import {
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  SearchOutlined,
-  StarFilled,
-} from "@ant-design/icons";
-import { DatePicker, message, Spin } from "antd";
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+  publicBookingApi,
+  type NearbyHotel,
+  type AvailabilityResponse,
+  type RoomTypeAvailability,
+} from "@/shared/api/public-booking-api";
 import "./telegram-app.css";
 
-type Step = "discover" | "dates" | "rooms" | "guest" | "confirm" | "success";
+// Fix Leaflet default marker icon
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
-interface GuestInfo {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  citizenship: string;
-  passportSeries: string;
-  passportNumber: string;
-  dateOfBirth: string;
-  gender: "MALE" | "FEMALE" | "";
+type Step =
+  | "map"
+  | "hotels"
+  | "hotel"
+  | "dates"
+  | "rooms"
+  | "guest"
+  | "confirm"
+  | "success";
+
+// Component to update map view
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, 13);
+  }, [center, map]);
+  return null;
+}
+
+// Component to handle map click
+function MapClickHandler({
+  onLocationSelect,
+}: {
+  onLocationSelect: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click: (e) => {
+      onLocationSelect(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
 }
 
 export const TelegramBookingPage = () => {
   const [searchParams] = useSearchParams();
-  const {
-    haptic,
-    showBackButton,
-    hideBackButton,
-    user,
-    getStartParam,
-    requestLocation,
-  } = useTelegram();
+  const { haptic, showBackButton, hideBackButton, user } = useTelegram();
+  const [form] = Form.useForm();
 
   // State
-  const [step, setStep] = useState<Step>("discover");
+  const [step, setStep] = useState<Step>("map");
   const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [hotels, setHotels] = useState<NearbyHotel[]>([]);
-  const [hotel, setHotel] = useState<NearbyHotel | null>(null);
+  const [selectedHotel, setSelectedHotel] = useState<NearbyHotel | null>(null);
   const [checkIn, setCheckIn] = useState<dayjs.Dayjs | null>(null);
   const [checkOut, setCheckOut] = useState<dayjs.Dayjs | null>(null);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(
@@ -55,108 +107,107 @@ export const TelegramBookingPage = () => {
   const [selectedRoom, setSelectedRoom] = useState<RoomTypeAvailability | null>(
     null,
   );
-  const [guestInfo, setGuestInfo] = useState<GuestInfo>({
-    firstName: user?.first_name || "",
-    lastName: user?.last_name || "",
-    phone: "",
-    email: "",
-    citizenship: "",
-    passportSeries: "",
-    passportNumber: "",
-    dateOfBirth: "",
-    gender: "",
-  });
   const [bookingResult, setBookingResult] = useState<any>(null);
-  const [locationRequested, setLocationRequested] = useState(false);
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Get hotel ID from URL or Telegram start_param
-  const hotelId = searchParams.get("hotel") || getStartParam();
-  const urlLat = searchParams.get("lat");
-  const urlLng = searchParams.get("lng");
+  // Default location (Tashkent)
+  const defaultLocation = { lat: 41.2995, lng: 69.2401 };
+  const mapCenter: [number, number] = userLocation
+    ? [userLocation.lat, userLocation.lng]
+    : [defaultLocation.lat, defaultLocation.lng];
 
-  // Load hotel details if ID provided
+  // Check URL params for hotel ID
+  const hotelId = searchParams.get("hotel");
+
   useEffect(() => {
     if (hotelId) {
-      loadHotel(hotelId);
-    } else if (urlLat && urlLng) {
-      // If coordinates provided, search nearby
-      loadNearbyHotels(parseFloat(urlLat), parseFloat(urlLng));
+      loadHotelById(hotelId);
     }
-  }, [hotelId, urlLat, urlLng]);
+  }, [hotelId]);
 
   // Back button handling
   useEffect(() => {
-    if (step !== "discover" && step !== "success") {
+    if (step !== "map" && step !== "success") {
       showBackButton(() => goBack());
     } else {
       hideBackButton();
     }
   }, [step]);
 
-  const loadHotel = async (id: string) => {
+  // Get user location on mount
+  useEffect(() => {
+    if (!userLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        },
+        () => {
+          // Use default location if geolocation fails
+          setUserLocation(defaultLocation);
+        },
+      );
+    }
+  }, []);
+
+  const loadHotelById = async (id: string) => {
     setLoading(true);
     try {
       const data = await publicBookingApi.getHotelDetails(id);
-      setHotel(data);
-      setStep("dates");
+      setSelectedHotel(data);
+      setStep("hotel");
     } catch (err) {
-      message.error("Failed to load hotel details");
+      message.error("Failed to load hotel");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadNearbyHotels = async (lat: number, lng: number) => {
+  const searchHotels = async (lat: number, lng: number) => {
     setLoading(true);
-    setLocationError(null);
     setUserLocation({ lat, lng });
+    haptic("medium");
     try {
       const data = await publicBookingApi.findNearbyHotels(lat, lng);
       setHotels(data);
+      setStep("hotels");
     } catch (err) {
-      message.error("Failed to find nearby hotels");
+      message.error("Failed to find hotels");
     } finally {
       setLoading(false);
-      setLocationRequested(false);
     }
   };
 
-  const handleRequestLocation = () => {
-    setLocationRequested(true);
-    setLocationError(null);
-    haptic("medium");
-
-    requestLocation(
-      (lat, lng) => {
-        loadNearbyHotels(lat, lng);
-      },
-      (error) => {
-        setLocationError(error);
-        setLocationRequested(false);
-      },
-    );
+  const handleMapClick = (lat: number, lng: number) => {
+    setUserLocation({ lat, lng });
+    haptic("light");
   };
 
-  const selectHotel = (selectedHotel: NearbyHotel) => {
+  const handleSearchHere = () => {
+    if (userLocation) {
+      searchHotels(userLocation.lat, userLocation.lng);
+    }
+  };
+
+  const handleSelectHotel = (hotel: NearbyHotel) => {
+    setSelectedHotel(hotel);
+    setStep("hotel");
     haptic("selection");
-    setHotel(selectedHotel);
-    setStep("dates");
   };
 
-  const checkRoomAvailability = async () => {
-    if (!hotel || !checkIn || !checkOut) return;
+  const handleBookNow = () => {
+    setStep("dates");
+    haptic("medium");
+  };
 
+  const checkAvailability = async () => {
+    if (!selectedHotel || !checkIn || !checkOut) return;
     setLoading(true);
     haptic("medium");
-
     try {
       const data = await publicBookingApi.checkAvailability(
-        hotel.id,
+        selectedHotel.id,
         checkIn.format("YYYY-MM-DD"),
         checkOut.format("YYYY-MM-DD"),
       );
@@ -171,60 +222,39 @@ export const TelegramBookingPage = () => {
     }
   };
 
-  const handleRoomSelect = (room: RoomTypeAvailability) => {
+  const handleSelectRoom = (room: RoomTypeAvailability) => {
     setSelectedRoom(room);
-    haptic("selection");
     setStep("guest");
+    haptic("selection");
   };
 
-  const handleGuestInfoChange = (field: keyof GuestInfo, value: string) => {
-    setGuestInfo((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleConfirm = () => {
-    const required: (keyof GuestInfo)[] = [
-      "firstName",
-      "lastName",
-      "phone",
-      "citizenship",
-      "passportSeries",
-      "passportNumber",
-      "dateOfBirth",
-      "gender",
-    ];
-    const missing = required.filter((f) => !guestInfo[f]);
-
-    if (missing.length > 0) {
-      haptic("error");
-      message.error("Please fill in all required fields");
-      return;
-    }
-
-    haptic("medium");
+  const handleGuestSubmit = () => {
     setStep("confirm");
+    haptic("medium");
   };
 
-  const handleBooking = async () => {
-    if (!hotel || !selectedRoom || !checkIn || !checkOut) return;
+  const handleConfirmBooking = async () => {
+    if (!selectedHotel || !selectedRoom || !checkIn || !checkOut) return;
 
+    const values = form.getFieldsValue();
     setLoading(true);
     haptic("medium");
 
     try {
       const result = await publicBookingApi.createBooking({
-        branchId: hotel.id,
+        branchId: selectedHotel.id,
         roomTypeId: selectedRoom.id,
         checkIn: checkIn.format("YYYY-MM-DD"),
         checkOut: checkOut.format("YYYY-MM-DD"),
-        firstName: guestInfo.firstName,
-        lastName: guestInfo.lastName,
-        phone: guestInfo.phone,
-        email: guestInfo.email || undefined,
-        citizenship: guestInfo.citizenship,
-        passportSeries: guestInfo.passportSeries,
-        passportNumber: guestInfo.passportNumber,
-        dateOfBirth: guestInfo.dateOfBirth,
-        gender: guestInfo.gender as "MALE" | "FEMALE",
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        email: values.email || undefined,
+        citizenship: values.citizenship || "N/A",
+        passportSeries: values.passportSeries || "XX",
+        passportNumber: values.passportNumber || "0000000",
+        dateOfBirth: values.dateOfBirth?.format("YYYY-MM-DD") || "1990-01-01",
+        gender: values.gender || "MALE",
         telegramUserId: user?.id?.toString(),
       });
 
@@ -233,9 +263,7 @@ export const TelegramBookingPage = () => {
       setStep("success");
     } catch (err: any) {
       haptic("error");
-      message.error(
-        err.response?.data?.message || "Booking failed. Please try again.",
-      );
+      message.error(err.response?.data?.message || "Booking failed");
     } finally {
       setLoading(false);
     }
@@ -243,567 +271,383 @@ export const TelegramBookingPage = () => {
 
   const goBack = () => {
     haptic("light");
-    if (step === "dates" && hotels.length > 0) {
-      setHotel(null);
-      setStep("discover");
-    } else {
-      const steps: Step[] = ["discover", "dates", "rooms", "guest", "confirm"];
-      const currentIndex = steps.indexOf(step);
-      if (currentIndex > 0) {
-        setStep(steps[currentIndex - 1]);
-      }
-    }
+    const backMap: Record<Step, Step> = {
+      hotels: "map",
+      hotel: hotels.length > 0 ? "hotels" : "map",
+      dates: "hotel",
+      rooms: "dates",
+      guest: "rooms",
+      confirm: "guest",
+      success: "map",
+      map: "map",
+    };
+    setStep(backMap[step]);
   };
 
   const nights = checkIn && checkOut ? checkOut.diff(checkIn, "day") : 0;
   const totalPrice = selectedRoom ? Number(selectedRoom.basePrice) * nights : 0;
 
-  // ==================== RENDER ====================
-
-  // Loading state
-  if (loading && !hotel && hotels.length === 0) {
+  // Loading screen
+  if (loading && step === "map") {
     return (
-      <div className="tg-app">
-        <div className="tg-loading">
-          <div className="tg-spinner" />
-          <p>Searching for hotels...</p>
-        </div>
+      <div className="tg-loading">
+        <Spin size="large" />
+        <p>Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="tg-app">
-      {/* Step: Discover Hotels */}
-      {step === "discover" && !hotel && (
-        <>
-          <div className="tg-header">
-            <div className="tg-header-content">
-              <h1 className="tg-header-title">🏨 HMS Booking</h1>
-              <p className="tg-header-subtitle">Find your perfect stay</p>
-            </div>
+      {/* Step 1: Map */}
+      {step === "map" && (
+        <div className="tg-map-container">
+          <div className="tg-map-header">
+            <h2>🏨 Find Hotels Near You</h2>
+            <p>Tap on the map or use your location</p>
           </div>
 
-          {hotels.length === 0 ? (
-            <div className="tg-section" style={{ paddingTop: 40 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <div style={{ fontSize: 64, marginBottom: 16 }}>📍</div>
-                <h2
-                  style={{ fontSize: 20, fontWeight: 600, margin: "0 0 8px" }}
-                >
-                  Find Hotels Near You
-                </h2>
-                <p style={{ color: "#666", fontSize: 14, margin: "0 0 24px" }}>
-                  Share your location to discover the best hotels nearby
-                </p>
-              </div>
-
-              <button
-                className="tg-button"
-                onClick={handleRequestLocation}
-                disabled={locationRequested && !userLocation}
-              >
-                {locationRequested && !userLocation ? (
-                  <>
-                    <Spin size="small" style={{ marginRight: 8 }} />
-                    Getting Location...
-                  </>
-                ) : (
-                  <>
-                    <EnvironmentOutlined /> Share My Location
-                  </>
-                )}
-              </button>
-
-              {locationError && (
-                <div
-                  style={{
-                    textAlign: "center",
-                    marginTop: 16,
-                    color: "#ff4d4f",
-                    fontSize: 13,
-                  }}
-                >
-                  {locationError}
-                </div>
+          <div className="tg-map-wrapper">
+            <MapContainer
+              center={mapCenter}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapUpdater center={mapCenter} />
+              <MapClickHandler onLocationSelect={handleMapClick} />
+              {userLocation && (
+                <Marker position={[userLocation.lat, userLocation.lng]}>
+                  <Popup>📍 Search here</Popup>
+                </Marker>
               )}
-
-              <div style={{ textAlign: "center", marginTop: 24 }}>
-                <p style={{ color: "#999", fontSize: 12 }}>
-                  Or select a hotel from the bot menu
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="tg-section">
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 16,
-                }}
-              >
-                <SearchOutlined style={{ color: "#1677ff" }} />
-                <span style={{ fontSize: 14, color: "#666" }}>
-                  Found {hotels.length} hotels near you
-                </span>
-              </div>
-
-              {hotels.map((h) => (
-                <div
-                  key={h.id}
-                  className="tg-card"
-                  onClick={() => selectHotel(h)}
-                  style={{ cursor: "pointer" }}
-                >
-                  {h.logoUrl && (
-                    <img
-                      src={h.logoUrl}
-                      alt={h.name}
-                      className="tg-card-image"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  )}
-                  <div className="tg-card-body">
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <div>
-                        <h3 className="tg-card-title">
-                          {h.isFeatured && (
-                            <StarFilled
-                              style={{ color: "#ffc107", marginRight: 6 }}
-                            />
-                          )}
-                          {h.name}
-                        </h3>
-                        <p className="tg-card-subtitle">
-                          <EnvironmentOutlined />{" "}
-                          {h.address || "Address available at hotel"}
-                        </p>
-                      </div>
-                      {h.starRating && (
-                        <span className="tg-badge tg-badge-promoted">
-                          ⭐ {h.starRating}
-                        </span>
-                      )}
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        marginTop: 12,
-                      }}
-                    >
-                      <span className="tg-badge tg-badge-distance">
-                        📏 {h.distance.toFixed(1)} km
-                      </span>
-                      {h.startingPrice && (
-                        <span className="tg-badge tg-badge-price">
-                          💰 From {h.currency} {h.startingPrice}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Step: Date Selection */}
-      {step === "dates" && hotel && (
-        <>
-          <div className="tg-gallery">
-            <img
-              src={
-                hotel.logoUrl ||
-                "https://via.placeholder.com/400x280?text=Hotel"
-              }
-              alt={hotel.name}
-              className="tg-gallery-image"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  "https://via.placeholder.com/400x280?text=Hotel";
-              }}
-            />
-            <div className="tg-gallery-overlay">
-              <h1 className="tg-gallery-title">
-                {hotel.isFeatured && "⭐ "}
-                {hotel.name}
-              </h1>
-              <p className="tg-gallery-address">
-                <EnvironmentOutlined /> {hotel.address}
-              </p>
-            </div>
+            </MapContainer>
           </div>
 
-          <div className="tg-section">
-            <h2 className="tg-section-title">Select Your Dates</h2>
-
-            <div className="tg-date-card">
-              <div className="tg-date-label">CHECK-IN</div>
-              <DatePicker
-                value={checkIn}
-                onChange={setCheckIn}
-                format="MMMM D, YYYY"
-                style={{ width: "100%", padding: "12px" }}
-                size="large"
-                disabledDate={(current) =>
-                  current && current < dayjs().startOf("day")
-                }
-                placeholder="Select check-in date"
-              />
-            </div>
-
-            <div className="tg-date-card">
-              <div className="tg-date-label">CHECK-OUT</div>
-              <DatePicker
-                value={checkOut}
-                onChange={setCheckOut}
-                format="MMMM D, YYYY"
-                style={{ width: "100%", padding: "12px" }}
-                size="large"
-                disabledDate={(current) =>
-                  current && current <= (checkIn || dayjs())
-                }
-                placeholder="Select check-out date"
-              />
-            </div>
-
-            {nights > 0 && (
-              <div
-                style={{ textAlign: "center", padding: "16px", color: "#666" }}
-              >
-                <ClockCircleOutlined /> {nights} night{nights > 1 ? "s" : ""}
-              </div>
-            )}
-
-            <button
-              className="tg-button"
-              onClick={checkRoomAvailability}
-              disabled={!checkIn || !checkOut || loading}
+          <div className="tg-map-actions">
+            <Button
+              type="primary"
+              size="large"
+              block
+              icon={<EnvironmentOutlined />}
+              onClick={handleSearchHere}
+              loading={loading}
+              disabled={!userLocation}
             >
-              {loading ? "Checking..." : "Check Availability"}
-            </button>
+              Search Hotels Here
+            </Button>
           </div>
-        </>
-      )}
-
-      {/* Step: Room Selection */}
-      {step === "rooms" && availability && (
-        <>
-          <div className="tg-header">
-            <div className="tg-header-content">
-              <h1 className="tg-header-title">Select a Room</h1>
-              <p className="tg-header-subtitle">
-                {availability.checkIn} → {availability.checkOut} ·{" "}
-                {availability.nights} nights
-              </p>
-            </div>
-          </div>
-
-          {availability.roomTypes.length === 0 ? (
-            <div className="tg-loading">
-              <p>😔 No rooms available for these dates</p>
-              <button
-                className="tg-button tg-button-secondary"
-                onClick={() => setStep("dates")}
-              >
-                Try Different Dates
-              </button>
-            </div>
-          ) : (
-            <div className="tg-section">
-              {availability.roomTypes.map((room) => (
-                <div
-                  key={room.id}
-                  className={`tg-room-card ${selectedRoom?.id === room.id ? "selected" : ""}`}
-                  onClick={() => handleRoomSelect(room)}
-                >
-                  <div className="tg-room-header">
-                    <div>
-                      <h3 className="tg-room-name">{room.name}</h3>
-                      <div className="tg-room-availability">
-                        ✓ {room.availableRooms} room
-                        {room.availableRooms > 1 ? "s" : ""} left
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div className="tg-room-price">
-                        {availability.branch.currency}{" "}
-                        {Number(room.basePrice).toLocaleString()}
-                      </div>
-                      <div className="tg-room-price-label">per night</div>
-                    </div>
-                  </div>
-                  {room.description && (
-                    <p
-                      style={{ fontSize: 13, color: "#666", margin: "8px 0 0" }}
-                    >
-                      {room.description}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Step: Guest Information */}
-      {step === "guest" && (
-        <>
-          <div className="tg-header">
-            <div className="tg-header-content">
-              <h1 className="tg-header-title">Guest Information</h1>
-              <p className="tg-header-subtitle">Please fill in your details</p>
-            </div>
-          </div>
-
-          <div className="tg-form">
-            <div className="tg-form-row">
-              <div className="tg-form-group">
-                <label className="tg-form-label">First Name *</label>
-                <input
-                  className="tg-form-input"
-                  value={guestInfo.firstName}
-                  onChange={(e) =>
-                    handleGuestInfoChange("firstName", e.target.value)
-                  }
-                  placeholder="John"
-                />
-              </div>
-              <div className="tg-form-group">
-                <label className="tg-form-label">Last Name *</label>
-                <input
-                  className="tg-form-input"
-                  value={guestInfo.lastName}
-                  onChange={(e) =>
-                    handleGuestInfoChange("lastName", e.target.value)
-                  }
-                  placeholder="Doe"
-                />
-              </div>
-            </div>
-
-            <div className="tg-form-group">
-              <label className="tg-form-label">Phone Number *</label>
-              <input
-                className="tg-form-input"
-                type="tel"
-                value={guestInfo.phone}
-                onChange={(e) => handleGuestInfoChange("phone", e.target.value)}
-                placeholder="+998 90 123 45 67"
-              />
-            </div>
-
-            <div className="tg-form-group">
-              <label className="tg-form-label">Email (Optional)</label>
-              <input
-                className="tg-form-input"
-                type="email"
-                value={guestInfo.email}
-                onChange={(e) => handleGuestInfoChange("email", e.target.value)}
-                placeholder="john@example.com"
-              />
-            </div>
-
-            <div className="tg-form-group">
-              <label className="tg-form-label">Citizenship *</label>
-              <input
-                className="tg-form-input"
-                value={guestInfo.citizenship}
-                onChange={(e) =>
-                  handleGuestInfoChange("citizenship", e.target.value)
-                }
-                placeholder="Uzbekistan"
-              />
-            </div>
-
-            <div className="tg-form-row">
-              <div className="tg-form-group">
-                <label className="tg-form-label">Passport Series *</label>
-                <input
-                  className="tg-form-input"
-                  value={guestInfo.passportSeries}
-                  onChange={(e) =>
-                    handleGuestInfoChange(
-                      "passportSeries",
-                      e.target.value.toUpperCase(),
-                    )
-                  }
-                  placeholder="AA"
-                  maxLength={2}
-                />
-              </div>
-              <div className="tg-form-group">
-                <label className="tg-form-label">Passport Number *</label>
-                <input
-                  className="tg-form-input"
-                  value={guestInfo.passportNumber}
-                  onChange={(e) =>
-                    handleGuestInfoChange("passportNumber", e.target.value)
-                  }
-                  placeholder="1234567"
-                />
-              </div>
-            </div>
-
-            <div className="tg-form-group">
-              <label className="tg-form-label">Date of Birth *</label>
-              <input
-                className="tg-form-input"
-                type="date"
-                value={guestInfo.dateOfBirth}
-                onChange={(e) =>
-                  handleGuestInfoChange("dateOfBirth", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="tg-form-group">
-              <label className="tg-form-label">Gender *</label>
-              <div className="tg-gender-selector">
-                <div
-                  className={`tg-gender-option ${guestInfo.gender === "MALE" ? "selected" : ""}`}
-                  onClick={() => handleGuestInfoChange("gender", "MALE")}
-                >
-                  <span className="tg-gender-icon">👨</span>
-                  <span className="tg-gender-label">Male</span>
-                </div>
-                <div
-                  className={`tg-gender-option ${guestInfo.gender === "FEMALE" ? "selected" : ""}`}
-                  onClick={() => handleGuestInfoChange("gender", "FEMALE")}
-                >
-                  <span className="tg-gender-icon">👩</span>
-                  <span className="tg-gender-label">Female</span>
-                </div>
-              </div>
-            </div>
-
-            <button className="tg-button" onClick={handleConfirm}>
-              Continue to Summary
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Step: Confirmation */}
-      {step === "confirm" && hotel && selectedRoom && (
-        <>
-          <div className="tg-header">
-            <div className="tg-header-content">
-              <h1 className="tg-header-title">Confirm Booking</h1>
-              <p className="tg-header-subtitle">Review your reservation</p>
-            </div>
-          </div>
-
-          <div className="tg-summary">
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🏨 Hotel</span>
-              <span className="tg-summary-value">{hotel.name}</span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🛏️ Room</span>
-              <span className="tg-summary-value">{selectedRoom.name}</span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">📅 Check-in</span>
-              <span className="tg-summary-value">
-                {checkIn?.format("MMM D, YYYY")}
-              </span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">📅 Check-out</span>
-              <span className="tg-summary-value">
-                {checkOut?.format("MMM D, YYYY")}
-              </span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🌙 Nights</span>
-              <span className="tg-summary-value">{nights}</span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">👤 Guest</span>
-              <span className="tg-summary-value">
-                {guestInfo.firstName} {guestInfo.lastName}
-              </span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">💰 Total</span>
-              <span className="tg-summary-total">
-                {availability?.branch.currency} {totalPrice.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          <div className="tg-section">
-            <button
-              className="tg-button"
-              onClick={handleBooking}
-              disabled={loading}
-            >
-              {loading ? "Processing..." : "✓ Confirm Booking"}
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Step: Success */}
-      {step === "success" && bookingResult && (
-        <div className="tg-success">
-          <div className="tg-success-icon">✓</div>
-          <h1 className="tg-success-title">Booking Confirmed!</h1>
-          <p className="tg-success-subtitle">
-            Your reservation has been successfully made
-          </p>
-
-          <div className="tg-confirmation-number">
-            {bookingResult.confirmationNumber}
-          </div>
-
-          <div className="tg-summary">
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🏨 Hotel</span>
-              <span className="tg-summary-value">{bookingResult.hotel}</span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🛏️ Room</span>
-              <span className="tg-summary-value">{bookingResult.room}</span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">🌙 Duration</span>
-              <span className="tg-summary-value">
-                {bookingResult.nights} nights
-              </span>
-            </div>
-            <div className="tg-summary-row">
-              <span className="tg-summary-label">💰 Total</span>
-              <span className="tg-summary-total">
-                {bookingResult.currency}{" "}
-                {bookingResult.totalAmount.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          <p style={{ fontSize: 13, color: "#666", marginTop: 24 }}>
-            Please present this confirmation number at the hotel reception.
-          </p>
         </div>
       )}
 
-      <div className="tg-bottom-padding" />
+      {/* Step 2: Hotels List */}
+      {step === "hotels" && (
+        <div className="tg-hotels-list">
+          <div className="tg-section-header">
+            <h2>🏨 Hotels Near You</h2>
+            <p>{hotels.length} hotels found</p>
+          </div>
+
+          {hotels.length === 0 ? (
+            <Empty description="No hotels found nearby" />
+          ) : (
+            hotels.map((hotel) => (
+              <Card
+                key={hotel.id}
+                className="tg-hotel-card"
+                hoverable
+                onClick={() => handleSelectHotel(hotel)}
+                cover={
+                  hotel.logoUrl ? (
+                    <img src={hotel.logoUrl} alt={hotel.name} />
+                  ) : null
+                }
+              >
+                <div className="tg-hotel-info">
+                  <div className="tg-hotel-header">
+                    <h3>{hotel.name}</h3>
+                    {hotel.starRating && (
+                      <Rate disabled defaultValue={hotel.starRating} />
+                    )}
+                  </div>
+                  {hotel.isFeatured && <Tag color="gold">Featured</Tag>}
+                  <p>
+                    <EnvironmentOutlined /> {hotel.distance.toFixed(1)} km away
+                  </p>
+                  {hotel.address && (
+                    <p className="tg-hotel-address">{hotel.address}</p>
+                  )}
+                  {hotel.startingPrice && (
+                    <p className="tg-hotel-price">
+                      From{" "}
+                      <strong>
+                        {hotel.currency} {hotel.startingPrice.toLocaleString()}
+                      </strong>
+                      /night
+                    </p>
+                  )}
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Step 3: Hotel Detail */}
+      {step === "hotel" && selectedHotel && (
+        <div className="tg-hotel-detail">
+          {selectedHotel.logoUrl && (
+            <img
+              src={selectedHotel.logoUrl}
+              alt={selectedHotel.name}
+              className="tg-hotel-cover"
+            />
+          )}
+          <div className="tg-hotel-content">
+            <h2>{selectedHotel.name}</h2>
+            {selectedHotel.starRating && (
+              <Rate disabled defaultValue={selectedHotel.starRating} />
+            )}
+
+            <div className="tg-hotel-meta">
+              <p>
+                <EnvironmentOutlined /> {selectedHotel.address}
+              </p>
+              {selectedHotel.phone && (
+                <p>
+                  <PhoneOutlined /> {selectedHotel.phone}
+                </p>
+              )}
+            </div>
+
+            {selectedHotel.startingPrice && (
+              <div className="tg-price-badge">
+                From{" "}
+                <strong>
+                  {selectedHotel.currency}{" "}
+                  {selectedHotel.startingPrice.toLocaleString()}
+                </strong>
+                /night
+              </div>
+            )}
+
+            <Button type="primary" size="large" block onClick={handleBookNow}>
+              Book Now
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Date Selection */}
+      {step === "dates" && (
+        <div className="tg-dates-section">
+          <div className="tg-section-header">
+            <CalendarOutlined style={{ fontSize: 32 }} />
+            <h2>Select Dates</h2>
+            <p>When would you like to stay?</p>
+          </div>
+
+          <div className="tg-date-inputs">
+            <div className="tg-date-field">
+              <label>Check-in</label>
+              <DatePicker
+                value={checkIn}
+                onChange={setCheckIn}
+                format="DD MMM YYYY"
+                size="large"
+                style={{ width: "100%" }}
+                disabledDate={(d) => d && d < dayjs().startOf("day")}
+              />
+            </div>
+            <div className="tg-date-field">
+              <label>Check-out</label>
+              <DatePicker
+                value={checkOut}
+                onChange={setCheckOut}
+                format="DD MMM YYYY"
+                size="large"
+                style={{ width: "100%" }}
+                disabledDate={(d) => d && d <= (checkIn || dayjs())}
+              />
+            </div>
+          </div>
+
+          {nights > 0 && (
+            <div className="tg-nights-info">
+              🌙 {nights} night{nights > 1 ? "s" : ""}
+            </div>
+          )}
+
+          <Button
+            type="primary"
+            size="large"
+            block
+            onClick={checkAvailability}
+            disabled={!checkIn || !checkOut}
+            loading={loading}
+          >
+            Check Availability
+          </Button>
+        </div>
+      )}
+
+      {/* Step 5: Room Selection */}
+      {step === "rooms" && availability && (
+        <div className="tg-rooms-section">
+          <div className="tg-section-header">
+            <h2>Select Room</h2>
+            <p>
+              {availability.nights} nights · {availability.checkIn} →{" "}
+              {availability.checkOut}
+            </p>
+          </div>
+
+          {availability.roomTypes.length === 0 ? (
+            <Empty description="No rooms available for these dates" />
+          ) : (
+            availability.roomTypes.map((room) => (
+              <Card
+                key={room.id}
+                className="tg-room-card"
+                hoverable
+                onClick={() => handleSelectRoom(room)}
+              >
+                <div className="tg-room-info">
+                  <h3>{room.name}</h3>
+                  <Tag color="green">{room.availableRooms} left</Tag>
+                  <div className="tg-room-price">
+                    {availability.branch.currency}{" "}
+                    {Number(room.basePrice).toLocaleString()}/night
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Step 6: Guest Information */}
+      {step === "guest" && (
+        <div className="tg-guest-section">
+          <div className="tg-section-header">
+            <UserOutlined style={{ fontSize: 32 }} />
+            <h2>Guest Details</h2>
+          </div>
+
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{
+              firstName: user?.first_name || "",
+              lastName: user?.last_name || "",
+            }}
+          >
+            <Form.Item
+              name="firstName"
+              label="First Name"
+              rules={[{ required: true }]}
+            >
+              <Input size="large" />
+            </Form.Item>
+            <Form.Item
+              name="lastName"
+              label="Last Name"
+              rules={[{ required: true }]}
+            >
+              <Input size="large" />
+            </Form.Item>
+            <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+              <Input size="large" placeholder="+998 90 123 45 67" />
+            </Form.Item>
+            <Form.Item name="email" label="Email">
+              <Input size="large" type="email" />
+            </Form.Item>
+            <Form.Item name="gender" label="Gender">
+              <Select size="large" placeholder="Select gender">
+                <Select.Option value="MALE">Male</Select.Option>
+                <Select.Option value="FEMALE">Female</Select.Option>
+              </Select>
+            </Form.Item>
+          </Form>
+
+          <Button type="primary" size="large" block onClick={handleGuestSubmit}>
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {/* Step 7: Confirmation */}
+      {step === "confirm" && selectedHotel && selectedRoom && (
+        <div className="tg-confirm-section">
+          <div className="tg-section-header">
+            <h2>Confirm Booking</h2>
+          </div>
+
+          <Card className="tg-summary-card">
+            <h3>{selectedHotel.name}</h3>
+            <Divider />
+            <p>
+              <strong>Room:</strong> {selectedRoom.name}
+            </p>
+            <p>
+              <strong>Check-in:</strong> {checkIn?.format("DD MMM YYYY")}
+            </p>
+            <p>
+              <strong>Check-out:</strong> {checkOut?.format("DD MMM YYYY")}
+            </p>
+            <p>
+              <strong>Nights:</strong> {nights}
+            </p>
+            <Divider />
+            <div className="tg-total-price">
+              <span>Total</span>
+              <strong>
+                {availability?.branch.currency} {totalPrice.toLocaleString()}
+              </strong>
+            </div>
+          </Card>
+
+          <Button
+            type="primary"
+            size="large"
+            block
+            onClick={handleConfirmBooking}
+            loading={loading}
+          >
+            Confirm Booking
+          </Button>
+        </div>
+      )}
+
+      {/* Step 8: Success */}
+      {step === "success" && bookingResult && (
+        <div className="tg-success-section">
+          <CheckCircleOutlined style={{ fontSize: 64, color: "#52c41a" }} />
+          <h2>Booking Confirmed!</h2>
+          <div className="tg-confirmation-code">
+            {bookingResult.confirmationNumber}
+          </div>
+          <Card className="tg-summary-card">
+            <p>
+              <strong>Hotel:</strong> {bookingResult.hotel}
+            </p>
+            <p>
+              <strong>Room:</strong> {bookingResult.room}
+            </p>
+            <p>
+              <strong>Nights:</strong> {bookingResult.nights}
+            </p>
+            <p>
+              <strong>Total:</strong> {bookingResult.currency}{" "}
+              {bookingResult.totalAmount.toLocaleString()}
+            </p>
+          </Card>
+          <p className="tg-success-note">Show this confirmation at the hotel</p>
+        </div>
+      )}
     </div>
   );
 };
