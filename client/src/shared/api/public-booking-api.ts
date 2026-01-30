@@ -64,6 +64,8 @@ export interface BookingRequest {
   adultsCount?: number;
   childrenCount?: number;
   telegramUserId?: string;
+  telegramUsername?: string;
+  telegramPhone?: string;
 }
 
 export interface BookingResponse {

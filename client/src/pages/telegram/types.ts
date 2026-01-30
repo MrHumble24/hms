@@ -46,4 +46,6 @@ export interface GuestFormValues {
   passportSeries?: string;
   passportNumber?: string;
   dateOfBirth?: dayjs.Dayjs;
+  telegramUsername?: string;
+  telegramPhone?: string;
 }

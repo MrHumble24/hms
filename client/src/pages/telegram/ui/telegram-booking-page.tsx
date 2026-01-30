@@ -478,6 +478,7 @@ export const TelegramBookingPage = () => {
           initialValues={{
             firstName: user?.first_name || "",
             lastName: user?.last_name || "",
+            telegramUsername: user?.username || "",
           }}
           onSubmit={handleGuestSubmit}
         />

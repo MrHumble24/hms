@@ -223,6 +223,19 @@ export class PublicBookingService {
             passportNumber: dto.passportNumber,
             dateOfBirth: new Date(dto.dateOfBirth),
             gender: dto.gender as Gender,
+            telegramUserId: dto.telegramUserId,
+            telegramUsername: dto.telegramUsername,
+            telegramPhone: dto.telegramPhone,
+          },
+        });
+      } else {
+        // Update guest telegram info if provided
+        guest = await tx.guest.update({
+          where: { id: guest.id },
+          data: {
+            telegramUserId: dto.telegramUserId || guest.telegramUserId,
+            telegramUsername: dto.telegramUsername || guest.telegramUsername,
+            telegramPhone: dto.telegramPhone || guest.telegramPhone,
           },
         });
       }
@@ -245,6 +258,8 @@ export class PublicBookingService {
           status: BookingStatus.CONFIRMED,
           source: BookingSource.TELEGRAM,
           telegramUserId: dto.telegramUserId,
+          telegramUsername: dto.telegramUsername,
+          telegramPhone: dto.telegramPhone,
           roomStays: {
             create: {
               tenantId,

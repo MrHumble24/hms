@@ -249,6 +249,10 @@ model Guest {
 
   visaType VisaType? @default(TOURIST)
 
+  telegramUserId   String?
+  telegramUsername String?
+  telegramPhone    String?
+
   primaryBookings Booking[]       @relation("PrimaryGuest")
   roomStays       RoomStayGuest[]
   registrations   EmehmonLog[]
@@ -510,7 +514,9 @@ model Booking {
   restaurantOrders RestaurantOrder[]
   communications   GuestCommunication[]
 
-  telegramUserId String? // For Mini App tracking
+  telegramUserId   String? // For Mini App tracking
+  telegramUsername String?
+  telegramPhone    String?
 
   deletedAt            DateTime? // Soft delete
   createdAt            DateTime              @default(now())

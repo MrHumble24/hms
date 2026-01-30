@@ -78,4 +78,12 @@ export class CreatePublicBookingDto {
   @IsString()
   @IsOptional()
   telegramUserId?: string;
+
+  @IsString()
+  @IsOptional()
+  telegramUsername?: string;
+
+  @IsString()
+  @IsOptional()
+  telegramPhone?: string;
 }

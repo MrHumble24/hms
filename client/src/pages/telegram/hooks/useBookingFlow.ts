@@ -312,6 +312,8 @@ export function useBookingFlow() {
             guestInfo.dateOfBirth?.format("YYYY-MM-DD") || "1990-01-01",
           gender: guestInfo.gender || "MALE",
           telegramUserId: user?.id?.toString(),
+          telegramUsername: guestInfo.telegramUsername,
+          telegramPhone: guestInfo.telegramPhone,
         });
 
         setBookingResult(result);

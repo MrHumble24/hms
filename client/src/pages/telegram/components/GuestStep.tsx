@@ -186,6 +186,99 @@ export function GuestStep({ initialValues, onSubmit }: GuestStepProps) {
               }}
             />
           </Form.Item>
+
+          <div style={{ marginTop: 16, marginBottom: 8 }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "var(--tg-primary)",
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              Telegram Contacts (Optional)
+            </span>
+            <p
+              style={{ fontSize: 12, color: "var(--tg-hint)", margin: "4px 0" }}
+            >
+              For announcements and updates
+            </p>
+          </div>
+
+          <Form.Item
+            name="telegramUsername"
+            label={
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: "var(--tg-hint)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Telegram Username
+              </span>
+            }
+          >
+            <Input
+              prefix={
+                <span
+                  style={{
+                    color: "var(--tg-primary)",
+                    marginRight: 8,
+                    fontWeight: 800,
+                  }}
+                >
+                  @
+                </span>
+              }
+              placeholder="username"
+              className="tg-premium-input"
+              style={{
+                height: 50,
+                borderRadius: 12,
+                background: "var(--tg-secondary-bg)",
+                border: "none",
+                fontWeight: 600,
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="telegramPhone"
+            label={
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: "var(--tg-hint)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Telegram Phone
+              </span>
+            }
+          >
+            <Input
+              prefix={
+                <PhoneOutlined
+                  style={{ color: "var(--tg-primary)", marginRight: 8 }}
+                />
+              }
+              placeholder="+998"
+              className="tg-premium-input"
+              style={{
+                height: 50,
+                borderRadius: 12,
+                background: "var(--tg-secondary-bg)",
+                border: "none",
+                fontWeight: 600,
+              }}
+            />
+          </Form.Item>
         </div>
       </Form>
 
