@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { LogLevel } from '@prisma/client';
+import { SystemLogLevel } from '@prisma/client';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -26,7 +26,8 @@ export class LoggerMiddleware implements NestMiddleware {
       this.prisma.systemLog
         .create({
           data: {
-            level: statusCode >= 400 ? LogLevel.ERROR : LogLevel.INFO,
+            level:
+              statusCode >= 400 ? SystemLogLevel.ERROR : SystemLogLevel.INFO,
             context: 'HTTP',
             message: `${method} ${originalUrl} ${statusCode}`,
             metadata: {
