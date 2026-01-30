@@ -1,4 +1,4 @@
-import { Button, DatePicker } from "antd";
+import { Button } from "antd";
 import dayjs from "dayjs";
 
 interface DatesStepProps {
@@ -20,6 +20,16 @@ export function DatesStep({
 }: DatesStepProps) {
   const nights = checkIn && checkOut ? checkOut.diff(checkIn, "day") : 0;
 
+  const handleCheckInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    onCheckInChange(val ? dayjs(val) : null);
+  };
+
+  const handleCheckOutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    onCheckOutChange(val ? dayjs(val) : null);
+  };
+
   return (
     <div className="tg-discovery-container">
       <div className="tg-header">
@@ -28,47 +38,29 @@ export function DatesStep({
       </div>
 
       <div className="tg-step-content">
-        <div
-          className="tg-date-box"
-          onClick={() =>
-            (
-              document.querySelector(".tg-check-in-picker input") as HTMLElement
-            )?.click()
-          }
-        >
+        <div className="tg-date-box">
           <label>Arrival Date</label>
-          <DatePicker
-            className="tg-check-in-picker"
-            value={checkIn}
-            onChange={onCheckInChange}
-            format="DD MMMM YYYY"
-            style={{ width: "100%" }}
-            placeholder="Select date"
-            disabledDate={(d) => d && d < dayjs().startOf("day")}
-            allowClear={false}
+          <input
+            type="date"
+            className="tg-native-date"
+            value={checkIn?.format("YYYY-MM-DD") || ""}
+            onChange={handleCheckInChange}
+            min={dayjs().format("YYYY-MM-DD")}
           />
         </div>
 
-        <div
-          className="tg-date-box"
-          onClick={() =>
-            (
-              document.querySelector(
-                ".tg-check-out-picker input",
-              ) as HTMLElement
-            )?.click()
-          }
-        >
+        <div className="tg-date-box">
           <label>Departure Date</label>
-          <DatePicker
-            className="tg-check-out-picker"
-            value={checkOut}
-            onChange={onCheckOutChange}
-            format="DD MMMM YYYY"
-            style={{ width: "100%" }}
-            placeholder="Select date"
-            disabledDate={(d) => d && d <= (checkIn || dayjs())}
-            allowClear={false}
+          <input
+            type="date"
+            className="tg-native-date"
+            value={checkOut?.format("YYYY-MM-DD") || ""}
+            onChange={handleCheckOutChange}
+            min={
+              checkIn
+                ? checkIn.add(1, "day").format("YYYY-MM-DD")
+                : dayjs().add(1, "day").format("YYYY-MM-DD")
+            }
           />
         </div>
 

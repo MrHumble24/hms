@@ -124,4 +124,11 @@ export const publicBookingApi = {
     const { data } = await axios.get(`${API_URL}/public/hotels/${idOrSlug}`);
     return data;
   },
+
+  // Resolve image URL
+  resolveImageUrl: (url: string | null): string => {
+    if (!url) return "https://placehold.co/600x400?text=Hotel+Image";
+    if (url.startsWith("http")) return url;
+    return `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  },
 };

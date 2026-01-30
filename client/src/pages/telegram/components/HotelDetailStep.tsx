@@ -1,4 +1,5 @@
 import { Button, Rate } from "antd";
+import { publicBookingApi } from "@/shared/api/public-booking-api";
 import type { NearbyHotel } from "@/shared/api/public-booking-api";
 
 interface HotelDetailStepProps {
@@ -9,13 +10,11 @@ interface HotelDetailStepProps {
 export function HotelDetailStep({ hotel, onBookNow }: HotelDetailStepProps) {
   return (
     <div className="tg-discovery-container">
-      {hotel.logoUrl && (
-        <img
-          src={hotel.logoUrl}
-          alt={hotel.name}
-          style={{ width: "100%", height: "250px", objectFit: "cover" }}
-        />
-      )}
+      <img
+        src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
+        alt={hotel.name}
+        style={{ width: "100%", height: "250px", objectFit: "cover" }}
+      />
 
       <div className="tg-step-content">
         <h2 className="tg-section-title">{hotel.name}</h2>

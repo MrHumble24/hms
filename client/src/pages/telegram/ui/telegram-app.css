@@ -184,6 +184,7 @@ body {
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 16px;
+  position: relative;
 }
 
 .tg-date-box label {
@@ -194,6 +195,27 @@ body {
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
+
+.tg-native-date {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 16px;
+  color: var(--tg-text);
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.tg-native-date:focus {
+  outline: none;
+}
+
+/* Hide native icon if needed, but usually better to keep for mobile usability */
+/*::-webkit-calendar-picker-indicator {
+  filter: invert(var(--tg-is-dark, 0));
+}*/
 
 /* Success State */
 .tg-success-vibe {

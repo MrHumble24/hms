@@ -1,4 +1,5 @@
 import { Tag, Empty } from "antd";
+import { publicBookingApi } from "@/shared/api/public-booking-api";
 import type {
   AvailabilityResponse,
   RoomTypeAvailability,
@@ -27,6 +28,11 @@ export function RoomsStep({ availability, onSelectRoom }: RoomsStepProps) {
               className="tg-hotel-item"
               onClick={() => onSelectRoom(room)}
             >
+              <img
+                src={publicBookingApi.resolveImageUrl(room.images?.[0] || null)}
+                alt={room.name}
+                className="tg-hotel-item-image"
+              />
               <div className="tg-hotel-item-content">
                 <div className="tg-hotel-item-top">
                   <h3 className="tg-hotel-item-title">{room.name}</h3>

@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { Button, Spin } from "antd";
 import L from "leaflet";
+import { publicBookingApi } from "@/shared/api/public-booking-api";
 import type { NearbyHotel } from "@/shared/api/public-booking-api";
 import { useEffect } from "react";
 import { AimOutlined } from "@ant-design/icons";
@@ -104,13 +105,11 @@ export function MapStep({
             className="tg-hotel-item"
             onClick={() => onSelectHotel(hotel)}
           >
-            {hotel.logoUrl && (
-              <img
-                src={hotel.logoUrl}
-                alt={hotel.name}
-                className="tg-hotel-item-image"
-              />
-            )}
+            <img
+              src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
+              alt={hotel.name}
+              className="tg-hotel-item-image"
+            />
             <div className="tg-hotel-item-content">
               <div className="tg-hotel-item-top">
                 <h3 className="tg-hotel-item-title">{hotel.name}</h3>
