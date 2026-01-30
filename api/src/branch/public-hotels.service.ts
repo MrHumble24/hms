@@ -10,7 +10,12 @@ export interface Location {
 export class PublicHotelsService {
   constructor(private prisma: PrismaService) {}
 
-  async findNearby(userLat: number, userLng: number, radiusKm: number = 50) {
+  async findNearby(
+    userLat?: number,
+    userLng?: number,
+    radiusKm: number = 50,
+    search?: string,
+  ) {
     // We search across all branches of all tenants
     const branches = await this.prisma.branch.findMany({
       where: {
@@ -18,8 +23,14 @@ export class PublicHotelsService {
         tenant: {
           isActive: true,
         },
-        latitude: { not: null },
-        longitude: { not: null },
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { address: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
       include: {
         tenant: true,
@@ -39,33 +50,74 @@ export class PublicHotelsService {
       },
     });
 
-    const hotelsWithDistance = branches.map((branch) => {
-      // These are guaranteed to be non-null because of the 'where' filter above
-      const distance = this.calculateDistance(
-        userLat,
-        userLng,
-        branch.latitude!,
-        branch.longitude!,
-      );
+    const hotelsWithDistance = (branches as any[]).map((branch) => {
+      let distance = 0;
+      if (
+        userLat !== undefined &&
+        userLng !== undefined &&
+        branch.latitude &&
+        branch.longitude
+      ) {
+        distance = this.calculateDistance(
+          userLat,
+          userLng,
+          branch.latitude,
+          branch.longitude,
+        );
+      }
 
       return {
         ...branch,
         distance,
         // Calculate a "starting from" price if possible
-        startingPrice: branch.roomTypes[0]?.basePrice || null,
+        startingPrice: branch.roomTypes?.[0]?.basePrice || null,
       };
     });
 
-    // Filter by radius and sort: Promoted first, then by distance
-    return hotelsWithDistance
-      .filter((h) => h.distance <= radiusKm)
-      .sort((a, b) => {
-        // Promoted (isFeatured) comes first
-        if (a.isFeatured && !b.isFeatured) return -1;
-        if (!a.isFeatured && b.isFeatured) return 1;
-        // Then by distance
+    // Filter by radius if location is provided, otherwise just return search results
+    let filtered = hotelsWithDistance;
+    if (userLat !== undefined && userLng !== undefined && !search) {
+      filtered = hotelsWithDistance.filter((h) => h.distance <= radiusKm);
+    }
+
+    // Sort: Promoted first, then by distance (if location exists), then by name
+    return filtered.sort((a, b) => {
+      // Promoted (isFeatured) comes first
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      // Then by distance
+      if (
+        userLat !== undefined &&
+        userLng !== undefined &&
+        a.distance !== b.distance
+      ) {
         return a.distance - b.distance;
-      });
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  async getTrending(limit: number = 10) {
+    const branches = await this.prisma.branch.findMany({
+      where: {
+        isActive: true,
+        isFeatured: true,
+        tenant: { isActive: true },
+      },
+      include: {
+        tenant: true,
+        roomTypes: {
+          orderBy: { basePrice: 'asc' },
+          take: 1,
+        },
+      },
+      take: limit,
+    });
+
+    return branches.map((branch) => ({
+      ...branch,
+      startingPrice: branch.roomTypes[0]?.basePrice || null,
+    }));
   }
 
   // Haversine formula

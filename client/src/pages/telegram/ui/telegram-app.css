@@ -2,7 +2,10 @@
   --tg-text: var(--tg-theme-text-color, #000000);
   --tg-hint: var(--tg-theme-hint-color, #999999);
   --tg-bg: var(--tg-theme-bg-color, #ffffff);
-  --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f7f7f8);
+  --tg-primary: #1890ff;
+  --tg-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --tg-radius: 12px;
 }
 
 body {
@@ -11,171 +14,283 @@ body {
   background-color: var(--tg-bg);
   color: var(--tg-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .tg-app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--tg-bg);
 }
 
-/* Discovery Layout */
-.tg-discovery-container {
+/* Sticky Header System */
+.tg-sticky-header {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1500;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.tg-header-top {
   display: flex;
-  flex-direction: column;
-  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.tg-header {
-  padding: 20px 16px 10px;
-}
-
-.tg-header h2 {
+.tg-header-top h2 {
+  font-size: 20px;
+  font-weight: 800;
   margin: 0;
-  font-size: 24px;
+  letter-spacing: -0.5px;
 }
 
-.tg-map-mini-wrapper {
-  height: 200px;
-  margin: 0 16px 16px;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid #d9d9d9;
+/* Premium Search Bar */
+.tg-search-wrapper {
+  margin-bottom: 12px;
 }
 
-.tg-relocate-fab {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
+.tg-search-input {
+  background: var(--tg-secondary-bg) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  font-size: 15px !important;
 }
 
-/* Hotel/Room Feed */
-.tg-hotel-feed {
-  padding: 0 16px 100px;
+.tg-search-input:focus, .tg-search-input-focused {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
 }
 
-.tg-hotel-item {
-  margin-bottom: 16px;
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
+/* Category Chips */
+.tg-categories-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
 }
 
-.tg-hotel-item:hover {
-  border-color: #40a9ff;
+.tg-categories-scroll::-webkit-scrollbar {
+  display: none;
 }
 
-.tg-hotel-item-image {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.tg-hotel-item-content {
-  padding: 12px;
-}
-
-.tg-hotel-item-title {
-  font-size: 16px;
+.tg-category-chip {
+  padding: 6px 16px;
+  background: var(--tg-secondary-bg);
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
-  margin: 0;
+  white-space: nowrap;
+  color: var(--tg-hint);
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
-.tg-hotel-item-price {
-  color: #1890ff;
+.tg-category-chip.active {
+  background: var(--tg-primary);
+  color: #fff;
+}
+
+/* Feed Container */
+.tg-feed-container {
+  padding: 16px;
+  padding-bottom: 120px;
+}
+
+.tg-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tg-section-header h3 {
+  margin: 0;
+  font-size: 18px;
   font-weight: 700;
 }
 
-.tg-hotel-item-sub {
-  color: #8c8c8c;
-  font-size: 13px;
-  margin-top: 4px;
+/* Premium Hotel Cards */
+.tg-hotel-card {
+  background: #fff;
+  border-radius: var(--tg-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--tg-shadow);
+  position: relative;
+  transition: transform 0.2s;
 }
 
-/* Step Content */
+.tg-hotel-card:active {
+  transform: scale(0.98);
+}
+
+.tg-hotel-image-container {
+  position: relative;
+  height: 200px;
+}
+
+.tg-hotel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tg-hotel-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tg-hotel-rating {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tg-hotel-details {
+  padding: 14px;
+}
+
+.tg-hotel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tg-hotel-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--tg-text);
+  flex: 1;
+}
+
+.tg-hotel-price-tag {
+  text-align: right;
+}
+
+.tg-price-amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--tg-primary);
+}
+
+.tg-price-unit {
+  font-size: 11px;
+  color: var(--tg-hint);
+  display: block;
+}
+
+.tg-hotel-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--tg-hint);
+}
+
+/* Map Toggle */
+.tg-map-toggle {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  font-size: 14px;
+}
+
+/* Map Preview (Collapsed Map) */
+.tg-map-preview {
+  height: 120px;
+  margin-bottom: 20px;
+  border-radius: var(--tg-radius);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Bottom Nav Redesign */
+.tg-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-around;
+  z-index: 2000;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tg-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c8c8c;
+  font-size: 10px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.tg-nav-item .anticon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.tg-nav-item.active {
+  color: var(--tg-primary);
+}
+
+/* Utility */
 .tg-step-content {
   padding: 16px;
   padding-bottom: 100px;
 }
 
 .tg-section-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 800;
   margin-bottom: 20px;
 }
 
-/* Standard Ant-like Date Box */
-.tg-date-box {
-  margin-bottom: 16px;
-}
-
-.tg-date-box label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #262626;
-}
-
-.tg-native-date {
-  width: 100%;
-  padding: 4px 11px;
-  border: 1px solid #d9d9d9;
-  border-radius: 2px;
-  font-size: 14px;
-  line-height: 1.5715;
-}
-
-.tg-native-date:focus {
-  border-color: #40a9ff;
-  border-right-width: 1px;
-  outline: 0;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-/* Success State */
-.tg-success-vibe {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.tg-success-icon {
-  font-size: 64px;
-  color: #52c41a;
-  margin-bottom: 24px;
-}
-
-.tg-conf-number {
-  background: #fafafa;
-  border: 1px solid #f0f0f0;
-  padding: 12px;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 20px;
-  font-weight: 600;
-  margin: 20px 0;
-}
-
-/* Sticky Footer */
-.tg-fixed-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
-  z-index: 1000;
-}
-
-.tg-main-button {
-  height: 40px;
-}
-
 .leaflet-container {
-  border-radius: 4px;
+  height: 100% !important;
+  width: 100% !important;
 }
+

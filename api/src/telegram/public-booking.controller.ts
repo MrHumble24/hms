@@ -19,19 +19,41 @@ export class PublicBookingController {
 
   /**
    * Find nearby hotels by location
-   * GET /public/hotels/nearby?lat=41.2995&lng=69.2401&radiusKm=50
+   * GET /public/hotels/nearby?lat=41.2995&lng=69.2401&radiusKm=50&search=Hotel
    */
   @Get('hotels/nearby')
   async findNearbyHotels(
-    @Query('lat') lat: string,
-    @Query('lng') lng: string,
+    @Query('lat') lat?: string,
+    @Query('lng') lng?: string,
     @Query('radiusKm') radiusKm?: string,
+    @Query('search') search?: string,
   ) {
     return this.publicHotelsService.findNearby(
-      parseFloat(lat),
-      parseFloat(lng),
+      lat ? parseFloat(lat) : undefined,
+      lng ? parseFloat(lng) : undefined,
       radiusKm ? parseFloat(radiusKm) : 50,
+      search,
     );
+  }
+
+  /**
+   * Get trending/featured hotels
+   * GET /public/hotels/trending
+   */
+  @Get('hotels/trending')
+  async getTrendingHotels(@Query('limit') limit?: string) {
+    return this.publicHotelsService.getTrending(
+      limit ? parseInt(limit, 10) : 10,
+    );
+  }
+
+  /**
+   * Get my bookings by Telegram ID
+   * GET /public/my-bookings/:tgId
+   */
+  @Get('my-bookings/:tgId')
+  async getMyBookings(@Param('tgId') tgId: string) {
+    return this.publicBookingService.getUserBookings(tgId);
   }
 
   /**

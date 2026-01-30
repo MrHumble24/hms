@@ -510,6 +510,8 @@ model Booking {
   restaurantOrders RestaurantOrder[]
   communications   GuestCommunication[]
 
+  telegramUserId String? // For Mini App tracking
+
   deletedAt            DateTime? // Soft delete
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
@@ -518,6 +520,7 @@ model Booking {
   @@index([branchId, checkIn, checkOut])
   @@index([tenantId, status])
   @@index([primaryGuestId])
+  @@index([telegramUserId])
   @@index([createdAt])
   @@index([deletedAt])
 }

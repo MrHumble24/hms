@@ -243,7 +243,8 @@ export class PublicBookingService {
           checkIn: checkInDate,
           checkOut: checkOutDate,
           status: BookingStatus.CONFIRMED,
-          source: BookingSource.WEBSITE, // We can add TELEGRAM later
+          source: BookingSource.TELEGRAM,
+          telegramUserId: dto.telegramUserId,
           roomStays: {
             create: {
               tenantId,
@@ -289,6 +290,53 @@ export class PublicBookingService {
         totalAmount: Number(dailyRate) * nights,
         currency: branch.currency,
         guest: `${guest.firstName} ${guest.lastName}`,
+      };
+    });
+  }
+
+  /**
+   * Get all bookings for a user by their Telegram ID
+   */
+  async getUserBookings(telegramUserId: string) {
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        telegramUserId,
+        deletedAt: null,
+      },
+      include: {
+        branch: true,
+        roomStays: {
+          include: {
+            room: {
+              include: {
+                type: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return bookings.map((booking) => {
+      const roomStay = booking.roomStays[0];
+      return {
+        id: booking.id,
+        confirmationNumber: booking.id.substring(0, 8).toUpperCase(),
+        hotelName: booking.branch.name,
+        address: booking.branch.address,
+        checkIn: booking.checkIn.toISOString(),
+        checkOut: booking.checkOut.toISOString(),
+        status: booking.status,
+        roomName: roomStay?.room?.type.name || 'N/A',
+        roomNumber: roomStay?.room?.number || 'TBD',
+        totalAmount: booking.roomStays.reduce(
+          (sum, rs) => sum + Number(rs.dailyRate),
+          0,
+        ),
+        currency: booking.branch.currency,
       };
     });
   }

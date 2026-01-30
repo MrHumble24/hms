@@ -9,6 +9,7 @@ import type {
   RoomTypeAvailability,
 } from "@/shared/api/public-booking-api";
 import type { BookingStep, BookingResult, GuestFormValues } from "../types";
+import type { TabType } from "../components/BottomNav";
 
 const DEFAULT_LOCATION = { lat: 41.2995, lng: 69.2401 }; // Tashkent
 
@@ -16,15 +17,22 @@ export function useBookingFlow() {
   const { haptic, showBackButton, hideBackButton, user, requestLocation } =
     useTelegram();
 
-  // State
+  // Navigation State
+  const [activeTab, setActiveTab] = useState<TabType>("explore");
   const [step, setStep] = useState<BookingStep>("map");
+
+  // Data State
   const [loading, setLoading] = useState(false);
   const [relocating, setRelocating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
   const [hotels, setHotels] = useState<NearbyHotel[]>([]);
+  const [trendingHotels, setTrendingHotels] = useState<NearbyHotel[]>([]);
+  const [myBookings, setMyBookings] = useState<any[]>([]);
+
   const [selectedHotel, setSelectedHotel] = useState<NearbyHotel | null>(null);
   const [checkIn, setCheckIn] = useState<dayjs.Dayjs | null>(null);
   const [checkOut, setCheckOut] = useState<dayjs.Dayjs | null>(null);
@@ -45,19 +53,58 @@ export function useBookingFlow() {
     ? [userLocation.lat, userLocation.lng]
     : [DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng];
 
-  // Load nearby hotels
-  const loadNearbyHotels = useCallback(async (lat: number, lng: number) => {
+  // Load nearby hotels (with optional search)
+  const loadNearbyHotels = useCallback(
+    async (lat?: number, lng?: number, search?: string) => {
+      try {
+        const data = await publicBookingApi.findNearbyHotels(
+          lat,
+          lng,
+          50,
+          search,
+        );
+        setHotels(data);
+      } catch (err) {
+        console.error("Failed to find hotels", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  // Load trending hotels
+  const loadTrendingData = useCallback(async () => {
     try {
-      const data = await publicBookingApi.findNearbyHotels(lat, lng);
-      setHotels(data);
+      const data = await publicBookingApi.findTrendingHotels();
+      setTrendingHotels(data);
     } catch (err) {
-      console.error("Failed to find hotels", err);
-    } finally {
-      setLoading(false);
+      console.error("Failed to load trending hotels", err);
     }
   }, []);
 
-  // Initialize location and load hotels
+  // Load user bookings
+  const loadUserBookings = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const data = await publicBookingApi.getMyBookings(user.id.toString());
+      setMyBookings(data);
+    } catch (err) {
+      console.error("Failed to load user bookings", err);
+    }
+  }, [user]);
+
+  // Handle Search
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      if (!userLocation) return;
+      loadNearbyHotels(userLocation.lat, userLocation.lng, query);
+    },
+    [userLocation, loadNearbyHotels],
+  );
+
+  // Initial load
   useEffect(() => {
     setLoading(true);
     requestLocation(
@@ -71,17 +118,25 @@ export function useBookingFlow() {
         loadNearbyHotels(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng);
       },
     );
+    loadTrendingData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run ONLY once on mount to avoid infinite loop with requestLocation
+  }, []);
+
+  // Effect: Load bookings when tab switches
+  useEffect(() => {
+    if (activeTab === "bookings") {
+      loadUserBookings();
+    }
+  }, [activeTab, loadUserBookings]);
 
   // Back button handling
   useEffect(() => {
-    if (step !== "map" && step !== "success") {
+    if (activeTab === "explore" && step !== "map" && step !== "success") {
       showBackButton(() => goBack());
     } else {
       hideBackButton();
     }
-  }, [step, showBackButton, hideBackButton]);
+  }, [step, activeTab, showBackButton, hideBackButton]);
 
   // Load hotel by ID
   const loadHotelById = useCallback(async (id: string) => {
@@ -247,11 +302,15 @@ export function useBookingFlow() {
 
   return {
     // State
+    activeTab,
     step,
     loading,
     relocating,
+    searchQuery,
     userLocation,
     hotels,
+    trendingHotels,
+    myBookings,
     selectedHotel,
     checkIn,
     checkOut,
@@ -263,11 +322,11 @@ export function useBookingFlow() {
     mapCenter,
     user,
 
-    // Setters
+    // Actions
+    setActiveTab,
+    handleSearch,
     setCheckIn,
     setCheckOut,
-
-    // Actions
     loadHotelById,
     handleMapClick,
     selectHotel,
@@ -279,5 +338,6 @@ export function useBookingFlow() {
     goBack,
     relocate,
     reset,
+    haptic,
   };
 }

@@ -90,13 +90,26 @@ const publicApi = axios.create({
 export const publicBookingApi = {
   // Find nearby hotels by location
   findNearbyHotels: async (
-    lat: number,
-    lng: number,
+    lat?: number,
+    lng?: number,
     radiusKm: number = 50,
+    search?: string,
   ): Promise<NearbyHotel[]> => {
     const { data } = await axios.get(`${API_URL}/public/hotels/nearby`, {
-      params: { lat, lng, radiusKm },
+      params: { lat, lng, radiusKm, search },
     });
+    return data;
+  },
+
+  findTrendingHotels: async (limit: number = 10): Promise<NearbyHotel[]> => {
+    const { data } = await axios.get(`${API_URL}/public/hotels/trending`, {
+      params: { limit },
+    });
+    return data;
+  },
+
+  getMyBookings: async (tgId: string): Promise<any[]> => {
+    const { data } = await axios.get(`${API_URL}/public/my-bookings/${tgId}`);
     return data;
   },
 
