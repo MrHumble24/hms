@@ -105,7 +105,10 @@ const TenantDetailsPage = Loadable(
   () => import("@/pages/admin/tenants/ui/tenant-details-page"),
   "TenantDetailsPage",
 );
-const LogsPage = Loadable(() => import("@/pages/admin/logs"), "LogsPage");
+const LogsPage = Loadable(
+  () => import("@/pages/admin/system-logs"),
+  "LogsPage",
+);
 
 const MaintenancePage = Loadable(
   () => import("@/pages/maintenance"),
