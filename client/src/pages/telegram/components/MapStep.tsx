@@ -1,7 +1,6 @@
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { Button, Spin } from "antd";
 import L from "leaflet";
-import { publicBookingApi } from "@/shared/api/public-booking-api";
 import type { NearbyHotel } from "@/shared/api/public-booking-api";
 import { useEffect } from "react";
 import { AimOutlined } from "@ant-design/icons";
@@ -23,7 +22,6 @@ interface MapStepProps {
   hotels: NearbyHotel[];
   loading: boolean;
   relocating: boolean;
-  onMapClick: (lat: number, lng: number) => void;
   onSelectHotel: (hotel: NearbyHotel) => void;
   onRelocate: () => void;
 }
@@ -31,7 +29,7 @@ interface MapStepProps {
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, 13);
+    map.setView(center, map.getZoom());
   }, [center, map]);
   return null;
 }
@@ -52,81 +50,87 @@ export function MapStep({
   onSelectHotel,
   onRelocate,
 }: MapStepProps) {
+  const createHotelMarker = (hotel: NearbyHotel) => {
+    const priceText = Number(hotel.startingPrice).toLocaleString();
+    return L.divIcon({
+      className: "hotel-marker-label",
+      html: `<div class="tg-map-price-tag">UZS ${priceText}</div>`,
+      iconSize: [80, 24],
+      iconAnchor: [40, 12],
+    });
+  };
+
   if (loading && hotels.length === 0) {
     return (
-      <div className="tg-loading">
+      <div
+        className="tg-loading"
+        style={{
+          height: "300px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Spin size="large" />
-        <p>Looking for hotels...</p>
+        <p style={{ marginTop: 12, color: "var(--tg-hint)" }}>Loading map...</p>
       </div>
     );
   }
 
   return (
-    <div className="tg-discovery-container">
-      <div className="tg-header">
-        <h2>Nearby Hotels</h2>
-        <p>
-          {hotels.length > 0
-            ? `Found ${hotels.length} places for you`
-            : "Searching your area..."}
-        </p>
-      </div>
+    <div style={{ height: "100%", width: "100%", position: "relative" }}>
+      <MapContainer
+        center={mapCenter}
+        zoom={13}
+        style={{ height: "100%", width: "100%" }}
+        zoomControl={false}
+        dragging={true}
+        trackResize={true}
+        touchZoom={true}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapUpdater center={mapCenter} />
 
-      <div className="tg-map-mini-wrapper">
-        <MapContainer
-          center={mapCenter}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-          zoomControl={false}
-          dragging={true}
-          touchZoom={true}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <MapUpdater center={mapCenter} />
-          {userLocation && (
-            <Marker
-              position={[userLocation.lat, userLocation.lng]}
-              icon={userMarkerIcon}
-            />
-          )}
-        </MapContainer>
-        <Button
-          className="tg-relocate-fab"
-          icon={<AimOutlined />}
-          loading={relocating}
-          onClick={onRelocate}
-        />
-      </div>
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userMarkerIcon}
+          />
+        )}
 
-      <div className="tg-hotel-feed">
         {hotels.map((hotel) => (
-          <div
+          <Marker
             key={hotel.id}
-            className="tg-hotel-item"
-            onClick={() => onSelectHotel(hotel)}
-          >
-            <img
-              src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
-              alt={hotel.name}
-              className="tg-hotel-item-image"
-            />
-            <div className="tg-hotel-item-content">
-              <div className="tg-hotel-item-top">
-                <h3 className="tg-hotel-item-title">{hotel.name}</h3>
-                {hotel.startingPrice && (
-                  <span className="tg-hotel-item-price">
-                    {hotel.currency} {hotel.startingPrice.toLocaleString()}
-                  </span>
-                )}
-              </div>
-              <div className="tg-hotel-item-sub">
-                📍 {hotel.distance.toFixed(1)} km ·{" "}
-                {hotel.address?.split(",")[0]}
-              </div>
-            </div>
-          </div>
+            position={[
+              Number(hotel.latitude || 0),
+              Number(hotel.longitude || 0),
+            ]}
+            icon={createHotelMarker(hotel)}
+            eventHandlers={{
+              click: () => onSelectHotel(hotel),
+            }}
+          />
         ))}
-      </div>
+      </MapContainer>
+
+      <Button
+        className="tg-relocate-fab"
+        icon={<AimOutlined />}
+        loading={relocating}
+        onClick={onRelocate}
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 1000,
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          border: "none",
+        }}
+      />
     </div>
   );
 }

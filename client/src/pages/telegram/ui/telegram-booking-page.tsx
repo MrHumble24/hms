@@ -5,6 +5,8 @@ import { Input, Empty, Tag } from "antd";
 import {
   SearchOutlined,
   EnvironmentOutlined,
+  GlobalOutlined,
+  UnorderedListOutlined,
   StarFilled,
   CalendarOutlined,
 } from "@ant-design/icons";
@@ -58,7 +60,6 @@ export const TelegramBookingPage = () => {
     setCheckIn,
     setCheckOut,
     loadHotelById,
-    handleMapClick,
     selectHotel,
     goToDates,
     checkAvailability,
@@ -251,9 +252,10 @@ export const TelegramBookingPage = () => {
 
             {viewMode === "map" ? (
               <div
+                className="tg-map-wrapper"
                 style={{
-                  height: "calc(100vh - 280px)",
-                  borderRadius: 12,
+                  height: "calc(100vh - 270px)",
+                  borderRadius: 16,
                   overflow: "hidden",
                 }}
               >
@@ -263,14 +265,13 @@ export const TelegramBookingPage = () => {
                   hotels={hotels}
                   loading={loading}
                   relocating={relocating}
-                  onMapClick={handleMapClick}
                   onSelectHotel={selectHotel}
                   onRelocate={relocate}
                 />
               </div>
             ) : (
               <>
-                <div className="tg-hotel-list">
+                <div className="tg-hotel-list" style={{ minHeight: "400px" }}>
                   {hotels.map((hotel: NearbyHotel) => (
                     <div
                       key={hotel.id}
@@ -322,7 +323,7 @@ export const TelegramBookingPage = () => {
                 <div
                   ref={observerTarget}
                   style={{
-                    height: 60,
+                    height: 80,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -352,24 +353,21 @@ export const TelegramBookingPage = () => {
             )}
           </div>
 
-          {/* Floating Toggle */}
-          <div
-            className="tg-map-toggle"
+          {/* Floating Toggle FAB */}
+          <button
+            className={`tg-view-toggle-fab ${viewMode === "map" ? "list" : "map"}`}
             onClick={() => {
               setViewMode((v) => (v === "list" ? "map" : "list"));
               haptic("medium");
             }}
           >
-            {viewMode === "list" ? (
-              <>
-                <EnvironmentOutlined /> Map View
-              </>
+            {viewMode === "map" ? (
+              <UnorderedListOutlined />
             ) : (
-              <>
-                <SearchOutlined /> List View
-              </>
+              <GlobalOutlined />
             )}
-          </div>
+            <span>{viewMode === "map" ? "Show List" : "Show Map"}</span>
+          </button>
         </div>
       );
     }
