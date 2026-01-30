@@ -96,4 +96,13 @@ export class PublicBookingController {
   async createBooking(@Body() dto: CreatePublicBookingDto) {
     return this.publicBookingService.createPublicBooking(dto);
   }
+
+  /**
+   * Cancel a booking (from Telegram or website)
+   * PATCH /public/bookings/:id/cancel?tgId=xxx
+   */
+  @Post('bookings/:id/cancel')
+  async cancelBooking(@Param('id') id: string, @Query('tgId') tgId: string) {
+    return this.publicBookingService.cancelPublicBooking(id, tgId);
+  }
 }

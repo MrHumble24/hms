@@ -327,6 +327,8 @@ export class PublicBookingService {
         confirmationNumber: booking.id.substring(0, 8).toUpperCase(),
         hotelName: booking.branch.name,
         address: booking.branch.address,
+        latitude: booking.branch.latitude,
+        longitude: booking.branch.longitude,
         checkIn: booking.checkIn.toISOString(),
         checkOut: booking.checkOut.toISOString(),
         status: booking.status,
@@ -337,6 +339,49 @@ export class PublicBookingService {
           0,
         ),
         currency: booking.branch.currency,
+      };
+    });
+  }
+
+  /**
+   * Cancel a booking (from Telegram or website)
+   */
+  async cancelPublicBooking(bookingId: string, telegramUserId: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: {
+        id: bookingId,
+        telegramUserId,
+        deletedAt: null,
+      },
+    });
+
+    if (!booking) {
+      throw new BadRequestException('Booking not found');
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Booking cannot be cancelled in status: ${booking.status}`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Update booking status
+      const updatedBooking = await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: BookingStatus.CANCELLED },
+      });
+
+      // Update all associated room stays
+      await tx.roomStay.updateMany({
+        where: { bookingId },
+        data: { status: RoomStayStatus.CANCELLED },
+      });
+
+      return {
+        success: true,
+        bookingId: updatedBooking.id,
+        status: updatedBooking.status,
       };
     });
   }

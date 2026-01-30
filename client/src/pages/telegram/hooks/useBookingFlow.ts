@@ -40,6 +40,7 @@ export function useBookingFlow() {
   const [hasMore, setHasMore] = useState(true);
 
   const [selectedHotel, setSelectedHotel] = useState<NearbyHotel | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [checkIn, setCheckIn] = useState<dayjs.Dayjs | null>(null);
   const [checkOut, setCheckOut] = useState<dayjs.Dayjs | null>(null);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(
@@ -204,6 +205,44 @@ export function useBookingFlow() {
     [haptic],
   );
 
+  // Select booking for details
+  const selectBooking = useCallback(
+    (booking: any) => {
+      setSelectedBooking(booking);
+      haptic("selection");
+    },
+    [haptic],
+  );
+
+  // Clear selected booking
+  const clearSelectedBooking = useCallback(() => {
+    setSelectedBooking(null);
+  }, []);
+
+  // Cancel booking
+  const cancelBooking = useCallback(
+    async (bookingId: string) => {
+      if (!user?.id) return;
+      setLoading(true);
+      haptic("medium");
+      try {
+        await publicBookingApi.cancelBooking(bookingId, user.id.toString());
+        message.success("Booking cancelled successfully");
+        haptic("success");
+        loadUserBookings();
+        setSelectedBooking(null);
+      } catch (err: any) {
+        haptic("error");
+        message.error(
+          err.response?.data?.message || "Failed to cancel booking",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, haptic, loadUserBookings],
+  );
+
   // Proceed to dates
   const goToDates = useCallback(() => {
     setStep("dates");
@@ -345,6 +384,7 @@ export function useBookingFlow() {
     trendingHotels,
     myBookings,
     selectedHotel,
+    selectedBooking,
     checkIn,
     checkOut,
     availability,
@@ -365,6 +405,9 @@ export function useBookingFlow() {
     loadHotelById,
     handleMapClick,
     selectHotel,
+    selectBooking,
+    clearSelectedBooking,
+    cancelBooking,
     goToDates,
     checkAvailability,
     selectRoom,

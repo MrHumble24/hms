@@ -142,6 +142,18 @@ export const publicBookingApi = {
     return data;
   },
 
+  // Cancel a booking
+  cancelBooking: async (bookingId: string, tgId: string): Promise<any> => {
+    const { data } = await publicApi.post(
+      `/bookings/${bookingId}/cancel`,
+      null,
+      {
+        params: { tgId },
+      },
+    );
+    return data;
+  },
+
   // Get hotel details by ID or slug
   getHotelDetails: async (idOrSlug: string): Promise<NearbyHotel> => {
     const { data } = await axios.get(`${API_URL}/public/hotels/${idOrSlug}`);

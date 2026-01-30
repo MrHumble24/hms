@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
-import { Input, Empty, Tag } from "antd";
+import { Input, Empty, Tag, Modal, Button } from "antd";
 import {
   SearchOutlined,
   EnvironmentOutlined,
@@ -9,6 +9,7 @@ import {
   UnorderedListOutlined,
   StarFilled,
   CalendarOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import "leaflet/dist/leaflet.css";
 import "./telegram-app.css";
@@ -44,6 +45,7 @@ export const TelegramBookingPage = () => {
     trendingHotels,
     myBookings,
     selectedHotel,
+    selectedBooking,
     checkIn,
     checkOut,
     availability,
@@ -61,6 +63,9 @@ export const TelegramBookingPage = () => {
     setCheckOut,
     loadHotelById,
     selectHotel,
+    selectBooking,
+    clearSelectedBooking,
+    cancelBooking,
     goToDates,
     checkAvailability,
     selectRoom,
@@ -119,6 +124,29 @@ export const TelegramBookingPage = () => {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const categories = ["All", "Nearby", "Trending", "Luxury", "Budget"];
+
+  const openInMaps = (lat: number, lng: number) => {
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+      "_blank",
+    );
+    haptic("light");
+  };
+
+  const showCancelConfirm = (bookingId: string) => {
+    Modal.confirm({
+      title: "Cancel Booking?",
+      icon: <ExclamationCircleOutlined />,
+      content:
+        "Are you sure you want to cancel this reservation? This action cannot be undone.",
+      okText: "Yes, Cancel",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        cancelBooking(bookingId);
+      },
+    });
+  };
 
   const renderExploreTab = () => {
     if (step === "map") {
@@ -449,7 +477,11 @@ export const TelegramBookingPage = () => {
         ) : (
           <div className="tg-hotel-list" style={{ padding: 0 }}>
             {myBookings.map((b: any) => (
-              <div key={b.id} className="tg-hotel-card">
+              <div
+                key={b.id}
+                className="tg-hotel-card"
+                onClick={() => selectBooking(b)}
+              >
                 <div className="tg-hotel-details" style={{ padding: 16 }}>
                   <div
                     style={{
@@ -462,7 +494,13 @@ export const TelegramBookingPage = () => {
                       {b.confirmationNumber}
                     </Tag>
                     <Tag
-                      color={b.status === "CONFIRMED" ? "green" : "default"}
+                      color={
+                        b.status === "CONFIRMED"
+                          ? "green"
+                          : b.status === "CANCELLED"
+                            ? "red"
+                            : "default"
+                      }
                       style={{ borderRadius: 6 }}
                     >
                       {b.status}
@@ -499,6 +537,191 @@ export const TelegramBookingPage = () => {
             ))}
           </div>
         )}
+
+        {/* Booking Details Modal */}
+        <Modal
+          open={!!selectedBooking}
+          onCancel={clearSelectedBooking}
+          footer={null}
+          closeIcon={null}
+          centered
+          width="90%"
+          styles={{
+            body: { padding: 0 },
+          }}
+        >
+          {selectedBooking && (
+            <div style={{ padding: 24 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>
+                  Booking Details
+                </h3>
+                <Tag
+                  color={
+                    selectedBooking.status === "CONFIRMED"
+                      ? "green"
+                      : selectedBooking.status === "CANCELLED"
+                        ? "red"
+                        : "default"
+                  }
+                  style={{ borderRadius: 6, margin: 0 }}
+                >
+                  {selectedBooking.status}
+                </Tag>
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <div
+                  style={{
+                    color: "var(--tg-hint)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  HOTEL
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 700, marginTop: 4 }}>
+                  {selectedBooking.hotelName}
+                </div>
+                <div
+                  style={{
+                    color: "var(--tg-hint)",
+                    fontSize: 13,
+                    marginTop: 2,
+                  }}
+                >
+                  {selectedBooking.address}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                  marginBottom: 24,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      color: "var(--tg-hint)",
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  >
+                    CHECK-IN
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>
+                    {dayjs(selectedBooking.checkIn).format("MMM D, YYYY")}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      color: "var(--tg-hint)",
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  >
+                    CHECK-OUT
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>
+                    {dayjs(selectedBooking.checkOut).format("MMM D, YYYY")}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <div
+                  style={{
+                    color: "var(--tg-hint)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  ROOM
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>
+                  {selectedBooking.roomName} • {selectedBooking.roomNumber}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "var(--tg-secondary-bg)",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 32,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>Total Paid</span>
+                <span
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: "var(--tg-primary)",
+                  }}
+                >
+                  {selectedBooking.currency}{" "}
+                  {Number(selectedBooking.totalAmount).toLocaleString()}
+                </span>
+              </div>
+
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+              >
+                {selectedBooking.latitude && selectedBooking.longitude && (
+                  <Button
+                    type="primary"
+                    icon={<EnvironmentOutlined />}
+                    size="large"
+                    block
+                    style={{ borderRadius: 10, height: 48, fontWeight: 700 }}
+                    onClick={() =>
+                      openInMaps(
+                        selectedBooking.latitude,
+                        selectedBooking.longitude,
+                      )
+                    }
+                  >
+                    Open in Maps
+                  </Button>
+                )}
+                {selectedBooking.status === "CONFIRMED" && (
+                  <Button
+                    danger
+                    size="large"
+                    block
+                    style={{ borderRadius: 10, height: 48, fontWeight: 700 }}
+                    onClick={() => showCancelConfirm(selectedBooking.id)}
+                    loading={loading}
+                  >
+                    Cancel Booking
+                  </Button>
+                )}
+                <Button
+                  size="large"
+                  block
+                  style={{ borderRadius: 10, height: 48, fontWeight: 700 }}
+                  onClick={clearSelectedBooking}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     );
   };
