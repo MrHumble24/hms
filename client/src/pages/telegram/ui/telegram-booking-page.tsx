@@ -133,23 +133,41 @@ export const TelegramBookingPage = () => {
     }
   }, [step]);
 
-  // Get user location on mount
+  // Get user location on mount and auto-search hotels
   useEffect(() => {
-    if (!userLocation && navigator.geolocation) {
+    if (navigator.geolocation) {
+      setLoading(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserLocation(loc);
+          // Auto-search for hotels
+          loadNearbyHotels(loc.lat, loc.lng);
         },
         () => {
           // Use default location if geolocation fails
           setUserLocation(defaultLocation);
+          loadNearbyHotels(defaultLocation.lat, defaultLocation.lng);
         },
+        { timeout: 10000, enableHighAccuracy: true },
       );
+    } else {
+      setUserLocation(defaultLocation);
+      loadNearbyHotels(defaultLocation.lat, defaultLocation.lng);
     }
   }, []);
+
+  // Load hotels without changing step
+  const loadNearbyHotels = async (lat: number, lng: number) => {
+    try {
+      const data = await publicBookingApi.findNearbyHotels(lat, lng);
+      setHotels(data);
+    } catch (err) {
+      console.error("Failed to find hotels", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadHotelById = async (id: string) => {
     setLoading(true);
@@ -164,30 +182,11 @@ export const TelegramBookingPage = () => {
     }
   };
 
-  const searchHotels = async (lat: number, lng: number) => {
-    setLoading(true);
-    setUserLocation({ lat, lng });
-    haptic("medium");
-    try {
-      const data = await publicBookingApi.findNearbyHotels(lat, lng);
-      setHotels(data);
-      setStep("hotels");
-    } catch (err) {
-      message.error("Failed to find hotels");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleMapClick = (lat: number, lng: number) => {
     setUserLocation({ lat, lng });
     haptic("light");
-  };
-
-  const handleSearchHere = () => {
-    if (userLocation) {
-      searchHotels(userLocation.lat, userLocation.lng);
-    }
+    // Auto-search when user taps on map
+    loadNearbyHotels(lat, lng);
   };
 
   const handleSelectHotel = (hotel: NearbyHotel) => {
@@ -304,7 +303,11 @@ export const TelegramBookingPage = () => {
         <div className="tg-map-container">
           <div className="tg-map-header">
             <h2>🏨 Find Hotels Near You</h2>
-            <p>Tap on the map or use your location</p>
+            <p>
+              {hotels.length > 0
+                ? `${hotels.length} hotels found`
+                : "Loading hotels..."}
+            </p>
           </div>
 
           <div className="tg-map-wrapper">
@@ -319,27 +322,120 @@ export const TelegramBookingPage = () => {
               />
               <MapUpdater center={mapCenter} />
               <MapClickHandler onLocationSelect={handleMapClick} />
+
+              {/* User location marker (blue) */}
               {userLocation && (
-                <Marker position={[userLocation.lat, userLocation.lng]}>
-                  <Popup>📍 Search here</Popup>
+                <Marker
+                  position={[userLocation.lat, userLocation.lng]}
+                  icon={L.divIcon({
+                    className: "user-marker",
+                    html: '<div style="background:#1677ff;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                  })}
+                >
+                  <Popup>📍 You are here</Popup>
                 </Marker>
+              )}
+
+              {/* Hotel markers */}
+              {hotels.map(
+                (hotel) =>
+                  hotel.latitude &&
+                  hotel.longitude && (
+                    <Marker
+                      key={hotel.id}
+                      position={[hotel.latitude, hotel.longitude]}
+                      icon={L.divIcon({
+                        className: "hotel-marker",
+                        html: `<div style="background:${hotel.isFeatured ? "#faad14" : "#52c41a"};color:white;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3)">${hotel.currency || ""} ${hotel.startingPrice?.toLocaleString() || "?"}</div>`,
+                        iconSize: [80, 24],
+                        iconAnchor: [40, 12],
+                      })}
+                    >
+                      <Popup>
+                        <div style={{ minWidth: 150 }}>
+                          <strong>{hotel.name}</strong>
+                          {hotel.starRating && (
+                            <div>{"⭐".repeat(hotel.starRating)}</div>
+                          )}
+                          <p
+                            style={{
+                              margin: "4px 0",
+                              fontSize: 12,
+                              color: "#666",
+                            }}
+                          >
+                            {hotel.address}
+                          </p>
+                          {hotel.startingPrice && (
+                            <p
+                              style={{
+                                margin: "4px 0",
+                                color: "#1677ff",
+                                fontWeight: 500,
+                              }}
+                            >
+                              From {hotel.currency}{" "}
+                              {hotel.startingPrice.toLocaleString()}/night
+                            </p>
+                          )}
+                          <Button
+                            type="primary"
+                            size="small"
+                            block
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectHotel(hotel);
+                            }}
+                            style={{ marginTop: 8 }}
+                          >
+                            Book Now
+                          </Button>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ),
               )}
             </MapContainer>
           </div>
 
-          <div className="tg-map-actions">
-            <Button
-              type="primary"
-              size="large"
-              block
-              icon={<EnvironmentOutlined />}
-              onClick={handleSearchHere}
-              loading={loading}
-              disabled={!userLocation}
-            >
-              Search Hotels Here
-            </Button>
-          </div>
+          {/* Hotels list below map */}
+          {hotels.length > 0 && (
+            <div className="tg-map-hotels">
+              <p className="tg-map-hotels-hint">
+                👇 Scroll to see all hotels or tap on map
+              </p>
+              {hotels.slice(0, 5).map((hotel) => (
+                <Card
+                  key={hotel.id}
+                  className="tg-map-hotel-card"
+                  size="small"
+                  hoverable
+                  onClick={() => handleSelectHotel(hotel)}
+                >
+                  <div className="tg-map-hotel-info">
+                    <div>
+                      <strong>{hotel.name}</strong>
+                      {hotel.isFeatured && (
+                        <Tag color="gold" style={{ marginLeft: 4 }}>
+                          Featured
+                        </Tag>
+                      )}
+                      <p style={{ margin: 0, fontSize: 12, color: "#666" }}>
+                        📍 {hotel.distance.toFixed(1)} km away
+                      </p>
+                    </div>
+                    {hotel.startingPrice && (
+                      <div className="tg-map-hotel-price">
+                        {hotel.currency} {hotel.startingPrice.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
