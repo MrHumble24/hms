@@ -572,13 +572,15 @@ export const TelegramBookingPage = () => {
       {activeTab === "bookings" && renderBookingsTab()}
       {activeTab === "profile" && renderProfileTab()}
 
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          haptic("light");
-        }}
-      />
+      {(step === "map" || activeTab !== "explore") && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            haptic("light");
+          }}
+        />
+      )}
     </div>
   );
 };

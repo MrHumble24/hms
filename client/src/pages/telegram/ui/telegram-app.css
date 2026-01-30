@@ -1,8 +1,9 @@
 :root {
-  --tg-text: var(--tg-theme-text-color, #000000);
-  --tg-hint: var(--tg-theme-hint-color, #999999);
-  --tg-bg: var(--tg-theme-bg-color, #ffffff);
-  --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f7f7f8);
+  /* Force Light Mode */
+  --tg-text: #000000;
+  --tg-hint: #999999;
+  --tg-bg: #ffffff;
+  --tg-secondary-bg: #f7f7f8;
   --tg-primary: #1890ff;
   --tg-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --tg-radius: 12px;
@@ -280,7 +281,7 @@ body {
 /* Utility */
 .tg-step-content {
   padding: 16px;
-  padding-bottom: 100px;
+  padding-bottom: 120px;
 }
 
 .tg-section-title {

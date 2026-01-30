@@ -13,7 +13,7 @@ export function GuestStep({ initialValues, onSubmit }: GuestStepProps) {
   const { haptic } = useTelegram();
 
   return (
-    <div className="tg-step-content" style={{ paddingBottom: 100 }}>
+    <div className="tg-step-content">
       <div className="tg-header-top" style={{ marginBottom: 32 }}>
         <h2 className="tg-section-title" style={{ margin: 0 }}>
           Guest Information
