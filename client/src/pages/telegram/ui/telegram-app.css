@@ -25,9 +25,19 @@
 
 .tg-map-header {
   padding: 16px;
-  text-align: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.tg-map-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tg-map-header-row > div {
+  text-align: left;
 }
 
 .tg-map-header h2 {
