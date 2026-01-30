@@ -243,9 +243,7 @@ export class PublicBookingService {
           checkIn: checkInDate,
           checkOut: checkOutDate,
           status: BookingStatus.CONFIRMED,
-          // @ts-ignore - Prisma types might be out of sync
           source: BookingSource.TELEGRAM,
-          // @ts-ignore
           telegramUserId: dto.telegramUserId,
           roomStays: {
             create: {
@@ -302,7 +300,6 @@ export class PublicBookingService {
   async getUserBookings(telegramUserId: string) {
     const bookings = await this.prisma.booking.findMany({
       where: {
-        // @ts-ignore
         telegramUserId,
         deletedAt: null,
       },
