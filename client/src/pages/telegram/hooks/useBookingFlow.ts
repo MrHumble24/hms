@@ -253,6 +253,7 @@ export function useBookingFlow() {
   const checkAvailability = useCallback(async () => {
     if (!selectedHotel || !checkIn || !checkOut) return;
     setLoading(true);
+    setStep("rooms");
     haptic("medium");
     try {
       const data = await publicBookingApi.checkAvailability(
@@ -261,8 +262,8 @@ export function useBookingFlow() {
         checkOut.format("YYYY-MM-DD"),
       );
       setAvailability(data);
-      setStep("rooms");
     } catch (err: any) {
+      setStep("dates");
       message.error(
         err.response?.data?.message || "Failed to check availability",
       );

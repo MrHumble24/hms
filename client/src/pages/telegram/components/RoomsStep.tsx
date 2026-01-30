@@ -1,4 +1,4 @@
-import { Tag, Empty, Button } from "antd";
+import { Tag, Empty, Button, Skeleton } from "antd";
 import { UserOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { publicBookingApi } from "@/shared/api/public-booking-api";
 import { useTelegram } from "@/shared/hooks/use-telegram";
@@ -8,11 +8,16 @@ import type {
 } from "@/shared/api/public-booking-api";
 
 interface RoomsStepProps {
-  availability: AvailabilityResponse;
+  availability: AvailabilityResponse | null;
+  loading?: boolean;
   onSelectRoom: (room: RoomTypeAvailability) => void;
 }
 
-export function RoomsStep({ availability, onSelectRoom }: RoomsStepProps) {
+export function RoomsStep({
+  availability,
+  loading,
+  onSelectRoom,
+}: RoomsStepProps) {
   const { haptic } = useTelegram();
 
   return (
@@ -21,16 +26,32 @@ export function RoomsStep({ availability, onSelectRoom }: RoomsStepProps) {
         <h2 className="tg-section-title" style={{ margin: 0 }}>
           Choice of Rooms
         </h2>
-        <Tag
-          color="blue"
-          style={{ borderRadius: 12, padding: "2px 10px", fontWeight: 600 }}
-        >
-          {availability.roomTypes.length} Available
-        </Tag>
+        {loading ? (
+          <Skeleton.Button active style={{ width: 100, height: 24 }} />
+        ) : (
+          <Tag
+            color="blue"
+            style={{ borderRadius: 12, padding: "2px 10px", fontWeight: 600 }}
+          >
+            {availability?.roomTypes.length || 0} Available
+          </Tag>
+        )}
       </div>
 
       <div className="tg-hotel-list" style={{ padding: 0 }}>
-        {availability.roomTypes.length === 0 ? (
+        {loading ? (
+          [1, 2].map((i) => (
+            <div key={i} className="tg-hotel-card">
+              <Skeleton.Button
+                active
+                style={{ width: "100%", height: 160, borderRadius: 0 }}
+              />
+              <div className="tg-hotel-details" style={{ padding: 16 }}>
+                <Skeleton active paragraph={{ rows: 3 }} />
+              </div>
+            </div>
+          ))
+        ) : !availability || availability.roomTypes.length === 0 ? (
           <Empty
             description="No rooms available for these dates"
             style={{ marginTop: 40 }}

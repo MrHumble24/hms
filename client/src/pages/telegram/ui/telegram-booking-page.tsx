@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
-import { Input, Empty, Tag, Modal, Button } from "antd";
+import { Input, Empty, Tag, Modal, Button, Skeleton } from "antd";
 import {
   SearchOutlined,
   EnvironmentOutlined,
@@ -213,53 +213,78 @@ export const TelegramBookingPage = () => {
                     <h3>Trending</h3>
                   </div>
                   <div className="tg-trending-scroll">
-                    {trendingHotels.map((hotel: NearbyHotel) => (
-                      <div
-                        key={hotel.id}
-                        className="tg-trending-card"
-                        onClick={() => selectHotel(hotel)}
-                      >
-                        <img
-                          src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
-                          alt={hotel.name}
-                          className="tg-trending-image"
-                        />
-                        <div
-                          className="tg-trending-content"
-                          style={{ padding: 10 }}
-                        >
-                          <h4
-                            className="tg-trending-title"
-                            style={{ fontSize: 13 }}
-                          >
-                            {hotel.name}
-                          </h4>
+                    {loading
+                      ? [1, 2, 3].map((i) => (
                           <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              marginTop: 4,
-                            }}
+                            key={i}
+                            className="tg-trending-card"
+                            style={{ minWidth: 140 }}
                           >
-                            <span
+                            <Skeleton.Button
+                              active
                               style={{
-                                fontSize: 11,
-                                color: "var(--tg-hint)",
-                                fontWeight: 600,
+                                width: 140,
+                                height: 100,
+                                borderRadius: 12,
                               }}
-                            >
-                              UZS {Number(hotel.startingPrice).toLocaleString()}
-                            </span>
-                            {hotel.starRating && (
-                              <span style={{ fontSize: 11, fontWeight: 700 }}>
-                                <StarFilled style={{ color: "#faad14" }} />{" "}
-                                {hotel.starRating}
-                              </span>
-                            )}
+                            />
+                            <div style={{ padding: 10 }}>
+                              <Skeleton active paragraph={{ rows: 1 }} />
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        ))
+                      : trendingHotels.map((hotel: NearbyHotel) => (
+                          <div
+                            key={hotel.id}
+                            className="tg-trending-card"
+                            onClick={() => selectHotel(hotel)}
+                          >
+                            <img
+                              src={publicBookingApi.resolveImageUrl(
+                                hotel.logoUrl,
+                              )}
+                              alt={hotel.name}
+                              className="tg-trending-image"
+                            />
+                            <div
+                              className="tg-trending-content"
+                              style={{ padding: 10 }}
+                            >
+                              <h4
+                                className="tg-trending-title"
+                                style={{ fontSize: 13 }}
+                              >
+                                {hotel.name}
+                              </h4>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  marginTop: 4,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: 11,
+                                    color: "var(--tg-hint)",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  UZS{" "}
+                                  {Number(hotel.startingPrice).toLocaleString()}
+                                </span>
+                                {hotel.starRating && (
+                                  <span
+                                    style={{ fontSize: 11, fontWeight: 700 }}
+                                  >
+                                    <StarFilled style={{ color: "#faad14" }} />{" "}
+                                    {hotel.starRating}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                   </div>
                 </div>
               )}
@@ -300,51 +325,71 @@ export const TelegramBookingPage = () => {
             ) : (
               <>
                 <div className="tg-hotel-list" style={{ minHeight: "400px" }}>
-                  {hotels.map((hotel: NearbyHotel) => (
-                    <div
-                      key={hotel.id}
-                      className="tg-hotel-card"
-                      onClick={() => selectHotel(hotel)}
-                    >
-                      <div className="tg-hotel-image-container">
-                        <img
-                          src={publicBookingApi.resolveImageUrl(hotel.logoUrl)}
-                          alt={hotel.name}
-                          className="tg-hotel-image"
-                        />
-                        <div className="tg-hotel-badge">
-                          {hotel.isFeatured ? "HOT" : "PROMO"}
-                        </div>
-                        <div className="tg-hotel-rating">
-                          <StarFilled style={{ color: "#faad14" }} />
-                          <span>{hotel.starRating || 4.5}</span>
-                        </div>
-                      </div>
-                      <div className="tg-hotel-details">
-                        <div className="tg-hotel-row">
-                          <h4 className="tg-hotel-name">{hotel.name}</h4>
-                          <div className="tg-hotel-price-tag">
-                            <span className="tg-price-amount">
-                              {Number(hotel.startingPrice).toLocaleString()}
-                            </span>
-                            <span className="tg-price-unit">UZS / night</span>
+                  {loading && hotels.length === 0
+                    ? [1, 2, 3].map((i) => (
+                        <div key={i} className="tg-hotel-card">
+                          <Skeleton.Button
+                            active
+                            style={{
+                              width: "100%",
+                              height: 200,
+                              borderRadius: 0,
+                            }}
+                          />
+                          <div className="tg-hotel-details">
+                            <Skeleton active paragraph={{ rows: 2 }} />
                           </div>
                         </div>
-                        <div className="tg-hotel-meta">
-                          <span>
-                            <EnvironmentOutlined />{" "}
-                            {hotel.address?.split(",")[0]}
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {hotel.distance
-                              ? `${hotel.distance.toFixed(1)} km`
-                              : "< 1 km"}
-                          </span>
+                      ))
+                    : hotels.map((hotel: NearbyHotel) => (
+                        <div
+                          key={hotel.id}
+                          className="tg-hotel-card"
+                          onClick={() => selectHotel(hotel)}
+                        >
+                          <div className="tg-hotel-image-container">
+                            <img
+                              src={publicBookingApi.resolveImageUrl(
+                                hotel.logoUrl,
+                              )}
+                              alt={hotel.name}
+                              className="tg-hotel-image"
+                            />
+                            <div className="tg-hotel-badge">
+                              {hotel.isFeatured ? "HOT" : "PROMO"}
+                            </div>
+                            <div className="tg-hotel-rating">
+                              <StarFilled style={{ color: "#faad14" }} />
+                              <span>{hotel.starRating || 4.5}</span>
+                            </div>
+                          </div>
+                          <div className="tg-hotel-details">
+                            <div className="tg-hotel-row">
+                              <h4 className="tg-hotel-name">{hotel.name}</h4>
+                              <div className="tg-hotel-price-tag">
+                                <span className="tg-price-amount">
+                                  {Number(hotel.startingPrice).toLocaleString()}
+                                </span>
+                                <span className="tg-price-unit">
+                                  UZS / night
+                                </span>
+                              </div>
+                            </div>
+                            <div className="tg-hotel-meta">
+                              <span>
+                                <EnvironmentOutlined />{" "}
+                                {hotel.address?.split(",")[0]}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {hotel.distance
+                                  ? `${hotel.distance.toFixed(1)} km`
+                                  : "< 1 km"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      ))}
                 </div>
 
                 {/* Infinite Scroll Trigger */}
@@ -417,9 +462,13 @@ export const TelegramBookingPage = () => {
       );
     }
 
-    if (step === "rooms" && availability) {
+    if (step === "rooms") {
       return (
-        <RoomsStep availability={availability} onSelectRoom={selectRoom} />
+        <RoomsStep
+          availability={availability}
+          loading={loading}
+          onSelectRoom={selectRoom}
+        />
       );
     }
 
@@ -476,65 +525,77 @@ export const TelegramBookingPage = () => {
           />
         ) : (
           <div className="tg-hotel-list" style={{ padding: 0 }}>
-            {myBookings.map((b: any) => (
-              <div
-                key={b.id}
-                className="tg-hotel-card"
-                onClick={() => selectBooking(b)}
-              >
-                <div className="tg-hotel-details" style={{ padding: 16 }}>
+            {loading
+              ? [1, 2].map((i) => (
+                  <div key={i} className="tg-hotel-card">
+                    <div className="tg-hotel-details" style={{ padding: 16 }}>
+                      <Skeleton active paragraph={{ rows: 3 }} />
+                    </div>
+                  </div>
+                ))
+              : myBookings.map((b: any) => (
                   <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 12,
-                    }}
+                    key={b.id}
+                    className="tg-hotel-card"
+                    onClick={() => selectBooking(b)}
                   >
-                    <Tag color="blue" style={{ borderRadius: 6 }}>
-                      {b.confirmationNumber}
-                    </Tag>
-                    <Tag
-                      color={
-                        b.status === "CONFIRMED"
-                          ? "green"
-                          : b.status === "CANCELLED"
-                            ? "red"
-                            : "default"
-                      }
-                      style={{ borderRadius: 6 }}
-                    >
-                      {b.status}
-                    </Tag>
+                    <div className="tg-hotel-details" style={{ padding: 16 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 12,
+                        }}
+                      >
+                        <Tag color="blue" style={{ borderRadius: 6 }}>
+                          {b.confirmationNumber}
+                        </Tag>
+                        <Tag
+                          color={
+                            b.status === "CONFIRMED"
+                              ? "green"
+                              : b.status === "CANCELLED"
+                                ? "red"
+                                : "default"
+                          }
+                          style={{ borderRadius: 6 }}
+                        >
+                          {b.status}
+                        </Tag>
+                      </div>
+                      <h3 className="tg-hotel-name" style={{ fontSize: 18 }}>
+                        {b.hotelName}
+                      </h3>
+                      <div className="tg-hotel-meta" style={{ marginTop: 8 }}>
+                        <span>
+                          <CalendarOutlined />{" "}
+                          {dayjs(b.checkIn).format("MMM D")} -{" "}
+                          {dayjs(b.checkOut).format("MMM D, YYYY")}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 16,
+                          paddingTop: 16,
+                          borderTop: "1px solid var(--tg-secondary-bg)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>
+                          {b.roomName} • {b.roomNumber}
+                        </span>
+                        <span
+                          className="tg-price-amount"
+                          style={{ fontSize: 16 }}
+                        >
+                          {b.currency} {Number(b.totalAmount).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="tg-hotel-name" style={{ fontSize: 18 }}>
-                    {b.hotelName}
-                  </h3>
-                  <div className="tg-hotel-meta" style={{ marginTop: 8 }}>
-                    <span>
-                      <CalendarOutlined /> {dayjs(b.checkIn).format("MMM D")} -{" "}
-                      {dayjs(b.checkOut).format("MMM D, YYYY")}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 16,
-                      paddingTop: 16,
-                      borderTop: "1px solid var(--tg-secondary-bg)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>
-                      {b.roomName} • {b.roomNumber}
-                    </span>
-                    <span className="tg-price-amount" style={{ fontSize: 16 }}>
-                      {b.currency} {Number(b.totalAmount).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                ))}
           </div>
         )}
 
