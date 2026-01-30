@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 declare global {
   interface Window {
@@ -144,126 +144,142 @@ export const useTelegram = () => {
     }
   }, []);
 
-  const haptic = (
-    type:
-      | "light"
-      | "medium"
-      | "heavy"
-      | "success"
-      | "error"
-      | "warning"
-      | "selection",
-  ) => {
-    if (!webApp?.HapticFeedback) return;
+  const haptic = useCallback(
+    (
+      type:
+        | "light"
+        | "medium"
+        | "heavy"
+        | "success"
+        | "error"
+        | "warning"
+        | "selection",
+    ) => {
+      if (!webApp?.HapticFeedback) return;
 
-    if (type === "selection") {
-      webApp.HapticFeedback.selectionChanged();
-    } else if (["success", "error", "warning"].includes(type)) {
-      webApp.HapticFeedback.notificationOccurred(
-        type as "success" | "error" | "warning",
-      );
-    } else {
-      webApp.HapticFeedback.impactOccurred(
-        type as "light" | "medium" | "heavy",
-      );
-    }
-  };
+      if (type === "selection") {
+        webApp.HapticFeedback.selectionChanged();
+      } else if (["success", "error", "warning"].includes(type)) {
+        webApp.HapticFeedback.notificationOccurred(
+          type as "success" | "error" | "warning",
+        );
+      } else {
+        webApp.HapticFeedback.impactOccurred(
+          type as "light" | "medium" | "heavy",
+        );
+      }
+    },
+    [webApp],
+  );
 
-  const showMainButton = (text: string, onClick: () => void) => {
-    if (!webApp?.MainButton) return;
-    webApp.MainButton.setText(text);
-    webApp.MainButton.onClick(onClick);
-    webApp.MainButton.show();
-  };
+  const showMainButton = useCallback(
+    (text: string, onClick: () => void) => {
+      if (!webApp?.MainButton) return;
+      webApp.MainButton.setText(text);
+      webApp.MainButton.onClick(onClick);
+      webApp.MainButton.show();
+    },
+    [webApp],
+  );
 
-  const hideMainButton = () => {
+  const hideMainButton = useCallback(() => {
     webApp?.MainButton?.hide();
-  };
+  }, [webApp]);
 
-  const showBackButton = (onClick: () => void) => {
-    if (!webApp?.BackButton) return;
-    webApp.BackButton.onClick(onClick);
-    webApp.BackButton.show();
-  };
+  const showBackButton = useCallback(
+    (onClick: () => void) => {
+      if (!webApp?.BackButton) return;
+      webApp.BackButton.onClick(onClick);
+      webApp.BackButton.show();
+    },
+    [webApp],
+  );
 
-  const hideBackButton = () => {
+  const hideBackButton = useCallback(() => {
     webApp?.BackButton?.hide();
-  };
+  }, [webApp]);
 
-  const sendDataToBot = (data: object) => {
-    webApp?.sendData(JSON.stringify(data));
-  };
+  const sendDataToBot = useCallback(
+    (data: object) => {
+      webApp?.sendData(JSON.stringify(data));
+    },
+    [webApp],
+  );
 
-  const closeApp = () => {
-    webApp?.close();
-  };
+  const closeApp = useCallback(() => {
+    const tg = webApp || window.Telegram?.WebApp;
+    tg?.close();
+  }, [webApp]);
 
   // Get hotel ID from start_param (passed from bot)
-  const getStartParam = () => {
+  const getStartParam = useCallback(() => {
     return webApp?.initDataUnsafe?.start_param || null;
-  };
+  }, [webApp]);
 
   // Request location using Telegram's LocationManager or fallback to browser
-  const requestLocation = (
-    onSuccess: (lat: number, lng: number) => void,
-    onError: (error: string) => void,
-  ) => {
-    // Try Telegram's LocationManager first (available in newer versions)
-    if (webApp?.LocationManager) {
-      const lm = webApp.LocationManager;
+  const requestLocation = useCallback(
+    (
+      onSuccess: (lat: number, lng: number) => void,
+      onError: (error: string) => void,
+    ) => {
+      // Try Telegram's LocationManager first (available in newer versions)
+      if (webApp?.LocationManager) {
+        const lm = webApp.LocationManager;
 
-      // Initialize if needed
-      if (!lm.isInited) {
-        lm.init(() => {
-          if (lm.isLocationAvailable && lm.isAccessGranted) {
-            lm.getLocation((location) => {
-              if (location) {
-                onSuccess(location.latitude, location.longitude);
-              } else {
-                onError("Could not get location from Telegram");
-              }
-            });
-          } else if (!lm.isAccessGranted) {
-            // Need to request access - show settings
-            lm.openSettings();
-            onError("Please grant location access in settings");
-          } else {
-            onError("Location not available");
-          }
-        });
-      } else if (lm.isAccessGranted) {
-        lm.getLocation((location) => {
-          if (location) {
-            onSuccess(location.latitude, location.longitude);
-          } else {
-            onError("Could not get location");
-          }
-        });
-      } else {
-        lm.openSettings();
-        onError("Please grant location access");
+        // Initialize if needed
+        if (!lm.isInited) {
+          lm.init(() => {
+            if (lm.isLocationAvailable && lm.isAccessGranted) {
+              lm.getLocation((location) => {
+                if (location) {
+                  onSuccess(location.latitude, location.longitude);
+                } else {
+                  onError("Could not get location from Telegram");
+                }
+              });
+            } else if (!lm.isAccessGranted) {
+              // Need to request access - show settings
+              lm.openSettings();
+              onError("Please grant location access in settings");
+            } else {
+              onError("Location not available");
+            }
+          });
+        } else if (lm.isAccessGranted) {
+          lm.getLocation((location) => {
+            if (location) {
+              onSuccess(location.latitude, location.longitude);
+            } else {
+              onError("Could not get location");
+            }
+          });
+        } else {
+          lm.openSettings();
+          onError("Please grant location access");
+        }
+        return;
       }
-      return;
-    }
 
-    // Fallback to browser geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          onSuccess(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          onError(
-            "Could not get your location. Please share location via the bot.",
-          );
-        },
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-    } else {
-      onError("Location not supported. Please share location via the bot.");
-    }
-  };
+      // Fallback to browser geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            onSuccess(position.coords.latitude, position.coords.longitude);
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            onError(
+              "Could not get your location. Please share location via the bot.",
+            );
+          },
+          { enableHighAccuracy: true, timeout: 10000 },
+        );
+      } else {
+        onError("Location not supported. Please share location via the bot.");
+      }
+    },
+    [webApp],
+  );
 
   return {
     webApp,

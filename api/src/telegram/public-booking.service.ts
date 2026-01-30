@@ -30,7 +30,10 @@ export class PublicBookingService {
         'Check-out date must be after check-in date',
       );
     }
-    if (checkInDate < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (checkInDate < today) {
       throw new BadRequestException('Check-in date cannot be in the past');
     }
 
@@ -116,7 +119,17 @@ export class PublicBookingService {
     const checkInDate = new Date(dto.checkIn);
     const checkOutDate = new Date(dto.checkOut);
 
-    // Get branch and tenant
+    // Validate dates
+    if (checkInDate >= checkOutDate) {
+      throw new BadRequestException(
+        'Check-out date must be after check-in date',
+      );
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (checkInDate < today) {
+      throw new BadRequestException('Check-in date cannot be in the past');
+    }
     const branch = await this.prisma.branch.findUnique({
       where: { id: dto.branchId },
       include: { tenant: true },

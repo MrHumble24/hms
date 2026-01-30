@@ -1,4 +1,4 @@
-import { Button, Card, Divider } from "antd";
+import { Button, Divider } from "antd";
 import dayjs from "dayjs";
 import type {
   NearbyHotel,
@@ -29,44 +29,114 @@ export function ConfirmStep({
   onConfirm,
 }: ConfirmStepProps) {
   return (
-    <div className="tg-confirm-section">
-      <div className="tg-section-header">
+    <div className="tg-discovery-container">
+      <div className="tg-header">
         <h2>Confirm Booking</h2>
+        <p>Please review your stay details</p>
       </div>
 
-      <Card className="tg-summary-card">
-        <h3>{hotel.name}</h3>
-        <Divider />
-        <p>
-          <strong>Room:</strong> {room.name}
-        </p>
-        <p>
-          <strong>Check-in:</strong> {checkIn.format("DD MMM YYYY")}
-        </p>
-        <p>
-          <strong>Check-out:</strong> {checkOut.format("DD MMM YYYY")}
-        </p>
-        <p>
-          <strong>Nights:</strong> {nights}
-        </p>
-        <Divider />
-        <div className="tg-total-price">
-          <span>Total</span>
-          <strong>
-            {currency} {totalPrice.toLocaleString()}
-          </strong>
-        </div>
-      </Card>
+      <div className="tg-step-content">
+        <div
+          className="tg-date-box"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--tg-secondary-bg)",
+          }}
+        >
+          <h3 style={{ margin: "0 0 16px", fontSize: 18 }}>{hotel.name}</h3>
 
-      <Button
-        type="primary"
-        size="large"
-        block
-        onClick={onConfirm}
-        loading={loading}
-      >
-        Confirm Booking
-      </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <span style={{ color: "var(--tg-hint)" }}>Room Type</span>
+            <span style={{ fontWeight: 600 }}>{room.name}</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <span style={{ color: "var(--tg-hint)" }}>Check-in</span>
+            <span style={{ fontWeight: 600 }}>
+              {checkIn.format("DD MMM YYYY")}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <span style={{ color: "var(--tg-hint)" }}>Check-out</span>
+            <span style={{ fontWeight: 600 }}>
+              {checkOut.format("DD MMM YYYY")}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <span style={{ color: "var(--tg-hint)" }}>Duration</span>
+            <span style={{ fontWeight: 600 }}>
+              {nights} night{nights > 1 ? "s" : ""}
+            </span>
+          </div>
+
+          <Divider style={{ margin: "16px 0" }} />
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: 16, fontWeight: 700 }}>Total Price</span>
+            <span
+              style={{ fontSize: 20, fontWeight: 800, color: "var(--tg-link)" }}
+            >
+              {currency} {totalPrice.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <p
+          style={{
+            fontSize: 12,
+            color: "var(--tg-hint)",
+            textAlign: "center",
+            marginTop: 20,
+          }}
+        >
+          By tapping the button below, you agree to our booking terms and
+          conditions.
+        </p>
+      </div>
+
+      <div className="tg-fixed-footer">
+        <Button
+          type="primary"
+          className="tg-main-button"
+          block
+          onClick={onConfirm}
+          loading={loading}
+        >
+          Confirm Reservation
+        </Button>
+      </div>
     </div>
   );
 }

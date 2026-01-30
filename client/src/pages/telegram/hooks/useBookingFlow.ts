@@ -13,7 +13,8 @@ import type { BookingStep, BookingResult, GuestFormValues } from "../types";
 const DEFAULT_LOCATION = { lat: 41.2995, lng: 69.2401 }; // Tashkent
 
 export function useBookingFlow() {
-  const { haptic, showBackButton, hideBackButton, user } = useTelegram();
+  const { haptic, showBackButton, hideBackButton, user, requestLocation } =
+    useTelegram();
 
   // State
   const [step, setStep] = useState<BookingStep>("map");
@@ -44,37 +45,6 @@ export function useBookingFlow() {
     ? [userLocation.lat, userLocation.lng]
     : [DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng];
 
-  // Initialize location and load hotels
-  useEffect(() => {
-    if (navigator.geolocation) {
-      setLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserLocation(loc);
-          loadNearbyHotels(loc.lat, loc.lng);
-        },
-        () => {
-          setUserLocation(DEFAULT_LOCATION);
-          loadNearbyHotels(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng);
-        },
-        { timeout: 10000, enableHighAccuracy: true },
-      );
-    } else {
-      setUserLocation(DEFAULT_LOCATION);
-      loadNearbyHotels(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng);
-    }
-  }, []);
-
-  // Back button handling
-  useEffect(() => {
-    if (step !== "map" && step !== "success") {
-      showBackButton(() => goBack());
-    } else {
-      hideBackButton();
-    }
-  }, [step]);
-
   // Load nearby hotels
   const loadNearbyHotels = useCallback(async (lat: number, lng: number) => {
     try {
@@ -86,6 +56,32 @@ export function useBookingFlow() {
       setLoading(false);
     }
   }, []);
+
+  // Initialize location and load hotels
+  useEffect(() => {
+    setLoading(true);
+    requestLocation(
+      (lat: number, lng: number) => {
+        const loc = { lat, lng };
+        setUserLocation(loc);
+        loadNearbyHotels(lat, lng);
+      },
+      () => {
+        setUserLocation(DEFAULT_LOCATION);
+        loadNearbyHotels(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng);
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run ONLY once on mount to avoid infinite loop with requestLocation
+
+  // Back button handling
+  useEffect(() => {
+    if (step !== "map" && step !== "success") {
+      showBackButton(() => goBack());
+    } else {
+      hideBackButton();
+    }
+  }, [step, showBackButton, hideBackButton]);
 
   // Load hotel by ID
   const loadHotelById = useCallback(async (id: string) => {
@@ -209,7 +205,7 @@ export function useBookingFlow() {
     haptic("light");
     const backMap: Record<BookingStep, BookingStep> = {
       map: "map",
-      hotel: hotels.length > 0 ? "map" : "map",
+      hotel: "map",
       dates: "hotel",
       rooms: "dates",
       guest: "rooms",
@@ -217,32 +213,26 @@ export function useBookingFlow() {
       success: "map",
     };
     setStep(backMap[step]);
-  }, [step, hotels.length, haptic]);
+  }, [step, haptic]);
 
   // Relocate user - re-detect GPS location
   const relocate = useCallback(() => {
-    if (!navigator.geolocation) {
-      message.error("Geolocation not supported");
-      return;
-    }
     setRelocating(true);
     haptic("medium");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    requestLocation(
+      (lat: number, lng: number) => {
+        const loc = { lat, lng };
         setUserLocation(loc);
-        loadNearbyHotels(loc.lat, loc.lng);
+        loadNearbyHotels(lat, lng);
         setRelocating(false);
         message.success("Location updated!");
       },
-      (err) => {
+      (err: string) => {
         setRelocating(false);
-        message.error("Failed to get location. Please try again.");
-        console.error("Geolocation error:", err);
+        message.error(err);
       },
-      { timeout: 10000, enableHighAccuracy: true },
     );
-  }, [haptic, loadNearbyHotels]);
+  }, [haptic, loadNearbyHotels, requestLocation]);
 
   // Reset flow
   const reset = useCallback(() => {

@@ -1,5 +1,6 @@
-import { Card } from "antd";
-import { CheckCircleOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import { CheckCircleFilled } from "@ant-design/icons";
+import { useTelegram } from "@/shared/hooks/use-telegram";
 import type { BookingResult } from "../types";
 
 interface SuccessStepProps {
@@ -7,30 +8,44 @@ interface SuccessStepProps {
 }
 
 export function SuccessStep({ result }: SuccessStepProps) {
+  const { closeApp } = useTelegram();
+
   return (
-    <div className="tg-success-section">
-      <CheckCircleOutlined style={{ fontSize: 64, color: "#52c41a" }} />
-      <h2>Booking Confirmed!</h2>
+    <div className="tg-discovery-container">
+      <div className="tg-success-vibe">
+        <CheckCircleFilled className="tg-success-icon" />
+        <h2>Reservation Ready!</h2>
+        <p style={{ color: "var(--tg-hint)", fontSize: 16 }}>
+          Your room at <strong>{result.hotel}</strong> has been secured. See you
+          soon!
+        </p>
 
-      <div className="tg-confirmation-code">{result.confirmationNumber}</div>
+        <div className="tg-conf-number">{result.confirmationNumber}</div>
 
-      <Card className="tg-summary-card">
-        <p>
-          <strong>Hotel:</strong> {result.hotel}
-        </p>
-        <p>
-          <strong>Room:</strong> {result.room}
-        </p>
-        <p>
-          <strong>Nights:</strong> {result.nights}
-        </p>
-        <p>
-          <strong>Total:</strong> {result.currency}{" "}
-          {result.totalAmount.toLocaleString()}
-        </p>
-      </Card>
+        <div className="tg-date-box" style={{ textAlign: "left" }}>
+          <div style={{ marginBottom: 8 }}>
+            <span style={{ color: "var(--tg-hint)" }}>Room: </span>
+            <span style={{ fontWeight: 600 }}>{result.room}</span>
+          </div>
+          <div>
+            <span style={{ color: "var(--tg-hint)" }}>Stays: </span>
+            <span style={{ fontWeight: 600 }}>
+              {result.nights} night{result.nights > 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+      </div>
 
-      <p className="tg-success-note">Show this confirmation at the hotel</p>
+      <div className="tg-fixed-footer">
+        <Button
+          type="primary"
+          className="tg-main-button"
+          block
+          onClick={closeApp}
+        >
+          Great, Thank You!
+        </Button>
+      </div>
     </div>
   );
 }

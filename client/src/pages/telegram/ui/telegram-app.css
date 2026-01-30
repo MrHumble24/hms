@@ -1,362 +1,252 @@
-/* Telegram Mini App Styles */
-.tg-app {
-  min-height: 100vh;
-  background: var(--tg-theme-bg-color, #ffffff);
-  color: var(--tg-theme-text-color, #000000);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+:root {
+  --tg-text: var(--tg-theme-text-color, #000000);
+  --tg-hint: var(--tg-theme-hint-color, #999999);
+  --tg-bg: var(--tg-theme-bg-color, #ffffff);
+  --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  --tg-link: var(--tg-theme-link-color, #2481cc);
+  --tg-button: var(--tg-theme-button-color, #2481cc);
+  --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
 }
 
-/* Loading */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tg-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Minimalist Loading */
 .tg-loading {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  gap: 16px;
+  padding: 40px;
 }
 
-/* Map Container */
-.tg-map-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.tg-map-header {
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.tg-map-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.tg-map-header-row > div {
-  text-align: left;
-}
-
-.tg-map-header h2 {
-  margin: 0 0 4px;
-  font-size: 20px;
-}
-
-.tg-map-header p {
-  margin: 0;
-  opacity: 0.9;
+.tg-loading p {
+  margin-top: 16px;
+  color: var(--tg-hint);
   font-size: 14px;
 }
 
-.tg-map-wrapper {
-  flex: 1;
-  position: relative;
-  min-height: 45vh;
+/* Header */
+.tg-header {
+  padding: 20px 16px 10px;
 }
 
-.tg-map-actions {
-  padding: 16px;
-  background: white;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Hotels list below map */
-.tg-map-hotels {
-  padding: 12px 16px;
-  background: #f8f9fa;
-  max-height: 35vh;
-  overflow-y: auto;
-}
-
-.tg-map-hotels-hint {
-  margin: 0 0 12px;
-  text-align: center;
-  color: #666;
-  font-size: 13px;
-}
-
-.tg-map-hotel-card {
-  margin-bottom: 10px;
-  border-radius: 10px;
-}
-
-.tg-map-hotel-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.tg-map-hotel-price {
-  font-weight: 600;
-  color: #1677ff;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-/* Hotels List */
-.tg-hotels-list {
-  padding: 16px;
-  padding-bottom: 100px;
-}
-
-.tg-section-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.tg-section-header h2 {
-  margin: 8px 0 4px;
-  font-size: 20px;
-}
-
-.tg-section-header p {
+.tg-header h2 {
   margin: 0;
-  color: #666;
-  font-size: 14px;
-}
-
-/* Hotel Card */
-.tg-hotel-card {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.tg-hotel-card img {
-  height: 160px;
-  object-fit: cover;
-}
-
-.tg-hotel-info {
-  padding: 4px 0;
-}
-
-.tg-hotel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.tg-hotel-header h3 {
-  margin: 0;
-  font-size: 16px;
-  flex: 1;
-}
-
-.tg-hotel-address {
-  color: #666;
-  font-size: 13px;
-  margin: 4px 0;
-}
-
-.tg-hotel-price {
-  color: #1677ff;
-  font-size: 15px;
-  margin-top: 8px;
-}
-
-/* Hotel Detail */
-.tg-hotel-detail {
-  padding-bottom: 100px;
-}
-
-.tg-hotel-cover {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-}
-
-.tg-hotel-content {
-  padding: 20px;
-}
-
-.tg-hotel-content h2 {
-  margin: 0 0 8px;
-  font-size: 22px;
-}
-
-.tg-hotel-meta {
-  margin: 16px 0;
-  color: #666;
-}
-
-.tg-hotel-meta p {
-  margin: 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tg-price-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-  text-align: center;
-  font-size: 16px;
-}
-
-.tg-price-badge strong {
-  font-size: 20px;
-}
-
-/* Dates Section */
-.tg-dates-section {
-  padding: 20px;
-  padding-bottom: 100px;
-}
-
-.tg-date-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 20px 0;
-}
-
-.tg-date-field label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.tg-nights-info {
-  text-align: center;
-  padding: 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 16px;
-}
-
-/* Rooms Section */
-.tg-rooms-section {
-  padding: 16px;
-  padding-bottom: 100px;
-}
-
-.tg-room-card {
-  margin-bottom: 12px;
-  border-radius: 10px;
-}
-
-.tg-room-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.tg-room-info h3 {
-  margin: 0;
-  font-size: 16px;
-  flex: 1;
-}
-
-.tg-room-price {
-  font-weight: 600;
-  color: #1677ff;
-  font-size: 15px;
-}
-
-/* Guest Section */
-.tg-guest-section {
-  padding: 20px;
-  padding-bottom: 100px;
-}
-
-/* Confirm Section */
-.tg-confirm-section {
-  padding: 20px;
-  padding-bottom: 100px;
-}
-
-.tg-summary-card {
-  margin: 20px 0;
-  border-radius: 12px;
-}
-
-.tg-summary-card h3 {
-  margin: 0 0 8px;
-}
-
-.tg-summary-card p {
-  margin: 8px 0;
-}
-
-.tg-total-price {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-}
-
-.tg-total-price strong {
-  color: #1677ff;
-  font-size: 22px;
-}
-
-/* Success Section */
-.tg-success-section {
-  padding: 40px 20px;
-  text-align: center;
-  padding-bottom: 100px;
-}
-
-.tg-success-section h2 {
-  margin: 20px 0 8px;
-  color: #52c41a;
-}
-
-.tg-confirmation-code {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 16px 24px;
-  border-radius: 12px;
   font-size: 24px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin: 20px 0;
+  font-weight: 700;
 }
 
-.tg-success-note {
-  color: #666;
+.tg-header p {
+  margin: 4px 0 0;
+  color: var(--tg-hint);
   font-size: 14px;
-  margin-top: 20px;
 }
 
-/* Leaflet overrides */
-.leaflet-container {
-  font-family: inherit;
+/* Unified Map/List Screen */
+.tg-discovery-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
-.leaflet-popup-content-wrapper {
-  border-radius: 8px;
+.tg-map-mini-wrapper {
+  height: 200px;
+  margin: 0 16px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid var(--tg-secondary-bg);
 }
 
-/* Ant Design customization */
-.tg-app .ant-btn-primary {
-  height: 48px;
+.tg-relocate-fab {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white !important;
+  color: var(--tg-button) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  padding: 0 !important;
+}
+
+/* Hotel List - Minimalist Feed */
+.tg-hotel-feed {
+  padding: 0 16px 100px;
+}
+
+.tg-hotel-item {
+  margin-bottom: 12px;
+  background: var(--tg-secondary-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.tg-hotel-item:active {
+  transform: scale(0.98);
+}
+
+.tg-hotel-item-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.tg-hotel-item-content {
+  padding: 12px 16px;
+}
+
+.tg-hotel-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tg-hotel-item-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tg-hotel-item-price {
+  color: var(--tg-link);
+  font-weight: 700;
   font-size: 16px;
-  border-radius: 10px;
 }
 
-.tg-app .ant-input,
-.tg-app .ant-picker,
-.tg-app .ant-select-selector {
-  border-radius: 10px !important;
+.tg-hotel-item-sub {
+  color: var(--tg-hint);
+  font-size: 13px;
+  margin-top: 4px;
 }
 
-.tg-app .ant-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Sticky Action Button (The "Real World" Button) */
+.tg-fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, var(--tg-bg) 80%, transparent);
+  z-index: 2000;
 }
 
-.tg-app .ant-form-item-label > label {
-  font-weight: 500;
+.tg-main-button {
+  height: 54px !important;
+  border-radius: 14px !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  background-color: var(--tg-button) !important;
+  color: var(--tg-button-text) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.3) !important;
+}
+
+/* Step Components General Styles */
+.tg-step-content {
+  padding: 16px;
+  padding-bottom: 100px;
+}
+
+.tg-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* Date Picker Simplification */
+.tg-date-box {
+  background: var(--tg-secondary-bg);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.tg-date-box label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--tg-hint);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* Success State */
+.tg-success-vibe {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.tg-success-icon {
+  font-size: 64px;
+  color: #34c759;
+  margin-bottom: 24px;
+}
+
+.tg-conf-number {
+  background: var(--tg-secondary-bg);
+  padding: 12px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 20px 0;
+  letter-spacing: 2px;
+}
+
+/* Ant Design Overrides for Minimalism */
+.ant-btn-primary {
+  background-color: var(--tg-button);
+}
+
+.ant-input, .ant-picker, .ant-select-selector {
+  background-color: var(--tg-secondary-bg) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  height: 50px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.ant-picker-input > input {
+  font-size: 16px !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--tg-hint) !important;
+  font-size: 13px !important;
+}
+
+.ant-card {
+  border-radius: 16px !important;
+  border: none !important;
+  background-color: var(--tg-secondary-bg) !important;
+}
+
+.leaflet-container {
+  border-radius: 16px;
 }
