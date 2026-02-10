@@ -45,6 +45,28 @@ const BRANCHES_PER_TENANT = 10; // 50 * 10 = 500 branches total
 const RECORDS_PER_BRANCH = 100; // This gives us 50K+ per model (500 branches * 100 = 50K)
 const BATCH_SIZE = 2500;
 
+// Tashkent bounding box for coordinate distribution
+const TASHKENT_BOUNDS = {
+  minLat: 41.2,
+  maxLat: 41.4,
+  minLng: 69.1,
+  maxLng: 69.4,
+};
+
+function randomTashkentCoordinate(): { latitude: number; longitude: number } {
+  const latitude =
+    TASHKENT_BOUNDS.minLat +
+    Math.random() * (TASHKENT_BOUNDS.maxLat - TASHKENT_BOUNDS.minLat);
+  const longitude =
+    TASHKENT_BOUNDS.minLng +
+    Math.random() * (TASHKENT_BOUNDS.maxLng - TASHKENT_BOUNDS.minLng);
+
+  return {
+    latitude: Math.round(latitude * 1000000) / 1000000,
+    longitude: Math.round(longitude * 1000000) / 1000000,
+  };
+}
+
 // Lookup maps to prevent orphans
 interface TenantData {
   id: string;
@@ -187,11 +209,14 @@ async function main() {
     const branches: any[] = [];
 
     for (let b = 0; b < BRANCHES_PER_TENANT; b++) {
+      const { latitude, longitude } = randomTashkentCoordinate();
       branches.push({
         id: faker.string.uuid(),
         name: `${faker.company.name()} Branch ${b + 1}`,
         tenantId: tenantId,
         address: faker.location.streetAddress(),
+        latitude,
+        longitude,
         isActive: true,
       });
     }
@@ -259,9 +284,11 @@ async function main() {
 
       for (let g = 0; g < batchSize; g++) {
         const guestId = faker.string.uuid();
+        const branch = faker.helpers.arrayElement(tenantData.branches);
         guests.push({
           id: guestId,
           tenantId: tenantId,
+          branchId: branch.id,
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
           phone: faker.phone.number(),
