@@ -67,6 +67,215 @@ function randomTashkentCoordinate(): { latitude: number; longitude: number } {
   };
 }
 
+const CITY_BOUNDS = {
+  TASHKENT: { minLat: 41.25, maxLat: 41.38, minLng: 69.15, maxLng: 69.35 },
+  SAMARKAND: { minLat: 39.62, maxLat: 39.68, minLng: 66.9, maxLng: 67.0 },
+  BUKHARA: { minLat: 39.75, maxLat: 39.79, minLng: 64.38, maxLng: 64.45 },
+  KHIVA: { minLat: 41.37, maxLat: 41.39, minLng: 60.35, maxLng: 60.37 },
+};
+
+function randomCoordInCity(city: keyof typeof CITY_BOUNDS) {
+  const bounds = CITY_BOUNDS[city];
+  const latitude =
+    bounds.minLat + Math.random() * (bounds.maxLat - bounds.minLat);
+  const longitude =
+    bounds.minLng + Math.random() * (bounds.maxLng - bounds.minLng);
+  return {
+    latitude: Math.round(latitude * 1000000) / 1000000,
+    longitude: Math.round(longitude * 1000000) / 1000000,
+  };
+}
+
+const REAL_HOTELS = [
+  // TASHKENT
+  {
+    name: 'InterContinental Tashkent',
+    city: 'TASHKENT',
+    stars: 5,
+    address: 'Amir Temur Street, Tashkent',
+  },
+  {
+    name: 'Hyatt Regency Tashkent',
+    city: 'TASHKENT',
+    stars: 5,
+    address: 'Navoi Avenue, Tashkent',
+  },
+  {
+    name: 'Hilton Tashkent City',
+    city: 'TASHKENT',
+    stars: 5,
+    address: 'Islam Karimov Street, Tashkent City',
+  },
+  {
+    name: 'Wyndham Tashkent',
+    city: 'TASHKENT',
+    stars: 5,
+    address: 'Amir Temur Street, Tashkent',
+  },
+  {
+    name: 'International Hotel Tashkent',
+    city: 'TASHKENT',
+    stars: 5,
+    address: 'Amir Temur Avenue, Tashkent',
+  },
+  {
+    name: 'Panarams Tashkent',
+    city: 'TASHKENT',
+    stars: 4,
+    address: 'Buyuk Ipak Yuli Street, Tashkent',
+  },
+  {
+    name: 'Holiday Inn Tashkent City',
+    city: 'TASHKENT',
+    stars: 4,
+    address: 'Tashkent City Park',
+  },
+  {
+    name: 'Lotte City Hotel Tashkent Palace',
+    city: 'TASHKENT',
+    stars: 4,
+    address: 'Buyuk Turon Street, Tashkent',
+  },
+
+  // SAMARKAND
+  {
+    name: 'Hilton Samarkand Regency',
+    city: 'SAMARKAND',
+    stars: 5,
+    address: 'Silk Road Samarkand, Roway',
+  },
+  {
+    name: 'Mövenpick Samarkand',
+    city: 'SAMARKAND',
+    stars: 5,
+    address: 'University Boulevard, Samarkand',
+  },
+  {
+    name: 'Silk Road by Minyoun',
+    city: 'SAMARKAND',
+    stars: 5,
+    address: 'Silk Road Samarkand',
+  },
+  {
+    name: 'Zarafshon Parkside',
+    city: 'SAMARKAND',
+    stars: 4,
+    address: 'Dagbit Street, Samarkand',
+  },
+  {
+    name: 'Savitsky Plaza',
+    city: 'SAMARKAND',
+    stars: 4,
+    address: 'Qavchinon, Samarkand',
+  },
+  {
+    name: 'Sangzor Boutique Hotel',
+    city: 'SAMARKAND',
+    stars: 4,
+    address: 'Orzu Makhmudov Street, Samarkand',
+  },
+
+  // BUKHARA
+  {
+    name: 'Mercure Bukhara Old Town',
+    city: 'BUKHARA',
+    stars: 4,
+    address: 'Samarkand Street, Bukhara',
+  },
+  {
+    name: 'Sahid Zarafshon Bukhara',
+    city: 'BUKHARA',
+    stars: 4,
+    address: 'M. Ikbol Street, Bukhara',
+  },
+  {
+    name: 'Boutique Hotel Minzifa',
+    city: 'BUKHARA',
+    stars: 3,
+    address: 'Eshoni Pir Street, Bukhara',
+  },
+  {
+    name: 'Zargaron Boutique',
+    city: 'BUKHARA',
+    stars: 3,
+    address: 'Hakikat Street, Bukhara',
+  },
+  {
+    name: 'Asia Bukhara',
+    city: 'BUKHARA',
+    stars: 4,
+    address: 'Mekhtar Anbar Street, Bukhara',
+  },
+
+  // KHIVA
+  {
+    name: 'Farovon Khiva Hotel',
+    city: 'KHIVA',
+    stars: 5,
+    address: 'Khiva, Uzbekistan',
+  },
+  {
+    name: 'Orient Star Khiva',
+    city: 'KHIVA',
+    stars: 3,
+    address: 'Mukhammad Aminkhan Madrasah, Khiva',
+  },
+  {
+    name: 'Khiva Boutique Oasis',
+    city: 'KHIVA',
+    stars: 3,
+    address: 'Inside Ichan-Kala, Khiva',
+  },
+  {
+    name: 'Zarafshan Boutique Khiva',
+    city: 'KHIVA',
+    stars: 3,
+    address: 'Islam Khodja Street, Khiva',
+  },
+];
+
+const SAMPLE_IMAGES = {
+  hotel: [
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb',
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
+    'https://images.unsplash.com/photo-1517840901100-8179e982acb7',
+    'https://images.unsplash.com/photo-1445019980597-93fa8acb246c',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d',
+    'https://images.unsplash.com/photo-1566665797739-1674de7a421a',
+  ],
+  rooms: {
+    Standard: [
+      'https://images.unsplash.com/photo-1611892440504-42a792e24d32',
+      'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf',
+    ],
+    Deluxe: [
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427',
+      'https://images.unsplash.com/photo-1566112907490-84849ac1665a',
+    ],
+    Suite: [
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b',
+      'https://images.unsplash.com/photo-1591088398332-8a77d399fe80',
+    ],
+    Penthouse: [
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a',
+      'https://images.unsplash.com/photo-1578683010236-d716f9a3f2c5',
+    ],
+    Other: [
+      'https://images.unsplash.com/photo-1590490359683-658d3d23f972',
+      'https://images.unsplash.com/photo-1598928506311-c55ded91a20c',
+    ],
+  },
+  food: [
+    'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666', // Breakfast
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836', // Meat
+    'https://images.unsplash.com/photo-1551024601-bec78acc704b', // Dessert
+    'https://images.unsplash.com/photo-1544145945-f904253d0c71', // Drinks
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38', // Plov-like
+    'https://images.unsplash.com/photo-1482049016688-2d3e1b311543', // Salad
+  ],
+};
+
 // Lookup maps to prevent orphans
 interface TenantData {
   id: string;
@@ -90,6 +299,7 @@ interface RoomTypeData {
   id: string;
   tenantId: string;
   branchId: string;
+  name: string;
 }
 
 interface RoomData {
@@ -133,8 +343,27 @@ const allRestaurantOrders: {
 
 async function main() {
   console.log('🚀 Starting massive seed with NO ORPHANS guarantee...');
+
+  // Truncate existing data to start fresh
+  console.log('🧹 Clearing existing data (TRUNCATE CASCADE)...');
+  try {
+    await prisma.$executeRawUnsafe(`
+      TRUNCATE TABLE 
+        "AuditLog", "SystemLog", "EmehmonLog", "MaintenanceTicket", 
+        "HousekeepingTask", "StockLog", "RestaurantOrderItem", "RestaurantOrder", 
+        "RestaurantMenuItem", "RestaurantCategory", "InventoryItem", "Payment", 
+        "FolioItem", "Folio", "RoomStayGuest", "RoomStay", "Booking", "Review", 
+        "RoomStatusHistory", "Room", "RatePlanRoomType", "RoomType", "RatePlan", 
+        "UserBranch", "User", "Branch", "Company", "Guest", "Tenant"
+      CASCADE;
+    `);
+  } catch (e) {
+    console.error('⚠️ Truncate error:', e instanceof Error ? e.message : e);
+  }
+  console.log('✅ Database cleared!');
+
   console.log(
-    `📊 Target: ${NUM_TENANTS} tenants × ${BRANCHES_PER_TENANT} branches × ${RECORDS_PER_BRANCH} records = 50K+ per model`,
+    `📊 Target: ${NUM_TENANTS} tenants × 1 city-specific branch = Massive Data`,
   );
 
   const salt = await bcrypt.genSalt(10);
@@ -172,78 +401,86 @@ async function main() {
     );
   }
 
-  console.log('🔹 Creating Tenants...');
-  const tenantsToCreate = existingSystemTenant ? NUM_TENANTS - 1 : NUM_TENANTS;
+  console.log('🔹 Creating Tenants and Branches (Real Uzbekistan Hotels)...');
 
-  for (let t = 0; t < tenantsToCreate; t++) {
+  for (let t = 0; t < NUM_TENANTS; t++) {
+    const isReal = t < REAL_HOTELS.length;
+    let name, slug, address, city, stars;
+
+    if (isReal) {
+      const hotel = REAL_HOTELS[t];
+      name = hotel.name;
+      slug = name
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      address = hotel.address;
+      city = hotel.city;
+      stars = hotel.stars;
+    } else {
+      name = faker.company.name() + ' Hotel';
+      slug = `tenant-${t}-${faker.string.alphanumeric(8)}`;
+      address = faker.location.streetAddress();
+      city = faker.helpers.arrayElement(Object.keys(CITY_BOUNDS));
+      stars = faker.number.int({ min: 3, max: 5 });
+    }
+
     const tenant = await prisma.tenant.create({
       data: {
-        name: faker.company.name(),
-        slug: `tenant-${t}-${faker.string.alphanumeric(8)}`,
+        name: name,
+        slug: slug,
         isActive: true,
         planType: faker.helpers.arrayElement(Object.values(PlanType)),
-        maxBranches: BRANCHES_PER_TENANT + 5,
+        maxBranches: 5,
         maxUsers: 1000,
       },
     });
 
-    tenantsMap.set(tenant.id, {
+    const tenantData: TenantData = {
       id: tenant.id,
       branches: [],
       users: [],
       guests: [],
       companies: [],
-    });
-    process.stdout.write('.');
-  }
-  console.log(
-    `\n✅ Created ${tenantsToCreate} new tenants (+ system tenant if existed)`,
-  );
+    };
+    tenantsMap.set(tenant.id, tenantData);
 
-  // 2. Create Branches for each Tenant
-  console.log('🔹 Creating Branches per Tenant...');
-  const tenantIds = Array.from(tenantsMap.keys());
-
-  for (const tenantId of tenantIds) {
-    const tenantData = tenantsMap.get(tenantId)!;
-    const branches: any[] = [];
-
-    for (let b = 0; b < BRANCHES_PER_TENANT; b++) {
-      const { latitude, longitude } = randomTashkentCoordinate();
-      branches.push({
+    // Create Main Branch for this tenant
+    const { latitude, longitude } = randomCoordInCity(city as any);
+    const branch = await prisma.branch.create({
+      data: {
         id: faker.string.uuid(),
-        name: `${faker.company.name()} Branch ${b + 1}`,
-        tenantId: tenantId,
-        address: faker.location.streetAddress(),
+        name: name + ' Main',
+        tenantId: tenant.id,
+        address: address,
         latitude,
         longitude,
+        starRating: stars,
+        logoUrl: faker.image.url({ width: 200, height: 200 }),
+        gallery: JSON.stringify(
+          faker.helpers.arrayElements(SAMPLE_IMAGES.hotel, 3),
+        ),
         isActive: true,
-      });
-    }
+      },
+    });
 
-    await prisma.branch.createMany({ data: branches });
-
-    // Store branch data
-    branches.forEach((branch) => {
-      tenantData.branches.push({
-        id: branch.id,
-        tenantId: branch.tenantId,
-        roomTypes: [],
-        rooms: [],
-        inventoryItems: [],
-        restaurantCategories: [],
-        ratePlans: [],
-      });
+    tenantData.branches.push({
+      id: branch.id,
+      tenantId: tenant.id,
+      roomTypes: [],
+      rooms: [],
+      inventoryItems: [],
+      restaurantCategories: [],
+      ratePlans: [],
     });
 
     process.stdout.write('.');
   }
-  console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT} branches (${BRANCHES_PER_TENANT} per tenant)`,
-  );
+  console.log(`\n✅ Created ${NUM_TENANTS} realistic tenants and branches`);
 
   // 3. Create Users per Tenant (seed.ts already creates super admin)
   console.log('🔹 Creating Users per Tenant...');
+  const tenantIds = Array.from(tenantsMap.keys());
 
   // Create users per tenant (1000 users per tenant = 50K total)
   const usersPerTenant = Math.ceil(50000 / NUM_TENANTS);
@@ -379,20 +616,26 @@ async function main() {
       // Each branch gets all room types
       for (let rt = 0; rt < roomTypeNames.length; rt++) {
         const roomTypeId = faker.string.uuid();
+        const typeName = roomTypeNames[rt];
+        const typeImages =
+          (SAMPLE_IMAGES.rooms as any)[typeName] || SAMPLE_IMAGES.rooms.Other;
+
         roomTypes.push({
           id: roomTypeId,
           tenantId: tenantId,
           branchId: branch.id,
-          name: roomTypeNames[rt],
+          name: typeName,
           basePrice: (rt + 1) * 100000, // Price based on tier
           description: faker.lorem.paragraph(),
           amenities: ['WiFi', 'TV', 'AC', 'Mini Bar'].slice(0, rt + 2),
+          images: JSON.stringify(typeImages),
         });
 
         branch.roomTypes.push({
           id: roomTypeId,
           tenantId: tenantId,
           branchId: branch.id,
+          name: typeName,
         });
       }
 
@@ -419,6 +662,9 @@ async function main() {
         const floor = Math.floor(r / 10) + 1;
         const roomNum = floor * 100 + (r % 10) + 1;
         const roomId = faker.string.uuid();
+        const typeName = roomType.name;
+        const typeImages =
+          (SAMPLE_IMAGES.rooms as any)[typeName] || SAMPLE_IMAGES.rooms.Other;
 
         rooms.push({
           id: roomId,
@@ -430,6 +676,7 @@ async function main() {
           capacity: faker.number.int({ min: 1, max: 4 }),
           status: faker.helpers.arrayElement(Object.values(RoomStatus)),
           isOccupied: faker.datatype.boolean({ probability: 0.4 }),
+          images: JSON.stringify(typeImages),
         });
 
         branch.rooms.push({
@@ -577,23 +824,24 @@ async function main() {
   );
   const menuItemData = [
     {
-      name: { en: 'Caesar Salad', uz: 'Sezar Salati', ru: 'Салат Цезарь' },
-      price: 45000,
+      name: { en: 'Somsa', uz: 'Somsa', ru: 'Самса' },
+      price: 12000,
     },
     {
-      name: { en: 'Beef Steak', uz: "Mol go'shti steyki", ru: 'Стейк' },
-      price: 120000,
+      name: { en: 'Manti', uz: 'Manti', ru: 'Манты' },
+      price: 35000,
     },
     {
-      name: { en: 'Grilled Salmon', uz: 'Grill losos', ru: 'Лосось гриль' },
-      price: 95000,
+      name: { en: 'Chuchvara', uz: 'Chuchvara', ru: 'Чучвара' },
+      price: 30000,
     },
-    { name: { en: 'Plov', uz: 'Palov', ru: 'Плов' }, price: 35000 },
-    { name: { en: 'Shashlik', uz: 'Shashlik', ru: 'Шашлык' }, price: 55000 },
-    { name: { en: 'Lagman', uz: "Lag'mon", ru: 'Лагман' }, price: 32000 },
     {
-      name: { en: 'Fresh Juice', uz: 'Yangi sharbat', ru: 'Свежий сок' },
-      price: 18000,
+      name: { en: 'Mastava', uz: 'Mastava', ru: 'Мастава' },
+      price: 25000,
+    },
+    {
+      name: { en: 'Achichuk', uz: 'Achichuk', ru: 'Ачичук' },
+      price: 15000,
     },
   ];
 
@@ -614,6 +862,7 @@ async function main() {
             branchId: branch.id,
             categoryId: category.id,
             name: menuData.name,
+            imageUrl: faker.helpers.arrayElement(SAMPLE_IMAGES.food),
             description: {
               en: faker.lorem.sentence(),
               uz: faker.lorem.sentence(),
