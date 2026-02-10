@@ -267,12 +267,16 @@ export const LogsPage = () => {
         title="Log Details"
         open={!!selectedLog}
         onCancel={() => setSelectedLog(null)}
-        footer={[
-          <Button key="close" onClick={() => setSelectedLog(null)}>
-            Close
-          </Button>,
-        ]}
-        width={800}
+        footer={null}
+        width="100vw"
+        style={{ top: 0, padding: 0 }}
+        styles={{
+          body: {
+            height: "100vh",
+            padding: 24,
+          },
+        }}
+        centered={false}
       >
         {selectedLog && (
           <Descriptions bordered column={1}>

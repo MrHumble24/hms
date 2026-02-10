@@ -14,8 +14,14 @@ import type { TabType } from "../components/BottomNav";
 const DEFAULT_LOCATION = { lat: 41.2995, lng: 69.2401 }; // Tashkent
 
 export function useBookingFlow() {
-  const { haptic, showBackButton, hideBackButton, user, requestLocation } =
-    useTelegram();
+  const {
+    haptic,
+    showBackButton,
+    hideBackButton,
+    user,
+    requestLocation,
+    closeApp,
+  } = useTelegram();
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<TabType>("explore");
@@ -421,5 +427,6 @@ export function useBookingFlow() {
     reset,
     haptic,
     loadMore,
+    closeApp,
   };
 }

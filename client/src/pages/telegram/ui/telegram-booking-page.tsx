@@ -10,6 +10,7 @@ import {
   StarFilled,
   CalendarOutlined,
   ExclamationCircleOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import "leaflet/dist/leaflet.css";
 import "./telegram-app.css";
@@ -77,6 +78,8 @@ export const TelegramBookingPage = () => {
     hasMore,
     loadingMore,
     totalHotels,
+    closeApp,
+    reset,
   } = useBookingFlow();
 
   const observerTarget = useRef(null);
@@ -145,6 +148,25 @@ export const TelegramBookingPage = () => {
       onOk() {
         cancelBooking(bookingId);
       },
+    });
+  };
+
+  const handleLogout = () => {
+    haptic("medium");
+    Modal.confirm({
+      title: "Exit Application?",
+      icon: <LogoutOutlined style={{ color: "var(--tg-primary)" }} />,
+      content: "Are you sure you want to exit the Travel Portal?",
+      okText: "Log Out",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk() {
+        haptic("light");
+        reset();
+        closeApp();
+      },
+      centered: true,
+      className: "tg-modal",
     });
   };
 
@@ -889,6 +911,26 @@ export const TelegramBookingPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div style={{ padding: "0 16px", marginTop: 12 }}>
+          <Button
+            danger
+            block
+            size="large"
+            icon={<LogoutOutlined />}
+            style={{
+              height: 54,
+              borderRadius: 12,
+              fontWeight: 700,
+              fontSize: 16,
+              background: "rgba(255, 77, 79, 0.05)",
+              border: "1px solid rgba(255, 77, 79, 0.2)",
+            }}
+            onClick={handleLogout}
+          >
+            Log Out
+          </Button>
         </div>
 
         <p
