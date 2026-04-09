@@ -27,6 +27,7 @@ import {
   KeyOutlined,
   ClearOutlined,
   ApartmentOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,6 +41,7 @@ import { CheckoutModal } from "@/widgets/bookings/ui/checkout-modal";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import { usePaginationSearchParams } from "@/shared/hooks/use-pagination-search-params";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -72,6 +74,7 @@ export const BookingsPage = () => {
   const { t } = useTranslation(["bookings", "common"]);
   const screens = Grid.useBreakpoint();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [checkoutBooking, setCheckoutBooking] = useState<Booking | null>(null);
@@ -393,17 +396,27 @@ export const BookingsPage = () => {
           <Title level={2} style={{ margin: 0 }}>
             {t("bookings:title", "Bookings")}
           </Title>
-          <Text type="secondary">Manage your reservations and occupancy</Text>
+          <Text type="secondary">
+            Manage your reservations and occupancy!!!
+          </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={() => setIsDrawerOpen(true)}
-          style={{ width: screens.md ? "auto" : "100%" }}
-        >
-          {t("bookings:newReservation", "New Reservation")}
-        </Button>
+        <Space>
+          <Button
+            icon={<CalendarOutlined />}
+            onClick={() => navigate("/bookings/timeline")}
+          >
+            Tape Chart
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={() => setIsDrawerOpen(true)}
+            style={{ width: screens.md ? "auto" : "100%" }}
+          >
+            {t("bookings:newReservation", "New Reservation")}
+          </Button>
+        </Space>
       </div>
 
       <Card>

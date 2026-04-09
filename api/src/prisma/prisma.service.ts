@@ -8,7 +8,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const adapter = new PrismaPg(pool);
-    super({ adapter });
+    super({
+      adapter,
+      log:
+        process.env.NODE_ENV === 'development'
+          ? ['query', 'info', 'warn', 'error']
+          : ['error'],
+    });
 
     // NOTE: Prisma 5+ removed the $use() middleware API.
     // Soft delete logic should be implemented at the service layer

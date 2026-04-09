@@ -249,6 +249,10 @@ model Guest {
 
   visaType VisaType? @default(TOURIST)
 
+  telegramUserId   String?
+  telegramUsername String?
+  telegramPhone    String?
+
   primaryBookings Booking[]       @relation("PrimaryGuest")
   roomStays       RoomStayGuest[]
   registrations   EmehmonLog[]
@@ -510,6 +514,10 @@ model Booking {
   restaurantOrders RestaurantOrder[]
   communications   GuestCommunication[]
 
+  telegramUserId   String? // For Mini App tracking
+  telegramUsername String?
+  telegramPhone    String?
+
   deletedAt            DateTime? // Soft delete
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
@@ -518,6 +526,7 @@ model Booking {
   @@index([branchId, checkIn, checkOut])
   @@index([tenantId, status])
   @@index([primaryGuestId])
+  @@index([telegramUserId])
   @@index([createdAt])
   @@index([deletedAt])
 }
@@ -594,6 +603,7 @@ enum BookingSource {
   BOOKING_COM
   EXPEDIA
   WEBSITE
+  TELEGRAM
 }
 
 // =========================================================
@@ -1195,6 +1205,26 @@ model AuditLog {
   @@index([tenantId, entityType, entityId])
   @@index([tenantId, createdAt])
   @@index([tenantId, branchId, createdAt])
+}
+
+model SystemLog {
+  id        String         @id @default(uuid())
+  level     SystemLogLevel @default(INFO)
+  context   String? // e.g., "HTTP", "AUTH", "DATABASE"
+  message   String
+  metadata  Json? // For structured logs (IP, UserAgent, Payload, etc.)
+  timestamp DateTime       @default(now())
+
+  @@index([timestamp])
+  @@index([level])
+}
+
+enum SystemLogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
 }
 
 enum AuditAction {

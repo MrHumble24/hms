@@ -18,10 +18,32 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 
+import { Public } from '../auth/decorators/public.decorator.js';
+
 @Controller('hotel-services')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class HotelServicesController {
   constructor(private readonly servicesService: HotelServicesService) {}
+
+  // --- Public Guest Endpoints ---
+
+  @Get('public/catalog')
+  @Public()
+  findPublicServices() {
+    return this.servicesService.findAllServices();
+  }
+
+  @Post('public/requests')
+  @Public()
+  createPublicRequest(@Body() dto: CreateServiceRequestDto) {
+    return this.servicesService.createRequest(dto);
+  }
+
+  @Get('public/requests/room/:roomId')
+  @Public()
+  getRoomRequests(@Param('roomId') roomId: string) {
+    return this.servicesService.findRoomRequests(roomId);
+  }
 
   // --- Catalog ---
 

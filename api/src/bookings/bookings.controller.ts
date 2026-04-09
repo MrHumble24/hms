@@ -24,6 +24,15 @@ import { BranchAccessGuard } from '../auth/guards/branch-access.guard.js';
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
+  @Get('timeline')
+  @Roles('SUPER_ADMIN', 'MANAGER', 'RECEPTIONIST', 'ADMIN')
+  getTimeline(
+    @Query('dateFrom') dateFrom: string,
+    @Query('dateTo') dateTo: string,
+  ) {
+    return this.bookingsService.getTimeline(dateFrom, dateTo);
+  }
+
   @Post()
   @Roles('SUPER_ADMIN', 'MANAGER', 'RECEPTIONIST', 'ADMIN')
   create(@Body() createBookingDto: CreateBookingDto) {

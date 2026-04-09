@@ -291,4 +291,27 @@ export class AdminService {
       where: { id: userId },
     });
   }
+
+  async getSystemLogs(params?: {
+    skip?: number;
+    take?: number;
+    level?: string;
+    context?: string;
+  }) {
+    const where: any = {};
+    if (params?.level) where.level = params.level;
+    if (params?.context) where.context = params.context;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.systemLog.findMany({
+        where,
+        skip: params?.skip || 0,
+        take: params?.take || 100,
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.systemLog.count({ where }),
+    ]);
+
+    return { logs, total };
+  }
 }

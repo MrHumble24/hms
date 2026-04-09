@@ -163,4 +163,11 @@ export const bookingApi = {
     );
     return response as unknown as CheckoutResponse;
   },
+
+  getTimeline: async (dateFrom: string, dateTo: string) => {
+    const response = await api.get<any[]>("/bookings/timeline", {
+      params: { dateFrom, dateTo },
+    });
+    return response as unknown as any[];
+  },
 };

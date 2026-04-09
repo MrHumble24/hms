@@ -1,0 +1,404 @@
+:root {
+  /* Force Light Mode */
+  --tg-text: #000000;
+  --tg-hint: #999999;
+  --tg-bg: #ffffff;
+  --tg-secondary-bg: #f7f7f8;
+  --tg-primary: #1890ff;
+  --tg-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --tg-radius: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tg-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--tg-bg);
+}
+
+/* Sticky Header System */
+.tg-sticky-header {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1500;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.tg-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tg-header-top h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* Premium Search Bar */
+.tg-search-wrapper {
+  margin-bottom: 12px;
+}
+
+.tg-search-input {
+  background: var(--tg-secondary-bg) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  font-size: 15px !important;
+}
+
+.tg-search-input:focus,
+.tg-search-input-focused {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Category Chips */
+.tg-categories-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.tg-categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tg-category-chip {
+  padding: 6px 16px;
+  background: var(--tg-secondary-bg);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--tg-hint);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.tg-category-chip.active {
+  background: var(--tg-primary);
+  color: #fff;
+}
+
+/* Feed Container */
+.tg-feed-container {
+  padding: 16px;
+  padding-bottom: 120px;
+}
+
+.tg-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tg-section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Premium Hotel Cards */
+.tg-hotel-card {
+  background: #fff;
+  border-radius: var(--tg-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--tg-shadow);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.tg-hotel-card:active {
+  transform: scale(0.98);
+}
+
+.tg-hotel-image-container {
+  position: relative;
+  height: 200px;
+}
+
+.tg-hotel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tg-hotel-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tg-hotel-rating {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tg-hotel-details {
+  padding: 14px;
+}
+
+.tg-hotel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tg-hotel-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--tg-text);
+  flex: 1;
+}
+
+.tg-hotel-price-tag {
+  text-align: right;
+}
+
+.tg-price-amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--tg-primary);
+}
+
+.tg-price-unit {
+  font-size: 11px;
+  color: var(--tg-hint);
+  display: block;
+}
+
+.tg-hotel-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--tg-hint);
+}
+
+/* Map & Feed UI */
+.tg-view-toggle-fab {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 1500;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tg-view-toggle-fab:active {
+  transform: translateX(-50%) scale(0.9);
+}
+
+.tg-view-toggle-fab span {
+  white-space: nowrap;
+}
+
+.tg-map-price-tag {
+  background: #fff;
+  color: #000;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.tg-map-price-tag:active {
+  transform: scale(1.15);
+  background: var(--tg-primary);
+  color: #fff;
+  z-index: 9999;
+}
+
+.hotel-marker-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.tg-map-wrapper {
+  position: relative;
+  width: 100%;
+  background: var(--tg-secondary-bg);
+  transition: all 0.3s;
+}
+
+/* Bottom Nav Redesign */
+.tg-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-around;
+  z-index: 2000;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tg-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c8c8c;
+  font-size: 10px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.tg-nav-item .anticon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.tg-nav-item.active {
+  color: var(--tg-primary);
+}
+
+/* Utility */
+.tg-step-content {
+  padding: 16px;
+  padding-bottom: 120px;
+}
+
+.tg-section-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+.tg-loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.tg-loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: var(--tg-primary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: tg-dots 1.4s infinite ease-in-out both;
+}
+
+.tg-loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.tg-loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes tg-dots {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Modal Customization */
+.tg-modal .ant-modal-content {
+  border-radius: 24px !important;
+  overflow: hidden;
+  padding: 24px !important;
+}
+
+.tg-modal .ant-modal-confirm-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--tg-text) !important;
+}
+
+.tg-modal .ant-modal-confirm-content {
+  margin-top: 12px !important;
+  font-size: 15px !important;
+  color: var(--tg-hint) !important;
+  font-weight: 500 !important;
+}
+
+.tg-modal .ant-modal-confirm-btns {
+  margin-top: 28px !important;
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  gap: 12px !important;
+}
+
+.tg-modal .ant-modal-confirm-btns .ant-btn {
+  flex: 1 !important;
+  height: 48px !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}

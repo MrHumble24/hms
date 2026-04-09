@@ -130,4 +130,19 @@ export class AdminController {
   deleteTenantUser(@Param('id') id: string, @Param('userId') userId: string) {
     return this.adminService.deleteTenantUser(id, userId);
   }
+
+  @Get('logs')
+  getLogs(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('level') level?: string,
+    @Query('context') context?: string,
+  ) {
+    return this.adminService.getSystemLogs({
+      skip: skip ? parseInt(skip) : undefined,
+      take: take ? parseInt(take) : undefined,
+      level,
+      context,
+    });
+  }
 }

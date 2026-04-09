@@ -129,4 +129,25 @@ export const adminApi = {
     baseApi
       .post<Tenant>("/admin/tenants", data)
       .then((res) => res as unknown as Tenant),
+
+  getLogs: (params?: {
+    skip?: number;
+    take?: number;
+    level?: string;
+    context?: string;
+  }) =>
+    baseApi
+      .get<{ logs: SystemLog[]; total: number }>("/admin/logs", {
+        params,
+      })
+      .then((res) => res as unknown as { logs: SystemLog[]; total: number }),
 };
+
+export interface SystemLog {
+  id: string;
+  level: string;
+  context: string | null;
+  message: string;
+  metadata: any;
+  timestamp: string;
+}

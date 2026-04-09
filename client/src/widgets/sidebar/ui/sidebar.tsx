@@ -27,6 +27,7 @@ import {
   AuditOutlined,
   GlobalOutlined,
   TruckOutlined,
+  CodeOutlined,
 } from "@ant-design/icons";
 import { ChefHat, History } from "lucide-react";
 import { useTabStore } from "@/entities/navigation/model/tab-store";
@@ -63,6 +64,12 @@ export const Sidebar = () => {
             label: "Tenant Management",
             path: "/admin/tenants",
             // Permissions handled by explicit check above, or we could strict check "admin-tenants"
+          },
+          {
+            key: "admin-logs",
+            icon: <CodeOutlined />,
+            label: "System Logs",
+            path: "/admin/logs",
           },
           { type: "divider" } as MenuItem,
         ]

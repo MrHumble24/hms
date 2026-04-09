@@ -16,6 +16,7 @@ import { StaffModule } from './staff/staff.module.js';
 import { EmehmonModule } from './emehmon/emehmon.module.js';
 import { RestaurantModule } from './restaurant/restaurant.module.js';
 import { TenantMiddleware } from './common/tenant-middleware.js';
+import { LoggerMiddleware } from './common/logger-middleware.js';
 import { BranchModule } from './branch/branch.module.js';
 import { CommunicationsModule } from './communications/communications.module.js';
 import { AuditModule } from './audit/audit.module.js';
@@ -23,6 +24,7 @@ import { BackupModule } from './backup/backup.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { UploadModule } from './upload/upload.module.js';
 import { HotelServicesModule } from './hotel-services/hotel-services.module.js';
+import { TelegramModule } from './telegram/telegram.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 
@@ -49,6 +51,7 @@ import * as path from 'path';
     AiModule,
     UploadModule,
     HotelServicesModule,
+    TelegramModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
@@ -63,6 +66,7 @@ import * as path from 'path';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
     consumer
       .apply(TenantMiddleware)
       .exclude(
@@ -71,6 +75,7 @@ export class AppModule implements NestModule {
         'admin/(.*)',
         'uploads/(.*)',
         'uploads',
+        'public/(.*)',
       )
       .forRoutes('*');
   }

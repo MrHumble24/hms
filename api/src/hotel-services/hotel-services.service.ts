@@ -58,8 +58,38 @@ export class HotelServicesService {
 
   // --- Request/Order Methods ---
 
-  async createRequest(dto: CreateServiceRequestDto) {
+  async createRequest(dto: CreateServiceRequestDto & { roomId?: string }) {
     const { tenantId, branchId } = this.getContext();
+
+    let bookingId = dto.bookingId;
+
+    // If roomId is provided, find active booking
+    if (dto.roomId && !bookingId) {
+      const activeBooking = await this.prisma.booking.findFirst({
+        where: {
+          tenantId,
+          branchId,
+          status: 'CHECKED_IN',
+          roomStays: {
+            some: {
+              roomId: dto.roomId,
+              status: 'CHECKED_IN',
+            },
+          },
+        },
+      });
+
+      if (!activeBooking) {
+        throw new BadRequestException(
+          'No active checked-in booking found for this room.',
+        );
+      }
+      bookingId = activeBooking.id;
+    }
+
+    if (!bookingId) {
+      throw new BadRequestException('Booking ID is required');
+    }
 
     const service = await (this.prisma as any).hotelService.findUnique({
       where: { id: dto.serviceId },
@@ -69,15 +99,38 @@ export class HotelServicesService {
 
     const totalAmount = Number(service.basePrice) * (dto.quantity || 1);
 
+    const { roomId, bookingId: _dtoBookingId, ...rest } = dto;
+
     return (this.prisma as any).hotelServiceRequest.create({
       data: {
-        ...dto,
+        ...rest,
+        bookingId,
         tenantId,
         branchId,
         totalAmount,
         status: ServiceRequestStatus.REQUESTED,
       },
       include: { service: true },
+    });
+  }
+
+  async findRoomRequests(roomId: string) {
+    const { branchId, tenantId } = this.getContext();
+    return (this.prisma as any).hotelServiceRequest.findMany({
+      where: {
+        branchId,
+        tenantId,
+        booking: {
+          roomStays: {
+            some: {
+              roomId,
+              status: 'CHECKED_IN',
+            },
+          },
+        },
+      },
+      include: { service: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -40,7 +40,7 @@ import {
   hotelServiceApi,
   type HotelService,
   type HotelServiceRequest,
-} from "@/entities/hotel-service/api/hotel-service-api";
+} from "@/entities/hotel-service";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;

@@ -84,6 +84,36 @@ export class BookingsService {
       // 2. Create Room Stays (Line Items)
       if (roomStays && roomStays.length > 0) {
         for (const stay of roomStays) {
+          if (!stay.roomId) continue;
+
+          // --- AVAILABILITY CHECK & LOCKING ---
+          // Use FOR UPDATE to lock the room record during this transaction
+          const [lockedRoom] = await tx.$queryRaw<
+            any[]
+          >`SELECT "number" FROM "Room" WHERE id = ${stay.roomId} FOR UPDATE`;
+          const roomNumber = lockedRoom?.number || 'Selected room';
+
+          // Check for overlapping stays for this specific room
+          const overlappingStay = await tx.roomStay.findFirst({
+            where: {
+              roomId: stay.roomId,
+              status: {
+                in: [RoomStayStatus.RESERVED, RoomStayStatus.CHECKED_IN],
+              },
+              AND: [
+                { startDate: { lt: new Date(stay.endDate) } },
+                { endDate: { gt: new Date(stay.startDate) } },
+              ],
+            },
+          });
+
+          if (overlappingStay) {
+            throw new BadRequestException(
+              `Room ${roomNumber} is already booked for these dates.`,
+            );
+          }
+          // ------------------------------------
+
           let dailyRate = 0;
 
           // If a rate plan is provided, try to find the specific price for this room type
@@ -125,7 +155,7 @@ export class BookingsService {
             data: {
               bookingId: booking.id,
               tenantId,
-              roomId: stay.roomId || null,
+              roomId: stay.roomId,
               startDate: new Date(stay.startDate),
               endDate: new Date(stay.endDate),
               dailyRate,
@@ -502,5 +532,38 @@ export class BookingsService {
         },
       };
     });
+  }
+
+  async getTimeline(dateFrom: string, dateTo: string) {
+    const { branchId, tenantId } = this.getContext();
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+
+    // Fetch all rooms in the branch
+    const rooms = await this.prisma.room.findMany({
+      where: { branchId, tenantId },
+      include: {
+        type: true,
+        roomStays: {
+          where: {
+            status: { not: RoomStayStatus.CANCELLED },
+            AND: [{ startDate: { lt: end } }, { endDate: { gt: start } }],
+          },
+          include: {
+            booking: {
+              include: {
+                primaryGuest: true,
+                folios: {
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { number: 'asc' },
+    });
+
+    return rooms;
   }
 }
