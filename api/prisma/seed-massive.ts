@@ -461,6 +461,9 @@ async function main() {
           faker.helpers.arrayElements(SAMPLE_IMAGES.hotel, 3),
         ),
         isActive: true,
+        isFeatured: isReal
+          ? true
+          : faker.datatype.boolean({ probability: 0.2 }),
       },
     });
 

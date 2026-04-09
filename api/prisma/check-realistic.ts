@@ -11,18 +11,13 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const branches = await prisma.branch.findMany({
-    take: 5,
-    select: {
-      name: true,
-      address: true,
-      starRating: true,
-      latitude: true,
-      longitude: true,
-    },
+  const featured = await prisma.branch.findMany({
+    where: { isFeatured: true },
+    take: 10,
+    select: { name: true, isFeatured: true, address: true },
   });
-  console.log('Sample Realistic Branches:');
-  console.table(branches);
+  console.log('Featured (Trending) Hotels:');
+  console.table(featured);
 }
 
 main().finally(async () => {

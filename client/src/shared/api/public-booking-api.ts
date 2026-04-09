@@ -107,21 +107,16 @@ export const publicBookingApi = {
     page: number = 1,
     limit: number = 10,
   ): Promise<PaginatedResponse<NearbyHotel>> => {
-    const { data } = await axios.get(`${API_URL}/public/hotels/nearby`, {
+    const { data } = await publicApi.get("/hotels/nearby", {
       params: { lat, lng, radiusKm, search, page, limit },
     });
     return data;
   },
 
   findTrendingHotels: async (limit: number = 10): Promise<NearbyHotel[]> => {
-    const { data } = await axios.get(`${API_URL}/public/hotels/trending`, {
-      params: { limit },
+    const { data } = await publicApi.get("/hotels/trending", {
+      params: { limit, _t: Date.now() }, // Cache buster
     });
-    return data;
-  },
-
-  getMyBookings: async (tgId: string): Promise<any[]> => {
-    const { data } = await axios.get(`${API_URL}/public/my-bookings/${tgId}`);
     return data;
   },
 
@@ -158,7 +153,12 @@ export const publicBookingApi = {
 
   // Get hotel details by ID or slug
   getHotelDetails: async (idOrSlug: string): Promise<NearbyHotel> => {
-    const { data } = await axios.get(`${API_URL}/public/hotels/${idOrSlug}`);
+    const { data } = await publicApi.get(`/hotels/${idOrSlug}`);
+    return data;
+  },
+
+  getMyBookings: async (tgId: string): Promise<any[]> => {
+    const { data } = await publicApi.get(`/my-bookings/${tgId}`);
     return data;
   },
 

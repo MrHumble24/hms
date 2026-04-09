@@ -16,9 +16,12 @@ export class LoggerMiddleware implements NestMiddleware {
 
     res.on('finish', () => {
       const { statusCode } = res;
-      const contentLength = res.get('content-length');
+      const contentLength = res.get('content-length') || '0';
       const duration = Date.now() - start;
-      const message = `${method} ${originalUrl} ${statusCode} ${contentLength} - ${duration}ms | ${userAgent} ${ip}`;
+      const user = (req as any).user;
+      const userIdentifier = user ? user.email || user.id : 'Guest';
+
+      const message = `${method} ${originalUrl} ${statusCode} ${contentLength} - ${duration}ms | User: ${userIdentifier} | ${userAgent} ${ip}`;
 
       this.logger.log(message);
 
