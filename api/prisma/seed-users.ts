@@ -14,12 +14,11 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Starting seed...');
+  console.log('🌱 Starting users seed...');
 
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash('admin123', salt);
 
-  // Check if super admin already exists
   const existingAdmin = await prisma.user.findFirst({
     where: { email: 'admin@hms.uz' },
   });
@@ -29,7 +28,6 @@ async function main() {
     return;
   }
 
-  // Create or get the system tenant for super admin
   let systemTenant = await prisma.tenant.findFirst({
     where: { slug: 'system' },
   });
@@ -49,7 +47,6 @@ async function main() {
     console.log('✅ System tenant created');
   }
 
-  // Create Super Admin (connected to system tenant)
   const admin = await prisma.user.create({
     data: {
       email: 'admin@hms.uz',
@@ -63,12 +60,12 @@ async function main() {
   });
 
   console.log(`✅ Super Admin created: ${admin.email}`);
-  console.log('✅ Seed completed successfully!');
+  console.log('✅ Users seed completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:');
+    console.error('❌ Error seeding users:');
     console.error(JSON.stringify(e, null, 2));
     if (e.cause) console.error('Cause:', JSON.stringify(e.cause, null, 2));
     process.exit(1);
