@@ -40,12 +40,58 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// Tashkent bounding box (shared: default seed backfill + massive seed helpers below)
+const TASHKENT_BOUNDS = {
+  minLat: 41.2,
+  maxLat: 41.4,
+  minLng: 69.1,
+  maxLng: 69.4,
+};
+
+function randomTashkentCoordinate(): { latitude: number; longitude: number } {
+  const latitude =
+    TASHKENT_BOUNDS.minLat +
+    Math.random() * (TASHKENT_BOUNDS.maxLat - TASHKENT_BOUNDS.minLat);
+  const longitude =
+    TASHKENT_BOUNDS.minLng +
+    Math.random() * (TASHKENT_BOUNDS.maxLng - TASHKENT_BOUNDS.minLng);
+  return {
+    latitude: Math.round(latitude * 1000000) / 1000000,
+    longitude: Math.round(longitude * 1000000) / 1000000,
+  };
+}
+
+/** Sets Tashkent-area coordinates on branches that are missing lat/lng (does not overwrite existing). */
+async function ensureBranchCoordinates() {
+  const branches = await prisma.branch.findMany({
+    where: {
+      OR: [{ latitude: null }, { longitude: null }],
+    },
+    select: { id: true },
+  });
+  if (branches.length === 0) return;
+  for (const b of branches) {
+    const { latitude, longitude } = randomTashkentCoordinate();
+    await prisma.branch.update({
+      where: { id: b.id },
+      data: { latitude, longitude },
+    });
+  }
+  console.log(
+    `✅ Set Tashkent-area coordinates on ${branches.length} branch(es) that were missing lat/lng`,
+  );
+}
+
+function pickStaffId(userIds: string[]): string | null {
+  return userIds.length > 0 ? faker.helpers.arrayElement(userIds) : null;
+}
+
 async function seedServices() {
   console.log('🌱 Starting data seed (hotel services)...');
   const branch = await prisma.branch.findFirst();
   if (!branch) {
     console.log(
-      'No branch found — skip services. Create a branch in the app, then run: npm run seed:data',
+      'No branch found — skip services. Create a branch in the app, then run: npm run seed',
     );
     return;
   }
@@ -89,7 +135,7 @@ async function seedServices() {
   ];
 
   for (const s of services) {
-    await (prisma as any).hotelService.create({
+    await prisma.hotelService.create({
       data: {
         ...s,
         tenantId: branch.tenantId,
@@ -101,33 +147,11 @@ async function seedServices() {
   console.log('✅ Data seed (hotel services) completed!');
 }
 
-// Configuration - adjusted for even distribution
+// Configuration — target ~50k rows per major entity; one branch per tenant in the creation loop
 const NUM_TENANTS = 50;
-const BRANCHES_PER_TENANT = 10; // 50 * 10 = 500 branches total
-const RECORDS_PER_BRANCH = 100; // This gives us 50K+ per model (500 branches * 100 = 50K)
+const BRANCH_COUNT_PER_TENANT = 1;
+const TOTAL_BRANCHES = NUM_TENANTS * BRANCH_COUNT_PER_TENANT;
 const BATCH_SIZE = 2500;
-
-// Tashkent bounding box for coordinate distribution
-const TASHKENT_BOUNDS = {
-  minLat: 41.2,
-  maxLat: 41.4,
-  minLng: 69.1,
-  maxLng: 69.4,
-};
-
-function randomTashkentCoordinate(): { latitude: number; longitude: number } {
-  const latitude =
-    TASHKENT_BOUNDS.minLat +
-    Math.random() * (TASHKENT_BOUNDS.maxLat - TASHKENT_BOUNDS.minLat);
-  const longitude =
-    TASHKENT_BOUNDS.minLng +
-    Math.random() * (TASHKENT_BOUNDS.maxLng - TASHKENT_BOUNDS.minLng);
-
-  return {
-    latitude: Math.round(latitude * 1000000) / 1000000,
-    longitude: Math.round(longitude * 1000000) / 1000000,
-  };
-}
 
 const CITY_BOUNDS = {
   TASHKENT: { minLat: 41.25, maxLat: 41.38, minLng: 69.15, maxLng: 69.35 },
@@ -411,6 +435,8 @@ async function seedMassive() {
   try {
     await prisma.$executeRawUnsafe(`
       TRUNCATE TABLE 
+        "DiscountContract", "MenuItemIngredient", "GuestCommunication",
+        "HotelServiceRequest", "HotelService", "PriceModifier",
         "AuditLog", "SystemLog", "EmehmonLog", "MaintenanceTicket", 
         "HousekeepingTask", "StockLog", "RestaurantOrderItem", "RestaurantOrder", 
         "RestaurantMenuItem", "RestaurantCategory", "InventoryItem", "Payment", 
@@ -519,9 +545,7 @@ async function seedMassive() {
         longitude,
         starRating: stars,
         logoUrl: faker.image.url({ width: 200, height: 200 }),
-        gallery: JSON.stringify(
-          faker.helpers.arrayElements(SAMPLE_IMAGES.hotel, 3),
-        ),
+        gallery: faker.helpers.arrayElements(SAMPLE_IMAGES.hotel, 3),
         isActive: true,
         isFeatured: isReal
           ? true
@@ -557,7 +581,7 @@ async function seedMassive() {
       const userId = faker.string.uuid();
       users.push({
         id: userId,
-        email: `user-${tenantId.slice(0, 8)}-${u}@hms.com`,
+        email: `user-${tenantId}-${u}@hms.local`,
         password: password,
         fullName: faker.person.fullName(),
         role: faker.helpers.arrayElement(
@@ -605,8 +629,8 @@ async function seedMassive() {
             'KOR',
             'JPN',
           ]),
-          passportSeries: faker.string.alpha(2).toUpperCase(),
-          passportNumber: faker.string.numeric(7),
+          passportSeries: 'SD',
+          passportNumber: String(batch + g).padStart(10, '0'),
           dateOfBirth: faker.date.birthdate({ min: 18, max: 80, mode: 'age' }),
           gender: faker.helpers.arrayElement(['MALE', 'FEMALE'] as Gender[]),
         });
@@ -635,7 +659,7 @@ async function seedMassive() {
           id: companyId,
           tenantId: tenantId,
           name: faker.company.name(),
-          taxId: faker.string.numeric(9),
+          taxId: `T${String(batch + c).padStart(12, '0')}`,
           contactPerson: faker.person.fullName(),
           email: faker.internet.email(),
           phone: faker.phone.number(),
@@ -693,7 +717,7 @@ async function seedMassive() {
           basePrice: (rt + 1) * 100000, // Price based on tier
           description: faker.lorem.paragraph(),
           amenities: ['WiFi', 'TV', 'AC', 'Mini Bar'].slice(0, rt + 2),
-          images: JSON.stringify(typeImages),
+          images: typeImages,
         });
 
         branch.roomTypes.push({
@@ -709,12 +733,12 @@ async function seedMassive() {
     process.stdout.write('.');
   }
   console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT * roomTypeNames.length}+ room types`,
+    `\n✅ Created ${TOTAL_BRANCHES * roomTypeNames.length}+ room types`,
   );
 
   // 7. Rooms per Branch
   console.log('🔹 Creating Rooms per Branch...');
-  const roomsPerBranch = Math.ceil(50000 / (NUM_TENANTS * BRANCHES_PER_TENANT));
+  const roomsPerBranch = Math.ceil(50000 / TOTAL_BRANCHES);
 
   for (const tenantId of tenantIds) {
     const tenantData = tenantsMap.get(tenantId)!;
@@ -741,7 +765,7 @@ async function seedMassive() {
           capacity: faker.number.int({ min: 1, max: 4 }),
           status: faker.helpers.arrayElement(Object.values(RoomStatus)),
           isOccupied: faker.datatype.boolean({ probability: 0.4 }),
-          images: JSON.stringify(typeImages),
+          images: typeImages,
         });
 
         branch.rooms.push({
@@ -756,15 +780,11 @@ async function seedMassive() {
     }
     process.stdout.write('.');
   }
-  console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT * roomsPerBranch}+ rooms`,
-  );
+  console.log(`\n✅ Created ${TOTAL_BRANCHES * roomsPerBranch}+ rooms`);
 
   // 8. Inventory Items per Branch
   console.log('🔹 Creating Inventory Items per Branch...');
-  const inventoryPerBranch = Math.ceil(
-    50000 / (NUM_TENANTS * BRANCHES_PER_TENANT),
-  );
+  const inventoryPerBranch = Math.ceil(50000 / TOTAL_BRANCHES);
   const inventoryNames: Record<string, string[]> = {
     MINIBAR: [
       'Coca-Cola',
@@ -837,7 +857,7 @@ async function seedMassive() {
     process.stdout.write('.');
   }
   console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT * inventoryPerBranch}+ inventory items`,
+    `\n✅ Created ${TOTAL_BRANCHES * inventoryPerBranch}+ inventory items`,
   );
 
   // 9. Restaurant Categories per Branch
@@ -879,13 +899,13 @@ async function seedMassive() {
     process.stdout.write('.');
   }
   console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT * categoryNames.length}+ restaurant categories`,
+    `\n✅ Created ${TOTAL_BRANCHES * categoryNames.length}+ restaurant categories`,
   );
 
   // 10. Menu Items per Category
   console.log('🔹 Creating Menu Items per Category...');
   const menuItemsPerCategory = Math.ceil(
-    50000 / (NUM_TENANTS * BRANCHES_PER_TENANT * categoryNames.length),
+    50000 / (TOTAL_BRANCHES * categoryNames.length),
   );
   const menuItemData = [
     {
@@ -988,7 +1008,7 @@ async function seedMassive() {
     process.stdout.write('.');
   }
   console.log(
-    `\n✅ Created ${NUM_TENANTS * BRANCHES_PER_TENANT * ratePlanCodes.length}+ rate plans`,
+    `\n✅ Created ${TOTAL_BRANCHES * ratePlanCodes.length}+ rate plans`,
   );
 
   // =========================================================
@@ -999,9 +1019,7 @@ async function seedMassive() {
 
   // 12. Bookings per Branch
   console.log('🔹 Creating Bookings per Branch...');
-  const bookingsPerBranch = Math.ceil(
-    50000 / (NUM_TENANTS * BRANCHES_PER_TENANT),
-  );
+  const bookingsPerBranch = Math.ceil(50000 / TOTAL_BRANCHES);
 
   for (const tenantId of tenantIds) {
     const tenantData = tenantsMap.get(tenantId)!;
@@ -1200,6 +1218,12 @@ async function seedMassive() {
   for (const tenantId of tenantIds) {
     const tenantData = tenantsMap.get(tenantId)!;
     const tenantUserIds = tenantData.users;
+    const staffId = pickStaffId(tenantUserIds);
+    if (!staffId) {
+      process.stdout.write('.');
+      continue;
+    }
+
     const tenantFolios = allFolios.filter((f) => f.tenantId === tenantId);
 
     const payments: any[] = [];
@@ -1228,10 +1252,7 @@ async function seedMassive() {
         ]),
         transactionRef: faker.string.alphanumeric(16).toUpperCase(),
         receiptNumber: faker.string.numeric(12),
-        staffId:
-          tenantUserIds.length > 0
-            ? faker.helpers.arrayElement(tenantUserIds)
-            : tenantUserIds[0],
+        staffId,
       });
     }
 
@@ -1242,9 +1263,7 @@ async function seedMassive() {
 
   // 17. Restaurant Orders (POS)
   console.log('🔹 Creating Restaurant Orders (POS)...');
-  const ordersPerBranch = Math.ceil(
-    50000 / (NUM_TENANTS * BRANCHES_PER_TENANT),
-  );
+  const ordersPerBranch = Math.ceil(50000 / TOTAL_BRANCHES);
 
   for (const tenantId of tenantIds) {
     const tenantData = tenantsMap.get(tenantId)!;
@@ -1354,6 +1373,11 @@ async function seedMassive() {
   for (const tenantId of tenantIds) {
     const tenantData = tenantsMap.get(tenantId)!;
     const tenantUserIds = tenantData.users;
+    const stockStaffId = pickStaffId(tenantUserIds);
+    if (!stockStaffId) {
+      process.stdout.write('.');
+      continue;
+    }
 
     for (const branch of tenantData.branches) {
       const logs: any[] = [];
@@ -1371,10 +1395,7 @@ async function seedMassive() {
             id: faker.string.uuid(),
             itemId: itemId,
             tenantId: tenantId,
-            staffId:
-              tenantUserIds.length > 0
-                ? faker.helpers.arrayElement(tenantUserIds)
-                : tenantUserIds[0],
+            staffId: stockStaffId,
             change: isIncrease
               ? faker.number.int({ min: 10, max: 100 })
               : -faker.number.int({ min: 1, max: 20 }),
@@ -1402,6 +1423,9 @@ async function seedMassive() {
     const tenantUserIds = tenantData.users;
 
     for (const branch of tenantData.branches) {
+      const creatorId = pickStaffId(tenantUserIds);
+      if (!creatorId) continue;
+
       const tasks: any[] = [];
 
       for (const room of branch.rooms) {
@@ -1409,14 +1433,8 @@ async function seedMassive() {
           id: faker.string.uuid(),
           tenantId: tenantId,
           roomId: room.id,
-          assigneeId:
-            tenantUserIds.length > 0
-              ? faker.helpers.arrayElement(tenantUserIds)
-              : null,
-          createdById:
-            tenantUserIds.length > 0
-              ? faker.helpers.arrayElement(tenantUserIds)
-              : tenantUserIds[0],
+          assigneeId: pickStaffId(tenantUserIds),
+          createdById: creatorId,
           status: faker.helpers.arrayElement(Object.values(TaskStatus)),
           priority: faker.helpers.arrayElement(Object.values(Priority)),
           taskType: faker.helpers.arrayElement(
@@ -1484,6 +1502,9 @@ async function seedMassive() {
     const tenantUserIds = tenantData.users;
 
     for (const branch of tenantData.branches) {
+      const historyUserId = pickStaffId(tenantUserIds);
+      if (!historyUserId) continue;
+
       const histories: any[] = [];
 
       for (const room of branch.rooms) {
@@ -1502,10 +1523,7 @@ async function seedMassive() {
             roomId: room.id,
             oldStatus: oldStatus,
             newStatus: newStatus,
-            userId:
-              tenantUserIds.length > 0
-                ? faker.helpers.arrayElement(tenantUserIds)
-                : tenantUserIds[0],
+            userId: historyUserId,
             notes: faker.datatype.boolean({ probability: 0.2 })
               ? faker.lorem.sentence()
               : null,
@@ -1625,10 +1643,15 @@ async function seedMassive() {
     const logs: any[] = [];
 
     const auditCount = Math.ceil(50000 / NUM_TENANTS);
+    const auditBranchId =
+      tenantData.branches.length > 0
+        ? faker.helpers.arrayElement(tenantData.branches).id
+        : null;
     for (let a = 0; a < auditCount; a++) {
       logs.push({
         id: faker.string.uuid(),
         tenantId: tenantId,
+        branchId: auditBranchId,
         userId:
           tenantUserIds.length > 0
             ? faker.helpers.arrayElement(tenantUserIds)
@@ -1858,14 +1881,14 @@ async function seedMassive() {
   console.log('\n📊 Summary:');
   console.log(`   ├─ Tenants: ${NUM_TENANTS}`);
   console.log(
-    `   ├─ Branches: ${NUM_TENANTS * BRANCHES_PER_TENANT} (${BRANCHES_PER_TENANT} per tenant)`,
+    `   ├─ Branches: ${TOTAL_BRANCHES} (${BRANCH_COUNT_PER_TENANT} per tenant)`,
   );
   console.log(`   ├─ Users: ~${NUM_TENANTS * Math.ceil(50000 / NUM_TENANTS)}`);
   console.log(`   ├─ Guests: ~${NUM_TENANTS * Math.ceil(50000 / NUM_TENANTS)}`);
   console.log(
     `   ├─ Companies: ~${NUM_TENANTS * Math.ceil(50000 / NUM_TENANTS)}`,
   );
-  console.log(`   ├─ Room Types: ${NUM_TENANTS * BRANCHES_PER_TENANT * 8}+`);
+  console.log(`   ├─ Room Types: ${TOTAL_BRANCHES * 8}+`);
   console.log(`   ├─ Rooms: 50K+`);
   console.log(`   ├─ Bookings: ${allBookings.length}`);
   console.log(`   ├─ Room Stays: ${allRoomStays.length}`);
@@ -1883,6 +1906,7 @@ async function main() {
     await seedMassive();
   } else {
     await seedServices();
+    await ensureBranchCoordinates();
   }
 }
 
