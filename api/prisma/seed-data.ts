@@ -25,6 +25,7 @@ import {
   AuditAction,
   RoomStayStatus,
   EmehmonStatus,
+  ServiceCategory,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
@@ -38,6 +39,67 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+async function seedServices() {
+  console.log('🌱 Starting data seed (hotel services)...');
+  const branch = await prisma.branch.findFirst();
+  if (!branch) {
+    console.log(
+      'No branch found — skip services. Create a branch in the app, then run: npm run seed:data',
+    );
+    return;
+  }
+
+  const services = [
+    {
+      name: 'Airport Pickup (Standard)',
+      description: 'Standard sedan pickup from Tashkent Airport',
+      category: ServiceCategory.TRANSPORT,
+      basePrice: 200000,
+      currency: Currency.UZS,
+    },
+    {
+      name: 'Laundry (Wash & Fold)',
+      description: 'Same-day laundry service',
+      category: ServiceCategory.LAUNDRY,
+      basePrice: 50000,
+      currency: Currency.UZS,
+    },
+    {
+      name: 'Express Dry Cleaning',
+      description: 'Urgent dry cleaning for suits and dresses',
+      category: ServiceCategory.LAUNDRY,
+      basePrice: 150000,
+      currency: Currency.UZS,
+    },
+    {
+      name: 'Thai Massage (60 min)',
+      description: 'Professional relaxation massage',
+      category: ServiceCategory.SPA,
+      basePrice: 450000,
+      currency: Currency.UZS,
+    },
+    {
+      name: 'City Tour (Private)',
+      description: '4-hour private tour around historical sites',
+      category: ServiceCategory.CONCIERGE,
+      basePrice: 800000,
+      currency: Currency.UZS,
+    },
+  ];
+
+  for (const s of services) {
+    await (prisma as any).hotelService.create({
+      data: {
+        ...s,
+        tenantId: branch.tenantId,
+        branchId: branch.id,
+      },
+    });
+  }
+
+  console.log('✅ Data seed (hotel services) completed!');
+}
 
 // Configuration - adjusted for even distribution
 const NUM_TENANTS = 50;
@@ -341,7 +403,7 @@ const allRestaurantOrders: {
   branchId: string;
 }[] = [];
 
-async function main() {
+async function seedMassive() {
   console.log('🚀 Starting massive seed with NO ORPHANS guarantee...');
 
   // Truncate existing data to start fresh
@@ -375,7 +437,7 @@ async function main() {
 
   console.log('\n📌 PHASE 1: Creating Core Hierarchy...');
 
-  // 1. Check for existing system tenant from seed.ts and create additional tenants
+  // 1. Check for existing system tenant from seed-users.ts and create additional tenants
   console.log('🔹 Checking for existing system tenant...');
   const existingSystemTenant = await prisma.tenant.findFirst({
     where: { slug: 'system' },
@@ -481,7 +543,7 @@ async function main() {
   }
   console.log(`\n✅ Created ${NUM_TENANTS} realistic tenants and branches`);
 
-  // 3. Create Users per Tenant (seed.ts already creates super admin)
+  // 3. Create Users per Tenant (seed-users.ts already creates super admin)
   console.log('🔹 Creating Users per Tenant...');
   const tenantIds = Array.from(tenantsMap.keys());
 
@@ -1816,9 +1878,17 @@ async function main() {
   console.log('\n🎉 Seeding complete!');
 }
 
+async function main() {
+  if (process.argv.includes('--massive')) {
+    await seedMassive();
+  } else {
+    await seedServices();
+  }
+}
+
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error('❌ Data seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {
