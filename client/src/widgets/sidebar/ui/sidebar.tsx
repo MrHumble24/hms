@@ -299,7 +299,10 @@ export const Sidebar = () => {
         label: item.label,
         path: item.path,
       });
-      navigate(item.path);
+      const stored = useTabStore
+        .getState()
+        .tabs.find((t) => t.key === item.key);
+      navigate(stored?.path ?? item.path);
     }
   };
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Layout,
   Avatar,
@@ -24,8 +25,13 @@ import { useNavigate, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { BranchGuard } from "@/shared/lib/auth/branch-guard";
 import { useLocation } from "react-router-dom";
+import { useTabStore } from "@/entities/navigation/model/tab-store";
 
 const { Header, Content } = Layout;
+
+function pathnameOfStoredPath(path: string) {
+  return path.split("?")[0].split("#")[0] || "/";
+}
 const { Text } = Typography;
 
 export const AdminLayout = () => {
@@ -36,6 +42,25 @@ export const AdminLayout = () => {
   const { md } = Grid.useBreakpoint();
   const location = useLocation();
   const isMobile = !md;
+  const activeTabKey = useTabStore((s) => s.activeTabKey);
+  const updateTabPath = useTabStore((s) => s.updateTabPath);
+
+  useEffect(() => {
+    const fullPath = `${location.pathname}${location.search}${location.hash}`;
+    const tab = useTabStore
+      .getState()
+      .tabs.find((t) => t.key === activeTabKey);
+    if (!tab) return;
+    if (pathnameOfStoredPath(tab.path) !== location.pathname) return;
+    if (tab.path === fullPath) return;
+    updateTabPath(activeTabKey, fullPath);
+  }, [
+    location.pathname,
+    location.search,
+    location.hash,
+    activeTabKey,
+    updateTabPath,
+  ]);
 
   const handleLogout = () => {
     logout();

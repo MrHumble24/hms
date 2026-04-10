@@ -6,7 +6,20 @@
   "occupied": "Band",
   "clean": "Toza",
   "dirty": "Kir",
+  "inspected": "Tekshirilgan",
   "outOfService": "Xizmatda emas",
+  "viewGrid": "Panjara",
+  "viewTable": "Jadval",
+  "table": {
+    "room": "Xona",
+    "type": "Tur",
+    "floor": "Qavat",
+    "status": "Holat",
+    "guest": "Mehmon",
+    "alerts": "Signallar",
+    "hkTask": "Tozalash vazifasi",
+    "maintenance": "Ta'mirlash ariza"
+  },
   "allFloors": "Barcha qavatlar",
   "floor": "Qavat",
   "refresh": "Yangilash",
@@ -21,5 +34,9 @@
   "noIssues": "Ushbu xona uchun faol ta'mirlash muammolari aniqlanmagan.",
   "viewReservation": "Bandlovni ko'rish",
   "viewFolio": "Mehmon hisobini ko'rish",
-  "internalNote": "Ichki eslatma"
+  "internalNote": "Ichki eslatma",
+  "paginationTotal": "{{start}}–{{end}} / {{total}} xona",
+  "loadedOfTotal": "{{loaded}} / {{total}} xona",
+  "loadingMore": "Yuklanmoqda…",
+  "noRoomsMatch": "Filtrlarga mos xonalar yo'q."
 }

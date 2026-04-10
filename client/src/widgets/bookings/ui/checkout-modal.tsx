@@ -162,7 +162,7 @@ export const CheckoutModal = ({
           </Button>,
         ]}
         width={screens.md ? 500 : "100%"}
-        style={{ top: screens.md ? 100 : 0, margin: 0 }}
+        style={screens.md ? { top: 100 } : { top: 0 }}
       >
         <div style={{ padding: "20px 0" }}>
           <Title level={4} style={{ textAlign: "center", marginBottom: 24 }}>
@@ -302,7 +302,7 @@ export const CheckoutModal = ({
       onCancel={onClose}
       footer={null}
       width={screens.md ? 600 : "100%"}
-      style={{ top: screens.md ? 100 : 0, margin: 0 }}
+      style={screens.md ? { top: 100 } : { top: 0 }}
     >
       <div style={{ marginBottom: 24 }}>
         <Title level={5}>

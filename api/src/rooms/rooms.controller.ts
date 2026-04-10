@@ -96,8 +96,23 @@ export class RoomsController {
 
   @Get('dashboard')
   @Roles('SUPER_ADMIN', 'MANAGER', 'ADMIN')
-  getDashboard() {
-    return this.roomsService.getDashboard();
+  getDashboard(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('floor') floor?: string,
+  ) {
+    return this.roomsService.getDashboard({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      status,
+      floor:
+        floor === undefined || floor === '' || floor === 'all'
+          ? undefined
+          : parseInt(floor, 10),
+    });
   }
 
   @Get(':id')

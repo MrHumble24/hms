@@ -16,6 +16,8 @@ interface TabStore {
   removeTab: (targetKey: string) => void;
   setActiveTab: (key: string) => void;
   removeAllTabs: () => void;
+  /** Keeps search/hash when switching tabs (path must stay in sync with the router). */
+  updateTabPath: (key: string, path: string) => void;
 }
 
 export const useTabStore = create<TabStore>()(
@@ -52,6 +54,13 @@ export const useTabStore = create<TabStore>()(
         set({ tabs: newTabs, activeTabKey: newActiveKey });
       },
       setActiveTab: (key) => set({ activeTabKey: key }),
+      updateTabPath: (key, path) => {
+        set((state) => ({
+          tabs: state.tabs.map((t) =>
+            t.key === key ? { ...t, path } : t,
+          ),
+        }));
+      },
       removeAllTabs: () => {
         set({
           tabs: [

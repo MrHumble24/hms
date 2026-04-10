@@ -27,7 +27,8 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
 
   const handleClick = () => {
     addTab({ key: id, label: title, path });
-    navigate(path);
+    const stored = useTabStore.getState().tabs.find((t) => t.key === id);
+    navigate(stored?.path ?? path);
   };
 
   return (

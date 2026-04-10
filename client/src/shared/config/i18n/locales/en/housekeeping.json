@@ -2,6 +2,18 @@
   "title": "Housekeeping Management",
   "subtitle": "Manage room cleaning status and staff tasks",
   "searchPlaceholder": "Search room or housekeeper...",
+  "searchRoom": "Search by room number...",
+  "view": {
+    "grid": "Grid",
+    "list": "List"
+  },
+  "columns": {
+    "room": "Room",
+    "floor": "Floor",
+    "type": "Type",
+    "status": "Status"
+  },
+  "emptyRooms": "No rooms match your search.",
   "status": {
     "clean": "Clean",
     "dirty": "Dirty",

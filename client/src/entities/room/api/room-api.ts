@@ -52,6 +52,13 @@ export interface RoomDashboardItem {
   isGalleryInherited?: boolean;
 }
 
+export interface RoomsDashboardResponse {
+  data: RoomDashboardItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CreateRoomTypeDto {
   name: string;
   basePrice: number;
@@ -70,10 +77,29 @@ export interface CreateRoomDto {
 }
 
 export const roomApi = {
-  // --- Dashboard ---
-  getDashboard: async () => {
-    const response = await api.get<RoomDashboardItem[]>("/rooms/dashboard");
-    return response as unknown as RoomDashboardItem[];
+  // --- Dashboard (paginated; filters applied on server) ---
+  getDashboard: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    floor?: number | "all";
+  }) => {
+    const query: Record<string, string | number> = {
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 24,
+    };
+    const s = params?.search?.trim();
+    if (s) query.search = s;
+    if (params?.status && params.status !== "all") query.status = params.status;
+    if (params?.floor !== undefined && params?.floor !== "all")
+      query.floor = params.floor;
+
+    const response = await api.get<RoomsDashboardResponse>(
+      "/rooms/dashboard",
+      { params: query },
+    );
+    return response as unknown as RoomsDashboardResponse;
   },
 
   // --- Room Types ---

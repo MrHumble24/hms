@@ -6,7 +6,20 @@
   "occupied": "Occupied",
   "clean": "Clean",
   "dirty": "Dirty",
+  "inspected": "Inspected",
   "outOfService": "Out of Service",
+  "viewGrid": "Grid",
+  "viewTable": "Table",
+  "table": {
+    "room": "Room",
+    "type": "Type",
+    "floor": "Floor",
+    "status": "Status",
+    "guest": "Guest",
+    "alerts": "Alerts",
+    "hkTask": "Housekeeping task in progress",
+    "maintenance": "Maintenance reported"
+  },
   "allFloors": "All Floors",
   "floor": "Floor",
   "refresh": "Refresh",
@@ -21,5 +34,9 @@
   "noIssues": "No active maintenance issues reported for this room.",
   "viewReservation": "View Reservation",
   "viewFolio": "View Guest Folio",
-  "internalNote": "Internal Note"
+  "internalNote": "Internal Note",
+  "paginationTotal": "{{start}}–{{end}} of {{total}} rooms",
+  "loadedOfTotal": "{{loaded}} of {{total}} rooms",
+  "loadingMore": "Loading more…",
+  "noRoomsMatch": "No rooms match your filters."
 }

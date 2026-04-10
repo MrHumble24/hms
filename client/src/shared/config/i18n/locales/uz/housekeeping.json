@@ -2,6 +2,18 @@
   "title": "Xona tozalash xizmati",
   "subtitle": "Xonalar holati va xodimlar vazifalari",
   "searchPlaceholder": "Xona yoki xodimni qidirish...",
+  "searchRoom": "Xona raqami bo'yicha qidiruv...",
+  "view": {
+    "grid": "Panjara",
+    "list": "Ro'yxat"
+  },
+  "columns": {
+    "room": "Xona",
+    "floor": "Qavat",
+    "type": "Tur",
+    "status": "Holat"
+  },
+  "emptyRooms": "Qidiruv bo'yicha xonalar yo'q.",
   "status": {
     "clean": "Toza",
     "dirty": "Kir",

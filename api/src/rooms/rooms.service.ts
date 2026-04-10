@@ -19,7 +19,7 @@ import {
   UpdatePriceModifierDto,
   BulkQrDownloadDto,
 } from './dto/rooms.dto.js';
-import { RoomStatus } from '@prisma/client';
+import { Prisma, RoomStatus, TaskStatus, TicketStatus } from '@prisma/client';
 import { getTenantContext } from '../common/tenant-context.js';
 
 @Injectable()
@@ -407,43 +407,138 @@ export class RoomsService {
 
   // --- Dashboard ---
 
-  async getDashboard() {
+  private activeStayFilter(now: Date): Prisma.RoomStayWhereInput {
+    return {
+      status: { in: ['RESERVED', 'CHECKED_IN'] },
+      startDate: { lte: now },
+      endDate: { gte: now },
+    };
+  }
+
+  private mapDashboardRoom(room: {
+    roomStays: Array<{
+      booking: { primaryGuest: unknown };
+    }>;
+    [key: string]: unknown;
+  }) {
+    const { roomStays, ...rest } = room;
+    return {
+      ...rest,
+      bookings: roomStays.map((rs) => ({
+        ...rs.booking,
+        guest: rs.booking.primaryGuest,
+      })),
+    };
+  }
+
+  async getDashboard(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    floor?: number;
+  }) {
     const { branchId, tenantId } = this.getContext();
     const now = new Date();
+    const activeStay = this.activeStayFilter(now);
 
-    const rooms = await this.prisma.room.findMany({
-      where: { branchId, tenantId },
-      include: {
-        type: true,
-        roomStays: {
-          where: {
-            status: { in: ['RESERVED', 'CHECKED_IN'] },
-            startDate: { lte: now },
-            endDate: { gte: now },
+    const page = Math.max(
+      1,
+      Number.isFinite(Number(params?.page)) ? Number(params!.page) : 1,
+    );
+    const limitRaw = Number.isFinite(Number(params?.limit))
+      ? Number(params!.limit)
+      : 24;
+    const limit = Math.min(100, Math.max(1, limitRaw));
+    const skip = (page - 1) * limit;
+
+    const andConditions: Prisma.RoomWhereInput[] = [{ branchId, tenantId }];
+
+    if (
+      params?.floor !== undefined &&
+      params.floor !== null &&
+      !Number.isNaN(params.floor)
+    ) {
+      andConditions.push({ floor: params.floor });
+    }
+
+    if (params?.status && params.status !== 'all') {
+      if (params.status === 'OCCUPIED') {
+        andConditions.push({
+          roomStays: { some: activeStay },
+        });
+      } else {
+        andConditions.push({
+          status: params.status as RoomStatus,
+        });
+      }
+    }
+
+    const q = params?.search?.trim();
+    if (q) {
+      andConditions.push({
+        OR: [
+          { number: { contains: q, mode: 'insensitive' } },
+          {
+            roomStays: {
+              some: {
+                ...activeStay,
+                booking: {
+                  primaryGuest: {
+                    OR: [
+                      { firstName: { contains: q, mode: 'insensitive' } },
+                      { lastName: { contains: q, mode: 'insensitive' } },
+                    ],
+                  },
+                },
+              },
+            },
           },
-          include: { booking: { include: { primaryGuest: true } } },
+        ],
+      });
+    }
+
+    const where: Prisma.RoomWhereInput =
+      andConditions.length === 1
+        ? andConditions[0]!
+        : { AND: andConditions };
+
+    const include = {
+      type: true,
+      roomStays: {
+        where: activeStay,
+        include: { booking: { include: { primaryGuest: true } } },
+      },
+      tasks: {
+        where: {
+          status: { in: [TaskStatus.PENDING, TaskStatus.IN_PROGRESS] },
         },
-        tasks: {
-          where: { status: { in: ['PENDING', 'IN_PROGRESS'] } },
-          include: { assignee: true },
-        },
-        maintenance: {
-          where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
+        include: { assignee: true },
+      },
+      maintenance: {
+        where: {
+          status: { in: [TicketStatus.OPEN, TicketStatus.IN_PROGRESS] },
         },
       },
-      orderBy: { number: 'asc' },
-    });
+    };
 
-    return rooms.map((room) => {
-      const { roomStays, ...rest } = room;
-      return {
-        ...rest,
-        bookings: roomStays.map((rs) => ({
-          ...rs.booking,
-          guest: rs.booking.primaryGuest,
-        })),
-      };
-    });
+    const [rooms, total] = await Promise.all([
+      this.prisma.room.findMany({
+        where,
+        skip,
+        take: limit,
+        include,
+        orderBy: { number: 'asc' },
+      }),
+      this.prisma.room.count({ where }),
+    ]);
+
+    return {
+      data: rooms.map((r) => this.mapDashboardRoom(r)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async bulkDownloadQrCodes(dto: BulkQrDownloadDto) {

@@ -6,7 +6,20 @@
   "occupied": "Занят",
   "clean": "Чистый",
   "dirty": "Грязный",
+  "inspected": "Проверен",
   "outOfService": "Вне обслуживания",
+  "viewGrid": "Сетка",
+  "viewTable": "Таблица",
+  "table": {
+    "room": "Номер",
+    "type": "Категория",
+    "floor": "Этаж",
+    "status": "Статус",
+    "guest": "Гость",
+    "alerts": "Сигналы",
+    "hkTask": "Задача на уборку",
+    "maintenance": "Заявка на ремонт"
+  },
   "allFloors": "Все этажи",
   "floor": "Этаж",
   "refresh": "Обновить",
@@ -21,5 +34,9 @@
   "noIssues": "Активных проблем с обслуживанием в этом номере нет.",
   "viewReservation": "Просмотреть бронь",
   "viewFolio": "Просмотреть счет гостя",
-  "internalNote": "Внутренняя заметка"
+  "internalNote": "Внутренняя заметка",
+  "paginationTotal": "{{start}}–{{end}} из {{total}} номеров",
+  "loadedOfTotal": "{{loaded}} из {{total}} номеров",
+  "loadingMore": "Загрузка…",
+  "noRoomsMatch": "Нет номеров по заданным фильтрам."
 }
