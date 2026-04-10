@@ -10,7 +10,7 @@ export const resolveImageUrl = (path: string | undefined | null) => {
     return path;
   }
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
   // Ensure we don't double slash
   const cleanPath = path.startsWith("/") ? path : `/${path}`;

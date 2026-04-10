@@ -37,7 +37,7 @@ export const backupApi = {
   },
 
   getDownloadUrl: (filename: string) => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
     return `${baseUrl}/backups/${filename}`;
   },
 };
