@@ -76,8 +76,8 @@ export const LoginPage = () => {
             size="large"
             requiredMark={false}
             initialValues={{
-              email: "admin@hms.uz",
-              password: "admin123",
+              email: "super@hms.uz",
+              password: "password123",
             }}
           >
             <Form.Item

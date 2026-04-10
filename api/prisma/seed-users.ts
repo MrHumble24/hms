@@ -17,10 +17,10 @@ async function main() {
   console.log('🌱 Starting users seed...');
 
   const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash('admin123', salt);
+  const hashedPassword = await bcrypt.hash('password123', salt);
 
   const existingAdmin = await prisma.user.findFirst({
-    where: { email: 'admin@hms.uz' },
+    where: { email: 'super@hms.uz' },
   });
 
   if (existingAdmin) {
@@ -49,7 +49,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@hms.uz',
+      email: 'super@hms.uz',
       password: hashedPassword,
       fullName: 'Super Admin',
       role: Role.SUPER_ADMIN,
