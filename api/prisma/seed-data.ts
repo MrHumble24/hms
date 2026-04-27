@@ -100,6 +100,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.ENTERPRISE,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Premier 5-star luxury hotel in the heart of Tashkent City',
       uz: 'Toshkent shahri markazidagi besh yulduzli zamonaviy mehmonxona',
@@ -120,6 +121,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.ENTERPRISE,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'International 5-star hotel blending modern comfort with Uzbek hospitality',
       uz: "Zamonaviy qulaylik va o'zbek mehmondo'stligini birlashtirgan besh yulduzli mehmonxona",
@@ -140,6 +142,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.PREMIUM,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Contemporary 5-star hotel in the business district with panoramic city views',
       uz: "Biznes hududida panoramik ko'rinishlarga ega zamonaviy besh yulduzli mehmonxona",
@@ -160,6 +163,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.PREMIUM,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Iconic 5-star hotel on Amir Temur Avenue offering world-class amenities',
       uz: "Amir Temur xiyobonida dunyo miqyosidagi qulayliklarni taklif etuvchi besh yulduzli mehmonxona",
@@ -180,6 +184,7 @@ const HOTELS = [
     stars: 4,
     plan: PlanType.STANDARD,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1551882547-ff43c63fe78d?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Stylish 4-star hotel offering excellent value in central Tashkent',
       uz: "Toshkent markazida ajoyib qulayliklar taklif etuvchi to'rt yulduzli mehmonxona",
@@ -200,6 +205,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.PREMIUM,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Prestigious 5-star hotel in a landmark building near Tashkent city centre',
       uz: "Toshkent shahar markazi yaqinidagi tarixiy binodagi nufuzli besh yulduzli mehmonxona",
@@ -220,6 +226,7 @@ const HOTELS = [
     stars: 4,
     plan: PlanType.STANDARD,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1561501900-3701fa6a0864?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Comfortable 4-star hotel steps from Independence Square',
       uz: "Mustaqillik maydoni yaqinida qulay to'rt yulduzli mehmonxona",
@@ -240,6 +247,7 @@ const HOTELS = [
     stars: 4,
     plan: PlanType.BASIC,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Modern boutique 4-star hotel offering authentic Uzbek hospitality',
       uz: "Haqiqiy o'zbek mehmondo'stligini taqdim etuvchi zamonaviy butik to'rt yulduzli mehmonxona",
@@ -260,6 +268,7 @@ const HOTELS = [
     stars: 4,
     plan: PlanType.BASIC,
     currency: 'UZS',
+    images: ['https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'Historic 4-star Tashkent landmark with modern amenities',
       uz: "Zamonaviy qulayliklarga ega to'rt yulduzli tarixiy Toshkent mehmonxonasi",
@@ -281,6 +290,7 @@ const HOTELS = [
     stars: 5,
     plan: PlanType.PREMIUM,
     currency: 'USD',
+    images: ['https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80'],
     description: {
       en: 'World-class 5-star hospitality by the historic Silk Road city',
       uz: "Ipak Yo'li shahri yonidagi jahon miqyosidagi besh yulduzli mehmonxona",
@@ -483,12 +493,14 @@ const ROOM_TYPE_CONFIGS = [
     name: 'Standard Double',
     basePrice: 850_000,
     amenities: ['WiFi', 'AC', 'TV', 'Safe'],
+    images: ['https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80'],
     description: 'Comfortable standard room with city view',
   },
   {
     name: 'Deluxe King',
     basePrice: 1_400_000,
     amenities: ['WiFi', 'AC', 'TV', 'Safe', 'Mini Bar', 'Bathtub'],
+    images: ['https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'],
     description: 'Spacious deluxe room with premium bedding',
   },
   {
@@ -504,6 +516,7 @@ const ROOM_TYPE_CONFIGS = [
       'Living Room',
       'Lounge Access',
     ],
+    images: ['https://images.unsplash.com/photo-1591088398332-8a77d399ef75?auto=format&fit=crop&w=1200&q=80'],
     description: 'Elegant suite with separate living area',
   },
   {
@@ -520,6 +533,7 @@ const ROOM_TYPE_CONFIGS = [
       'Dining Room',
       'Butler Service',
     ],
+    images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80'],
     description: 'Ultimate luxury suite spanning the top floor',
   },
 ];
